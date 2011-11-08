@@ -1,0 +1,7 @@
+/* Styles for jQuery Label Effect. */
+.labelEffect-orig, .labelEffect-highlight, .labelEffect-shadow {
+	position: absolute;
+	width: 100%; 
+	height: 100%;
+}
+	
