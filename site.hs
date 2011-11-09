@@ -20,10 +20,14 @@ main = hakyll $ do
     match "css/*" $ do
         route   idRoute
         compile compressCssCompiler
+        
+    match "doc/*" $ do
+        route   idRoute
+        compile copyFileCompiler
 
     match "templates/*" $ compile templateCompiler
 
-    match (list ["index.html"]) $ do
+    match (list ["index.html", "portfolio.html", "whereiam.html", "hireme.html"]) $ do
         route   $ setExtension "html"
         compile $ staticPageCompiler
             >>> applyTemplateCompiler "templates/default.html"
