@@ -15,42 +15,52 @@ body {
   padding: 0;
   text-align: center;
 }
+
 a:link {
   color: #60B144;
 }
+
 a:visited {
   color: #60B144;
 }
+
 a:visited:hover,
 a:hover {
   color: #e33;
   text-decoration: none;
 }
+
 h1, h2, h3, h4 {
   font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
 }
+
 h1 {
   font-size: 250%;
   letter-spacing: -0.05em;
 }
+
 h2 {
   color: #cc3333;
   font-size: 190%;
 }
+
 h3 {
   color: #cc3333;
   font-size: 155%;
   margin-top: 1.25em;
   margin-bottom: .75em;
 }
+
 h4 {
   color: #cc3333;
   font-size: 110%;
 }
+
 p {
   margin-top: .25em;
   margin-bottom: 1em;
 }
+
 .more {
   font-style: italic;
 }
@@ -79,14 +89,17 @@ img.no-border {
   padding: 0;
   background: none;
 }
-img.right {
+
+.right {
   float: right;
-  margin-left: 20px;
+  margin-left: 5px;
 }
-img.left {
+
+.left {
   float: left;
-  margin-right: 10px;
+  margin-right: 5px;
 }
+
 #page-wrapper-1 {
   background-image: url(../img/page-columns.png);
   background-position: center;

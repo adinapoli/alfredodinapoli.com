@@ -1,7 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-import Control.Arrow ((>>>))
+import Control.Arrow ((>>>), arr)
 
 import Hakyll
+
+staticPageCompiler = readPageCompiler >>> 
+                     addDefaultFields >>>
+                     arr applySelf
 
 main :: IO ()
 main = hakyll $ do
@@ -19,8 +23,8 @@ main = hakyll $ do
 
     match "templates/*" $ compile templateCompiler
 
-    match (list ["index.rst"]) $ do
+    match (list ["index.html"]) $ do
         route   $ setExtension "html"
-        compile $ pageCompiler
+        compile $ staticPageCompiler
             >>> applyTemplateCompiler "templates/default.html"
             >>> relativizeUrlsCompiler
