@@ -515,4 +515,12 @@ img.no-border {
     margin-right: 5px;
 }
 
-
+.glance-box
+{
+    text-align: center;
+    padding: 5px;
+    font-style: italic;
+    background-color: #f8f0db;
+    border: solid 1px #E8E8E8;
+    box-shadow: 10px 10px 5px #888;
+}
