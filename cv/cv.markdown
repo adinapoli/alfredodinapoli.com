@@ -6,7 +6,7 @@
 Di Napoli, Alfredo  
 (+39) 3409474126  
 alfredo.dinapoli {at} gmail.com  
-www.alfredodinapoli.com  
+Intern at <a href="http://www.mbda-systems.com/">MBDA Italia Spa</a>
 </div>
 
 * **Graduated** in Computer Engineering, **Summa cum Laude**,
