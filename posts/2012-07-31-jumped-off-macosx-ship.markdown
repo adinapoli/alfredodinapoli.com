@@ -1,5 +1,5 @@
 ---
-title: jumped-off
+title: Yes, I am another Mac OS X user that jumped off the ship
 tags: macosx, linux, bodhi
 ---
 
