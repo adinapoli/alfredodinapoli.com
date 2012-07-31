@@ -1,0 +1,161 @@
+% Installing pandoc
+
+These instructions explain how to install pandoc from source.
+Binary packages or ports of pandoc are available for freebsd
+and several linux distributions, so check your package manager.
+There is also a Windows installer.
+
+Quick install
+-------------
+
+1.  Install the [Haskell platform].  This will give you [GHC] and
+the [cabal-install] build tool.
+
+2.  Use `cabal` to install pandoc and its dependencies:
+
+        cabal install pandoc
+
+    This procedure will install the released version of pandoc,
+    which will be downloaded automatically from HackageDB.
+    If you want to install a modified or development version
+    of pandoc instead, switch to the source directory and do
+    as above, but without the 'pandoc':
+
+        cabal install
+
+3.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
+now be able to run `pandoc`:
+
+        pandoc --help
+
+4.  Make sure the `$CABALDIR/share/man/man1` directory is in your `MANPATH`.
+You should now be able to access the `pandoc` man page:
+
+        man pandoc
+
+[GHC]: http://www.haskell.org/ghc/
+[Haskell platform]: http://hackage.haskell.org/platform/
+[cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
+
+Custom install
+--------------
+
+This is a step-by-step procedure that offers maximal control
+over the build and installation.  Most users should use the
+quick install, but this information may be of use to packagers.
+For more details, see the [Cabal User's Guide].
+
+1.  Install dependencies:  in addition to the [Haskell platform],
+you will need [zip-archive], [blaze-html], and [highlighting-kate].
+
+2.  Configure:
+
+        runghc Setup.hs configure --prefix=DIR --bindir=DIR --libdir=DIR \
+          --datadir=DIR --libsubdir=DIR --datasubdir=DIR --docdir=DIR \
+          --htmldir=DIR --program-prefix=PREFIX --program-suffix=SUFFIX \
+          --mandir=DIR --flags=FLAGSPEC
+
+    All of the options have sensible defaults that can be overridden
+    as needed.
+
+    `FLAGSPEC` is a list of Cabal configuration flags, optionally
+    preceded by a `-` (to force the flag to `false`), and separated
+    by spaces.  Pandoc's flags include:
+
+    - `executable`: build the pandoc executable (default yes)
+    - `library`: build the pandoc library (default yes)
+
+    So, for example,
+
+        --flags="-executable"
+
+    tells Cabal to build the library but not the executables,
+    and to compile with syntax highlighting support.
+
+3.  Build:
+
+        runghc Setup.hs build
+
+4.  Build API documentation:
+
+        runghc Setup.hs haddock --html-location=URL --hyperlink-source
+
+5.  Copy the files:
+
+        runghc Setup.hs copy --destdir=PATH
+
+    The default destdir is `/`.
+
+6.  Register pandoc as a GHC package:
+
+        runghc Setup.hs register
+
+    Package managers may want to use the `--gen-script` option to
+    generate a script that can be run to register the package at
+    install time.
+
+Creating a relocatable Windows binary
+-------------------------------------
+
+On Windows it is possible to compile pandoc such that it
+(and its data files) are "relocatable."  You can put the relocatable
+binary in any directory (even on a USB drive), and it will look for its
+data files there.
+
+    cabal install --flags="embed_data_files" citeproc-hs
+    cabal install --flags="executable -library" --datasubdir=
+
+You can find `pandoc.exe` in `dist/build/pandoc`.  Copy this wherever
+you please, and copy the following data files to the same place:
+
+    README
+    COPYRIGHT
+    COPYING
+    reference.odt
+    reference.docx
+    epub.css
+    default.csl
+    templates/
+    data/
+    s5/
+    slidy/
+    slideous/
+    dzslides/
+    pcre-license.txt
+    pcre3.dll
+
+This is essentially what the binary installer does.
+
+[zip-archive]: http://hackage.haskell.org/package/zip-archive
+[highlighting-kate]: http://hackage.haskell.org/package/highlighting-kate
+[blaze-html]: http://hackage.haskell.org/package/blaze-html
+[Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
+
+
+Running tests
+-------------
+
+Pandoc comes with an automated test suite integrated to cabal.
+To enable the tests, compile pandoc with the `tests` flag:
+
+    cabal install -ftests
+
+Note: If you obtained the source via git, you should first do
+
+    git submodule update --init templates
+
+to populate the templates subdirectory.  (You can skip this step
+if you obtained the source from a release tarball.)
+
+To run the tests:
+
+    cabal test
+
+If you add a new feature to pandoc, please add tests as well, following
+the pattern of the existing tests. The test suite code is in
+`src/test-pandoc.hs`. If you are adding a new reader or writer, it is
+probably easiest to add some data files to the `tests` directory, and
+modify `src/Tests/Old.hs`. Otherwise, it is better to modify the module
+under the `src/Tests` hierarchy corresponding to the pandoc module you
+are changing.
+

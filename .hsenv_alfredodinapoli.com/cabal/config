@@ -1,0 +1,9 @@
+remote-repo: hackage.haskell.org:http://hackage.haskell.org/packages/archive
+remote-repo-cache: /root/.cabal/packages
+logs-dir: /root/programming/haskell/alfredodinapoli.com/.hsenv_alfredodinapoli.com/cabal/logs
+world-file: /root/programming/haskell/alfredodinapoli.com/.hsenv_alfredodinapoli.com/cabal/world
+package-db: /root/programming/haskell/alfredodinapoli.com/.hsenv_alfredodinapoli.com/ghc_pkg_db
+build-summary: /root/programming/haskell/alfredodinapoli.com/.hsenv_alfredodinapoli.com/cabal/logs/build.log
+remote-build-reporting: anonymous
+install-dirs user
+  prefix: /root/programming/haskell/alfredodinapoli.com/.hsenv_alfredodinapoli.com/cabal

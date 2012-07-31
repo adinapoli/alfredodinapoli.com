@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Control.Arrow ((>>>), arr, (>>^))
+import Data.Monoid (mempty)
 
 import Hakyll
-import Hakyll.Core.Routes (gsubRoute)
 
 staticPageCompiler = readPageCompiler >>>
                      addDefaultFields >>>
@@ -10,6 +10,24 @@ staticPageCompiler = readPageCompiler >>>
 
 rootRoute = gsubRoute "content/" (const "")
 cvRoute = gsubRoute "cv/" (const "") `composeRoutes` setExtension "html"
+
+renderTagList' :: Compiler (Tags String) String
+renderTagList' = renderTagList tagIdentifier
+
+tagIdentifier :: String -> Identifier (Page String)
+tagIdentifier = fromCapture "tags/*"
+
+makeTagList :: String
+            -> [Page String]
+            -> Compiler () (Page String)
+makeTagList tag posts =
+    constA posts
+        >>> pageListCompiler recentFirst "templates/postitem.html"
+        >>> arr (copyBodyToField "posts" . fromBody)
+        >>> arr (setField "title" ("Posts tagged " ++ tag))
+        >>> applyTemplateCompiler "templates/posts.html"
+        >>> applyTemplateCompiler "templates/default.html"
+        >>> relativizeUrlsCompiler
 
 main :: IO ()
 main = hakyll $ do
@@ -30,16 +48,47 @@ main = hakyll $ do
     route   idRoute
     compile copyFileCompiler
 
+  -- Render each and every post
+  match "posts/*" $ do
+        route $ setExtension ".html"
+        compile $ pageCompiler
+            >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
+            >>> renderTagsField "prettytags" (fromCapture "tags/*")
+            >>> applyTemplateCompiler "templates/post.html"
+            >>> applyTemplateCompiler "templates/default.html"
+            >>> relativizeUrlsCompiler
+
+   -- Post list
+  match "posts.html" $ route idRoute
+  create "posts.html" $ constA mempty
+      >>> arr (setField "title" "Posts")
+      >>> setFieldPageList recentFirst
+              "templates/postitem.html" "posts" "posts/*"
+      >>> applyTemplateCompiler "templates/posts.html"
+      >>> applyTemplateCompiler "templates/default.html"
+      >>> relativizeUrlsCompiler
+
+  -- Tags
+  create "tags" $
+      requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
+
+
+  -- Add a tag list compiler for every tag
+  match "tags/*" $ route $ setExtension ".html"
+  metaCompile $ require_ "tags"
+      >>> arr tagsMap
+      >>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))
+
   match "templates/*" $ compile templateCompiler
 
   match "cv/*" $ do
-    route $ cvRoute
+    route cvRoute
     compile $ pageCompiler
       >>> applyTemplateCompiler "templates/default.html"
       >>> relativizeUrlsCompiler
 
   match "content/*" $ do
-    route   $ rootRoute
+    route rootRoute
     compile $ staticPageCompiler
       >>> applyTemplateCompiler "templates/default.html"
       >>> relativizeUrlsCompiler
