@@ -34,4 +34,4 @@ def publish_to_gh_pages():
     push("gh_pages")
 
 def push(branch):
-    local("git push origin %" % branch)
+    local("git push origin %s" % branch)
