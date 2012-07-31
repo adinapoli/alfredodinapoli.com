@@ -11,7 +11,7 @@ def publish(comment="Site Update"):
 
     create_tmp_folder()
     copy_site()
-    publish_to_gh_pages()
+    publish_to_gh_pages(comment)
 
 def update_site():
     local("ghc site.hs && ./site build")
@@ -26,8 +26,7 @@ def copy_site():
     local("cp -r _site/* ../tmp/")
 
 
-def publish_to_gh_pages():
-    local("cd .. && cd gh-pages")
+def publish_to_gh_pages(comment="Site Update"):
     local("git checkout gh-pages") # Enforce gh_pages branch switch
     local("cp -r ../tmp .")
     commit(comment)
