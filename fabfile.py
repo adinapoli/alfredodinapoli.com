@@ -23,11 +23,11 @@ def create_tmp_folder():
     local("mkdir -p ../tmp")
 
 def copy_site():
-    local("cp _site/* ../tmp/")
+    local("cp -r _site/* ../tmp/")
 
 
 def publish_to_gh_pages():
-    local("cd ..&& cd gh_pages")
+    local("cd .. && cd gh_pages")
     local("git checkout gh_pages") # Enforce gh_pages branch switch
     local("cp -r ../tmp .")
     commit(comment)
