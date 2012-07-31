@@ -64,7 +64,8 @@ searching for the best (here read, the most compatible) distribution for my
 MacBook 5,5. Being a Zen guy myself, Bodhi incarnates (no pun intended) my
 idea of software: lean, barebone, fast. You decide what to add. You pay for
 what you want to include. This philosophy is witnessed by the size of the
-.ISO, only 400MB! Bodhi ships with Enlightenment, a Desktop Manager that used
+.ISO, only 526MB! Bodhi ships with [Enlightenment](http://www.enlightenment.org/),
+a Desktop Manager that used
 to be bugged as hell. Fortunately, it used, because E17 seems to be a solid
 manager, I suspect thanks to the wonderful job of the Bodhi team. Now my
 system is fast, lean, responsive, and best of all, I can bend it to my needs.
