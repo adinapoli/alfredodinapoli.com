@@ -27,11 +27,11 @@ def copy_site():
 
 
 def publish_to_gh_pages():
-    local("cd .. && cd gh_pages")
-    local("git checkout gh_pages") # Enforce gh_pages branch switch
+    local("cd .. && cd gh-pages")
+    local("git checkout gh-pages") # Enforce gh_pages branch switch
     local("cp -r ../tmp .")
     commit(comment)
-    push("gh_pages")
+    push("gh-pages")
 
 def push(branch):
     local("git push origin %s" % branch)
