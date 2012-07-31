@@ -4,4 +4,5 @@ site.hi
 _cache
 _site
 .hsenv/
+.hsenv_master/
 .hsenv_alfredodinapoli.com/

@@ -15,7 +15,7 @@ MacBook: back in those days, Apple computers shipped with Tiger or Panther,
 two great OS. My computer was blazing fast, responsive and lean. I was still
 happy with Leopard, even though I noticed a small performance deficit respect to
 its old brothers. I bought a MacBook Pro late in 2009, currently equipped
-with a Core 2 Duo, an NVIDIA GeForce 9400M and 8 GB or RAM.
+with a _Core 2 Duo_, an _NVIDIA GeForce 9400M_  and _8 GB or RAM_.
 
 Unfortunately, at least in my opinion, Mac OS X bloated release after release.
 The point is that Apple is also a hardware seller, so they ship a product
