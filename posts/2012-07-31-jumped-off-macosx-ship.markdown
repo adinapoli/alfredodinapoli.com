@@ -15,11 +15,11 @@ MacBook: back in those days, Apple computers shipped with Tiger or Panther,
 two great OS. My computer was blazing fast, responsive and lean. I was still
 happy with Leopard, even though I noticed a small performance deficit respect to
 its old brothers. I bought a MacBook Pro late in 2009, currently equipped
-with a _Core 2 Duo_, an _NVIDIA GeForce 9400M_  and _8 GB or RAM_.
+with a _Core 2 Duo_, an _NVIDIA GeForce 9400M_  and _8 GB of RAM_.
 
 Unfortunately, at least in my opinion, Mac OS X bloated release after release.
 The point is that Apple is also a hardware seller, so they ship a product
-that is usually intended to run well on the latest hardware, without worrying to
+that is usually intended to run well on the latest hardware, without worrying too
 much about older hardware. I experienced the same behavior with my iPhone 3G:
 it was blazing fast just released, pretty slow after each update of iOS. I'm
 not criticing Apple behaviour, I understand that market is governed by rules, but

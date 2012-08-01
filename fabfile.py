@@ -1,4 +1,4 @@
-from fabric.api import local
+from fabric.api import local, lcd
 
 
 def publish(comment="Site Update"):
@@ -27,10 +27,11 @@ def copy_site():
 
 
 def publish_to_gh_pages(comment="Site Update"):
-    local("git checkout gh-pages") # Enforce gh_pages branch switch
-    local("cp -r ../tmp .")
-    commit(comment)
-    push("gh-pages")
+    with lcd("../gh-pages"):
+        local("git checkout gh-pages") # Enforce gh_pages branch switch
+        local("cp -r ../tmp .")
+        commit(comment)
+        push("gh-pages")
 
 def push(branch):
     local("git push origin %s" % branch)
