@@ -28,8 +28,8 @@ def copy_site():
 
 def publish_to_gh_pages(comment="Site Update"):
     with lcd("../gh-pages"):
-        local("git checkout gh-pages") # Enforce gh_pages branch switch
-        local("cp -r ../tmp .")
+        local("rm -rf *")
+        local("cp -r ../tmp/* .")
         commit(comment)
         push("gh-pages")
 
