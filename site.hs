@@ -76,6 +76,9 @@ main = hakyll $ do
   create "tags" $
       requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
 
+  -- Render RSS feed
+  match "rss.xml" $ route idRoute
+  create "rss.xml" $ requireAll_ "posts/*" >>> renderRss feedConfiguration
 
   -- Add a tag list compiler for every tag
   match "tags/*" $ route $ setExtension ".html"
@@ -96,3 +99,12 @@ main = hakyll $ do
     compile $ staticPageCompiler
       >>> applyTemplateCompiler "templates/default.html"
       >>> relativizeUrlsCompiler
+
+feedConfiguration :: FeedConfiguration
+feedConfiguration = FeedConfiguration
+    { feedTitle       = "Alfredo Di Napoli's Tech Blog"
+    , feedDescription = "Personal blog of Alfredo Di Napoli"
+    , feedAuthorName  = "Alfredo Di Napoli"
+    , feedAuthorEmail = "alfredo.dinapoli@gmail.com"
+    , feedRoot        = "http://www.alfredodinapoli.com"
+    }

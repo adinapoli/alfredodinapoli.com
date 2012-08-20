@@ -80,8 +80,7 @@ dl dd {
   margin-left: 1.5em;
 }
 img {
-  background-color: white;
-  border: 1px solid #eaeadc;
+  border: 0px solid #eaeadc;
   padding: 2px;
 }
 img.no-border {
