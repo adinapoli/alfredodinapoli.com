@@ -31,9 +31,7 @@ Intern at <a href="http://www.mbda-systems.com/">MBDA Italia Spa</a>
 
 ## Achievements and Rewards
 
-* **Attended British School**'s course for **CAE** preparation (Certificate of
-  Advanced English). Estimated achievement date for CAE in July, 2012.
-* **PET** certificate (Preliminary English Test, corresponding to the B1 level).
+* **CAE** certificate (Certificate of Advanced English, corresponding to the C1 level).
 * **Won** Laziodisu Scholarship for **five years in a row**.
 
 ## What I believe in
