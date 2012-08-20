@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Alfredo Di Napoli's Tech Blog</title>
+        <link>http://www.alfredodinapoli.com</link>
+        <description><![CDATA[Personal blog of Alfredo Di Napoli]]></description>
+        <atom:link href="http://www.alfredodinapoli.com/rss.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Tue, 31 Jul 2012 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>Yes, I am another Mac OS X user that jumped off the ship</title>
+    <link>http://www.alfredodinapoli.com/posts/2012-07-31-jumped-off-macosx-ship.html</link>
+    <description><![CDATA[$description$]]></description>
+    <pubDate>Tue, 31 Jul 2012 00:00:00 UT</pubDate>
+    <guid>http://www.alfredodinapoli.com/posts/2012-07-31-jumped-off-macosx-ship.html</guid>
+</item>
+
+    </channel> 
+</rss>
