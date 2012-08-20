@@ -3,6 +3,7 @@ site.o
 site.hi
 _cache
 _site
+tmp
 .hsenv/
 .hsenv_master/
 .hsenv_alfredodinapoli.com/

@@ -1,14 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
-import Control.Arrow ((>>>), arr, (>>^))
+import Control.Arrow ((>>>), arr)
 import Data.Monoid (mempty)
 
 import Hakyll
 
+staticPageCompiler :: Compiler Resource (Page String)
 staticPageCompiler = readPageCompiler >>>
                      addDefaultFields >>>
                      arr applySelf
 
+rootRoute :: Routes
 rootRoute = gsubRoute "content/" (const "")
+
+cvRoute :: Routes
 cvRoute = gsubRoute "cv/" (const "") `composeRoutes` setExtension "html"
 
 renderTagList' :: Compiler (Tags String) String
