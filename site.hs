@@ -59,7 +59,7 @@ main = hakyll $ do
             >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
             >>> renderTagsField "prettytags" (fromCapture "tags/*")
             >>> applyTemplateCompiler "templates/post.html"
-            >>> applyTemplateCompiler "templates/default.html"
+            >>> applyTemplateCompiler "templates/default_nosidebar.html"
             >>> relativizeUrlsCompiler
 
    -- Post list

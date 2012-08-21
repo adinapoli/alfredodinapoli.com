@@ -104,6 +104,11 @@ img.no-border {
   background-position: center;
   background-repeat: repeat-y;
 }
+#page-wrapper-1-post{
+  background-image: url(../img/page-post.png);
+  background-position: center;
+  background-repeat: repeat-y;
+}
 #page-wrapper-2 {
   background-image: url(../img/page-shadow-top.png);
   background-position: top center;
@@ -119,6 +124,18 @@ img.no-border {
   margin-right: auto;
   text-align: left;
 }
+
+#page-post {
+  background-color: white;        
+  background-image: url(../img/page-post.png);
+  background-position: center;
+  background-repeat: repeat-y;
+  width: 768px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
 #header {
   background-color: #f8f0db;
   height: 85px;
@@ -178,15 +195,32 @@ img.no-border {
 #main {
   width: 100%;
 }
+
 #content-wrapper {
   float: left;
   width: 100%;
   margin-right: -600px;
 }
+
 #content {
   margin-right: 256px;
   padding: 24px;
 }
+
+
+#content-wrapper-post{
+  float: left;
+  width: 100%;
+  margin-right: -600px;
+}
+
+#content-post{
+  text-align: justify;
+  margin-right: 24px;
+  padding: 24px;
+}
+
+
 #content .first {
   margin-top: 0px;
 }
