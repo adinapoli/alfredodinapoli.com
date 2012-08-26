@@ -9,10 +9,12 @@ def publish(comment="Site Update"):
     push("master")
 
     sync_with_rsync()
+    publish_to_bitbucket()
 
 
 def sync_with_rsync():
     local("rsync -r _site/* ~/Dropbox/Apps/Pancake.io/")
+    local("rsync -r _site/* ~/github/adinapoli/")
     local("rsync -r _site/* ~/Dropbox/Apps/KISSr/adinapoli.kissr.com/")
 
 def update_site():
@@ -27,6 +29,10 @@ def create_tmp_folder():
 def copy_site():
     local("cp -r _site/* ../tmp/")
 
+def publish_to_bitbucket(comment="Site Update"):
+    with lcd("~/github/adinapoli"):
+        commit(comment)
+        push("master")
 
 def publish_to_gh_pages(comment="Site Update"):
     with lcd("../gh-pages"):
