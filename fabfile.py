@@ -14,7 +14,7 @@ def publish(comment="Site Update"):
 
 def sync_with_rsync():
     local("rsync -r _site/* ~/Dropbox/Apps/Pancake.io/")
-    local("rsync -r _site/* ~/github/adinapoli/")
+    local("rsync -r _site/* ~/github/adinapoli.bitbucket.org/")
     local("rsync -r _site/* ~/Dropbox/Apps/KISSr/adinapoli.kissr.com/")
 
 def update_site():
@@ -30,7 +30,7 @@ def copy_site():
     local("cp -r _site/* ../tmp/")
 
 def publish_to_bitbucket(comment="Site Update"):
-    with lcd("~/github/adinapoli"):
+    with lcd("~/github/adinapoli.bitbucket.org"):
         commit(comment)
         push("master")
 
