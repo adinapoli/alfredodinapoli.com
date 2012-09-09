@@ -4,16 +4,18 @@
    marroncino = #a2825c
 */
 
+html{
+  font-family:'Lucida Sans', 'Helvetica', 'Arial', sans-serif;
+  font-size:14px;
+  text-align:left;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  /*background-color: #5a7b3e;*/
   background-image: url(../img/bg_fishes.png);
   background-position: top center;
   background-repeat: repeat;
-  font-family: Verdana, Helvetica, Arial, sans-serif;
-  font-size: 80%;
-  margin: 0;
-  padding: 0;
-  text-align: center;
 }
 
 a:link {
@@ -31,7 +33,7 @@ a:hover {
 }
 
 h1, h2, h3, h4 {
-  font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
+  font-family:'Lucida Sans', 'Helvetica', 'Arial', sans-serif;
 }
 
 h1 {
@@ -65,7 +67,7 @@ p {
   font-style: italic;
 }
 .more big {
-  font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
+  font-family:'Lucida Sans', 'Helvetica', 'Arial', sans-serif;
   font-weight: bold;
 }
 .clear {
@@ -149,7 +151,7 @@ img.no-border {
 }
 #navigation {
   font-size: 140%;
-  font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
+  font-family:'Lucida Sans', 'Helvetica', 'Arial', sans-serif;
   bottom: 22px;
   position: absolute;
   right: 20px;
@@ -179,7 +181,6 @@ img.no-border {
   border-bottom: 0px solid #a2dd91;
   padding: 24px;
   padding-right: 300px;
-  /*padding-bottom: 161px;*/
   height: 358px;
 }
 
@@ -215,7 +216,6 @@ img.no-border {
 }
 
 #content-post{
-  text-align: justify;
   margin-right: 24px;
   padding: 24px;
 }
@@ -556,4 +556,11 @@ img.no-border {
     background-color: #f8f0db;
     border: solid 1px #E8E8E8;
     box-shadow: 10px 10px 5px #888;
+}
+
+.code
+{
+    padding: 5px;
+    font-style: italic;
+    border: solid 1px #888;
 }
