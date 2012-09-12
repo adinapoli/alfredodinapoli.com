@@ -27,9 +27,9 @@ let solver =
 let _ = Printf.printf "%d" solver
 ~~~~~
 
-It's nice also fast:
+It's nice and also fast:
 
-~~~~~{.shell}
+~~~~~
 232792560
 ./euler5  0,25s user 0,01s system 97% cpu 0,275 total
 
@@ -50,7 +50,7 @@ main = print $ solver
 
 Then I executed it:
 
-~~~~~{.shell}
+~~~~~
 Just 232792560
 ./euler5  0,84s user 0,05s system 95% cpu 0,934 total
 ~~~~~
@@ -75,8 +75,7 @@ main = print $ solver 20 [20,19..2]
 I've also added the signature to aid the compiler with type inference.
 This version is slightly faster:
 
-
-~~~~~{.shell}
+~~~~~
 232792560
 ./euler5  0,62s user 0,11s system 96% cpu 0,761 total
 ~~~~~
@@ -85,11 +84,14 @@ But still slower than OCaml's version. I was beginning to struggle with
 bang pattern and seq wizardry when I notices a warning by **ghc-mod**:
 
 <div align="center" markdown="1">
+<br><br>
 Defaulting the following constraint(s) to type `Integer'
+<br><br>
+<br><br>
 </div>
 
 It was referring to the last list, the one in the **main** function. So
-I thought "_Let's restrict it's type to Int. After all, Integer allows
+I thought "_Let's restrict it's type to Int. After all, the Integer type allows
 numbers to be very huge, and you pay for this feature. Furthermore, I'm
 sure that my solution will be in the Int type range_". This is the
 final version:
@@ -108,7 +110,7 @@ main = print $ solver 20 ([20,19..2] :: [Int])
 With my huge surprise, this runs as fast as the OCaml version, paying 
 almost no overhead for the (little) lazy list:
 
-~~~~~{.shell}
+~~~~~
 232792560
 ./euler5  0,28s user 0,02s system 99% cpu 0,305 total
 ~~~~~
