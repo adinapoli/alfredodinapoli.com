@@ -100,6 +100,12 @@ main = hakyll $ do
       >>> applyTemplateCompiler "templates/default.html"
       >>> relativizeUrlsCompiler
 
+  match "cv_eu/*" $ do
+    route rootRoute
+    compile $ staticPageCompiler
+      >>> applyTemplateCompiler "templates/cv_eu.html"
+      >>> relativizeUrlsCompiler
+
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
     { feedTitle       = "Alfredo Di Napoli's Tech Blog"
