@@ -13,9 +13,9 @@ def publish(comment="Site Update"):
 
 
 def sync_with_rsync():
-    local("rsync -r _site/* ~/Dropbox/Apps/Pancake.io/")
+    #local("rsync -r _site/* ~/Dropbox/Apps/Pancake.io/")
     local("rsync -r _site/* ~/github/adinapoli.bitbucket.org/")
-    local("rsync -r _site/* ~/Dropbox/Apps/KISSr/adinapoli.kissr.com/")
+    #local("rsync -r _site/* ~/Dropbox/Apps/KISSr/adinapoli.kissr.com/")
 
 def update_site():
     local("ghc site.hs && ./site build")
