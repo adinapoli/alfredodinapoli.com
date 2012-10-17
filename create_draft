@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+#Create a new draft article.
+topic=$1
+today=`date +"%Y-%m-%d"`
+
+filename="drafts/"
+filename=$filename$today"-"
+filename=$filename$topic
+filename=$filename".markdown"
+
+touch $filename
+echo "Generated new article at" $filename
+
+
