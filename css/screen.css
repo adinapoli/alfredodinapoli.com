@@ -5,11 +5,11 @@
 */
 
 html{
-  font-family:'Lucida Sans', 'Helvetica', 'Arial', sans-serif;
-  font-size:14px;
-  text-align:left;
-  margin: 0;
-  padding: 0;
+    font-family: 'ABeeZee', sans-serif;
+    font-size:14px;
+    text-align:left;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -33,7 +33,7 @@ a:hover {
 }
 
 h1, h2, h3, h4 {
-  font-family:'Lucida Sans', 'Helvetica', 'Arial', sans-serif;
+    font-family: 'ABeeZee', sans-serif;
 }
 
 h1 {
@@ -151,7 +151,7 @@ img.no-border {
 }
 #navigation {
   font-size: 140%;
-  font-family:'Lucida Sans', 'Helvetica', 'Arial', sans-serif;
+  font-family:'ABeeZee', sans-serif;
   bottom: 22px;
   position: absolute;
   right: 20px;
@@ -313,7 +313,7 @@ img.no-border {
 #twitroster_container { position: relative; height: 500px; overflow: hidden; }
 #twitroster_container img.fade { position: absolute; top: 450px; left: 0; z-index: 1000; border: 0; background: none; behavior: url(/javascripts/iepngfix.htc); }
 
-#twitroster ul { list-style: none; margin: 0 0 1em 0; padding: 0; font-size: 10px; line-height: 1.4; }
+#twitroster ul { list-style: none; margin: 0 0 1em 0; padding: 0; font-size: 14px; line-height: 1.4; }
 #twitroster li { margin-bottom: 1em; position: relative; width: 100%; clear: both; float: left; border-bottom: 1px solid #e9e7d2; padding-bottom: 1em; }
 #twitroster .avatar { float: left; display: inline; margin-left: 4px; }
 #twitroster .avatar img { border: 1px solid #7cac6b; padding: 0; width: 48px; height: 48px; }
