@@ -11,5 +11,6 @@ filename=$filename".markdown"
 
 touch $filename
 echo "Generated new article at" $filename
+less  drafts/blueprint.markdown > $filename
 
 
