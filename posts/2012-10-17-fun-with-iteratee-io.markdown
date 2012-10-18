@@ -78,7 +78,7 @@ main = do
             (c:"") -> do
                 cnt <- E.run $ EB.enumFile fname ==<< countCharBS c
                 print cnt
-            _ -> print "I need a single char to precess."
+            _ -> print "I need a single char to process."
       _ -> print "Error in accessing file."
 ```
 
@@ -143,7 +143,7 @@ CC?-?BAAB?E:B@@A7A?5CCBBBB@B?ABB?B@BB=B-BB=?####################################
 ```
 
 As you can see, we got a entire "good" line, as well as several "bad" lines
-we would like to filter. With ```sed``` we can obtain a clean file in three
+we would like to filter. With ```sed``` we can obtain a clean file in four
 passes:
 
 ```
