@@ -99,16 +99,16 @@ genString g = do
 
 
 ------------------------------------------------------------------------------
-writeCorpus :: FilePath -> IO [()]
+writeCorpus :: FilePath -> IO ()
 writeCorpus file = withFile file WriteMode $ \h -> do
   let size = 100000
   _ <- withSystemRandom $ \gen ->
-      replicateM size $ do
+      replicateM_ size $ do
         text <- genString gen :: IO B.ByteString
         CB.hPutStrLn h text
-  return [()]
+  return ()
 
-main :: IO [()]
+main :: IO ()
 main =  writeCorpus "test.txt"
 ```
 
