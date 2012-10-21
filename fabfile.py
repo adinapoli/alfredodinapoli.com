@@ -31,6 +31,7 @@ def copy_site():
 
 def publish_to_bitbucket(comment="Site Update"):
     with lcd("~/github/adinapoli.bitbucket.org"):
+        local("git pull")
         commit(comment)
         push("master")
 

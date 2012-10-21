@@ -63,7 +63,6 @@ and the fact [Bos](http://www.serpentine.com/blog/) was the author was a
 guarantee. After a bit of struggling I ended up with the following code:
 
 ```Haskell
-import qualified Data.Text as T
 import System.Random.MWC
 import Control.Monad
 import Control.Monad.Primitive
@@ -81,13 +80,11 @@ c2w8 = fromIntegral . fromEnum
 ------------------------------------------------------------------------------
 charRangeStart :: Word8
 charRangeStart = c2w8 'a'
-{-# INLINE charRangeStart #-}
 
 
 ------------------------------------------------------------------------------
 charRangeEnd :: Word8
 charRangeEnd = c2w8 'z'
-{-# INLINE charRangeEnd #-}
 
 
 ------------------------------------------------------------------------------
@@ -102,14 +99,14 @@ genString g = do
 writeCorpus :: FilePath -> IO ()
 writeCorpus file = withFile file WriteMode $ \h -> do
   let size = 100000
-  _ <- withSystemRandom $ \gen ->
+  withSystemRandom $ \gen ->
       replicateM_ size $ do
         text <- genString gen :: IO B.ByteString
         CB.hPutStrLn h text
-  return ()
 
 main :: IO ()
 main =  writeCorpus "test.txt"
+
 ```
 
 The are a couple of interesting points:
@@ -117,8 +114,7 @@ The are a couple of interesting points:
 * As stated inside the docs ```withSystemRandom``` _is a somewhat
   expensive function, and is intended to be called only occasionally (e.g.
   once per thread). You should use the ```Gen``` it creates to generate
-  many random numbers_). This explains we have that weird monadic binding
-  that binds the result of ```withSystemRandom``` to ```_```: what we are
+  many random numbers_). What we are
   doing is confining the ```Gen``` generation is the "inside loop". This
   guarantee that we get a brand new ```Gen``` to pass to each invocation
   of ```genString```.
@@ -127,9 +123,15 @@ The are a couple of interesting points:
   [MissingH](http://hackage.haskell.org/package/MissingH-1.1.1.0)
   library from John Goerzen. We need this because ```uniformR``` expects a type
   which is instance of ```Variate```, which is defined for ```Word8``` but
-  not for ```Char```. Last but not least due to the fact I wanted to avoid
-  calling ```c2w8``` at each iteration, we can speed things up to inline
-  both ```charRangeStart``` and ```charRangeEnd```.
+  not for ```Char```.
+
+* As stated on Reddit and in the comments below, ```unfoldrN``` would have
+  been a great alternative to ```replicateM``` to build our random string.
+  Unfortunately, the signature of ```unfoldrN``` reveals a pure nature:
+  ```unfoldr :: (a -> Maybe (Word8, a)) -> a -> ByteString```, whereas
+  ```uniformR``` returns a monadic computation. In my opinion, albeit 
+  slower, ```replicateM``` allows the creation of a new string without any
+  visual clutter, keeping our code clean.
 
 Not only is our code cleaner, but is also a great deal faster! On my machine
 generating 10000 words takes more or less *half a second*!
