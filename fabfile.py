@@ -5,7 +5,7 @@ def publish(comment="Site Update"):
     Invoke this to publish everything.
     """
     update_site()
-    commit(comment)
+    #commit(comment)
     push("master")
 
     sync_with_rsync()
@@ -13,9 +13,8 @@ def publish(comment="Site Update"):
 
 
 def sync_with_rsync():
-    #local("rsync -r _site/* ~/Dropbox/Apps/Pancake.io/")
     local("rsync -r _site/* ~/github/adinapoli.bitbucket.org/")
-    #local("rsync -r _site/* ~/Dropbox/Apps/KISSr/adinapoli.kissr.com/")
+    local("rsync -avzr -e ssh --rsync-path=bin/rsync _site/* adinapoli@188.121.46.128:/home/content/24/10017624/html/")
 
 def update_site():
     local("ghc site.hs && ./site build")
