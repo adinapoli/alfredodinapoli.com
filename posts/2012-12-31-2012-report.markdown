@@ -1,0 +1,44 @@
+---
+title: 2012 Report
+description: A report of this closing year
+tags: self
+---
+
+##2012 Report
+2012 has been a big deal for me:
+
+* On May I graduated, taking my master degree
+  in computer science after 5 years of hard work. 
+
+* On July, I've successfully passed the Cambridge exam for
+  the CAE certificate. This means I now have the C1 level in English.
+
+* On June I started my first work. I landed an internship at [MBDA](http://www.mbda-systems.com/).
+
+* I started contributing on my first Haskell open source project, [Snap](http://snapframework.com/).
+  Working on another, high-regarded project has been a wonderful experience,
+  I've learned a lot and I had the satisfaction to see the result of my work
+  included in a new release.
+
+* On November, I landed a job on functional programming (Scala to be precise)
+  at [Cake Solutions](http://cakesolutions.net).
+
+##What I want from 2013
+
+* A better understanding of Haskell. I'm on the right track, but I want to
+  make the jump into the advanced world.
+
+* Slightly related to the first point, I want to build myself a small algebra
+  background, especially in the category theory. I will help me to sharpen my
+  Haskell's skills as well.
+
+* I want to submit at least a tiny patch to GHC, because I want to be a part
+  of the community and do my part.
+
+* I want to continue improving Snap and helping Doug and the other outstanding
+  devs to make it better.
+
+I will be a hard path to take, but I think it will be rewarding.
+Happy new year everyone,
+
+Alfredo
