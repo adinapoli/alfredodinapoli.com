@@ -36,6 +36,10 @@ makeTagList tag posts =
 main :: IO ()
 main = hakyll $ do
 
+  match "img/*/*" $ do
+    route   idRoute
+    compile copyFileCompiler
+
   match "img/*" $ do
     route   idRoute
     compile copyFileCompiler
