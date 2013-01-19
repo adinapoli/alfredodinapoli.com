@@ -54,7 +54,7 @@ the problem), but no more news feed bringing me back to my duties!
 Configuring Redirector can be tricky, but this revealed to work:
 
 ```
-Match (RegExp): ^https://github\.com
+Match (RegExp): ^https://github\.com/$
 Substitution (RegExp): .*
 Replacement: https://github.com/adinapoli/
 ```
