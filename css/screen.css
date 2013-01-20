@@ -107,7 +107,7 @@ img.no-border {
   background-repeat: repeat-y;
 }
 #page-wrapper-1-post{
-  background-image: url(../img/page-post.png);
+  background-image: url(../img/page-columns-post.png);
   background-position: center;
   background-repeat: repeat-y;
 }
@@ -129,7 +129,7 @@ img.no-border {
 
 #page-post {
   background-color: white;        
-  background-image: url(../img/page-post.png);
+  background-image: url(../img/page-columns-post.png);
   background-position: center;
   background-repeat: repeat-y;
   width: 768px;

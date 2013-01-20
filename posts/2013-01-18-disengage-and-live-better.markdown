@@ -53,7 +53,7 @@ this way, I can still see the blue dot (but I can mark all notification as read 
 the problem), but no more news feed bringing me back to my duties!
 Configuring Redirector can be tricky, but this revealed to work:
 
-```
+```Shell
 Match (RegExp): ^https://github\.com/$
 Substitution (RegExp): .*
 Replacement: https://github.com/adinapoli/
