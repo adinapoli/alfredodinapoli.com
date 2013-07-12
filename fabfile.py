@@ -15,7 +15,7 @@ def sync_with_rsync():
     local("rsync -avzr -e ssh --rsync-path=bin/rsync _site/* adinapoli@188.121.46.128:/home/content/24/10017624/html/")
 
 def update_site():
-    local("ghc site.hs && ./site build")
+    local("./site build")
 
 def commit(comment):
     local("git add . && git commit -m \"%s\"" % comment)
