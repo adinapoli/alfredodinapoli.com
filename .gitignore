@@ -6,6 +6,7 @@ _site
 tmp
 *.log
 *.pyc
+dist/*
 .hsenv/
 .hsenv_master/
 .hsenv_alfredodinapoli.com/
