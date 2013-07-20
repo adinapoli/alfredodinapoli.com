@@ -6,19 +6,21 @@ tags: haskell, fp
 
 ## Slick file download with Haskell
 
-Lately I've submitted a [patch]() to Hsenv featuring the ability
-to download a file over HTTP without external tools (e.g. curl),
-but using nothing more than awesome Haskell. I've posted the
-cool snippet on Reddit, and someone asked for a version with a
+Lately I've submitted a [patch](https://github.com/tmhedberg/hsenv/pull/32)
+to Hsenv featuring the ability to download a file over HTTP without
+external tools (e.g. curl), but using nothing more than awesome Haskell.
+I've posted the cool snippet on Reddit, and someone asked for a version with a
 progress bar, similar to what have been implemented in Python here:
 
-[Download a file with Python - SO]()
+[Download a file with Python - SO](http://stackoverflow.com/a/22776)
 
 I came up with a nice version which does rudimental error handling
 over HTTP response codes, which implements a progress bar and that
 has a constant memory usage, because we still retain all the benefits
-of programming with streaming libraries, namely [io-streams]() and
-[http-streams](). Without further ado, let me show you the code:
+of programming with streaming libraries, namely
+[io-streams](http://hackage.haskell.org/package/io-streams) and
+[http-streams](http://hackage.haskell.org/package/http-streams).
+Without further ado, let me show you the code:
 
 ``` haskell
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
