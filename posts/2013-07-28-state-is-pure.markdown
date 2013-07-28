@@ -16,13 +16,13 @@ stackManip = do
   pop
 ```
 
-...and to think: "How can possibly this work?" In this post I'll desugar the `State`
-monad up to a point where all other monads will go crazy screaming "Oh my God,
+...and to think: "How can possibly this work?" In this post I'll desugar the ```State```
+monad up to a point where all the other monads will go crazy screaming "Oh my God,
 it's naked!". But let's start from the foundations.
 
 ## State monad at the speed of light
-The aim of this post is not teaching you how to use the `State` monad, I assume
-you are already confident with it. Let's first recall:
+The aim of this post is not teaching you how to use the ```State``` monad, I assume
+you are already familiar with it. Let's first recall:
 
 ``` haskell
 instance Monad (State s) where
@@ -35,8 +35,8 @@ instance Monad (State s) where
 This will be useful later on. For demonstration purposed I'm going to use a
 shameless copy of the stack examples you'll find in
 [Learn You a Haskell](http://learnyouahaskell.com/for-a-few-monads-more),
-because it's easy to grasp and perfect for our purposes. Let's define a `Stack`
-as a type synonym for a list of `Int`, plus to stateful computations to push
+because it's easy to grasp and perfect for our purposes. Let's define a ```Stack```
+as a type synonym for a list of ```Int```, plus to stateful computations to push
 and pop stuff to/from the stack:
 
 ``` haskell
@@ -63,6 +63,7 @@ stackManip = do
 And finally run the example:
 
 ``` haskell
+main :: IO ()
 main = print . show $ runState stackManip [1,2,4,9]
 ```
 
@@ -78,17 +79,18 @@ push' = undefined --not implemented
 ```
 
 And the fact that he sees just a stateful computation instead, without any
-"access point" for the old state to be passed in confuses him. I'm going to 
+"access point" for the old state to be passed in, confuses him. I'm going to 
 shed light exactly over this.
 
 ## The example, desugared
 Let's get back to our main for a moment:
 
 ``` haskell
+main :: IO ()
 main = print . show $ runState stackManip [1,2,4,9]
 ```
 
-In order to yield a result, we need to evaluate `stackManip`, so let's take
+In order to yield a result, we need to evaluate ```stackManip```, so let's take
 a look at it, again (_repetita iuvant_):
 
 ``` haskell
@@ -116,12 +118,13 @@ stackManip'' = (state $ \s -> ((), 8:s)) >>
 ```
 
 Here I've already made a simplification: we already know what the new state
-will be for `push 8`: exactly the same we have in the beginning plus `8` on
+for ```push 8``` will be: exactly the same we had at he beginning plus "8" on
 the top of the stack.
 
-Now it's time to recall how `(>>)` is defined in Haskell:
+Now it's time to recall how ```(>>)``` is defined in Haskell:
 
 ``` haskell
+(>>) :: m a -> m b -> m b
 m1 >> m2 = m1 >>= \_ -> m2
 ```
 
@@ -141,7 +144,7 @@ computation, to stress the fact we are going to desugar something like this:
 (op1 >>= op2) >>= op3
 ```
 
-And now the fun begins: we need to desugar even further `(>>=)`, with the
+And now the fun begins: we need to desugar even further ```(>>=)```, with the
 definition I gave you at the beginning of the article:
 
 ``` haskell
@@ -157,10 +160,10 @@ stackManip'''' = (state $ \k ->
 
 The only thing I've done here to enforce readability is to move the two
 stateful computations we want to bind into two separate expressions, giving
-then a nomenclature similar to the familiar one (``m >>= f``).
-Let's substitute further, getting rid of the case and of the first `runState`.
+them a nomenclature similar to the familiar one (```m >>= f```).
+Let's substitute further, getting rid of the case and of the first ```runState```.
 I'm going to do two passages at once, but it's mechanical if you follow the
-original implementation of `(>>=)`:
+original implementation of ```(>>=)```:
 
 ``` haskell
 sm' :: State Stack Int
@@ -169,7 +172,7 @@ sm' = (state $ \k ->
        state $ \(x'':xs'') -> (x'', xs'')
 ```
 
-Let's simplify a bit the expression in the middle: `state` and `runState`
+Let's simplify a bit the expression in the middle: ```state``` and ```runState```
 and inverse of each other:
 
 ``` haskell
@@ -193,7 +196,7 @@ sm''' = state $ \q ->
 It should not come as a surprise what I've done here: I've just applied again
 the definition of ```(>>=)```, and moved the function to bind into a separate
 expression. It's not time to simplify everything the way we did before (namely
-getting rid of the first `runState` and case expression):
+getting rid of the first ```runState``` and ```case``` expression):
 
 ``` haskell
 sm'''' :: State Stack Int
@@ -216,7 +219,7 @@ to a single value! It's now straightforward to see how this can work:
 main = print . show $ runState smFinal [1,2,4,9]
 ```
 
-All we do is to extract a function from our `State` datatype (with `runState`)
+All we do is to extract a function from our ```State``` (with ```runState```)
 and apply the underlying function to the initial stack. Nothing magical at all!
 
 ## Do I need to worry about all this when writing my programs?
@@ -229,7 +232,7 @@ be passed around as "functions applications".
 ## Conclusions
 I hope I was able to convey several messages:
 
-* `State` is pure, it's just function application all over the place, in a 
+* ```State``` is pure, it's just function application all over the place, in a 
   CPS fashion.
 * You can't write functions which takes the old state and yield a new stateful
   computation, because the state is already "trapped" in the stateful computation
