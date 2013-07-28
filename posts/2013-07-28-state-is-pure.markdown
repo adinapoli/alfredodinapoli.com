@@ -6,7 +6,7 @@ tags: fp, haskell
 
 # State is pure
 Maybe (or maybe not) it happened to you at least once during your Haskell
-journey looking at functions like this:
+journey to look at functions like this...
 
 ``` haskell
 stackManip :: State Stack Int
@@ -16,7 +16,7 @@ stackManip = do
   pop
 ```
 
-You think: "How can possibly this work?" In this post I'll desugar the `State`
+...and to think: "How can possibly this work?" In this post I'll desugar the `State`
 monad up to a point where all other monads will go crazy screaming "Oh my God,
 it's naked!". But let's start from the foundations.
 
