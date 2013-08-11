@@ -85,7 +85,7 @@ main = hakyll $ do
           >>= saveSnapshot "content"
           >>= return . fmap demoteHeaders
           >>= loadAndApplyTemplate "templates/post.html" (postCtx tags)
-          >>= loadAndApplyTemplate "templates/default_nosidebar.html" defaultContext
+          >>= loadAndApplyTemplate "templates/default.html" defaultContext
           >>= relativizeUrls
 
   -- Post list
