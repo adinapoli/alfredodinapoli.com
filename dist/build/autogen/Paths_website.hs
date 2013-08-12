@@ -14,12 +14,12 @@ catchIO = Exception.catch
 
 
 version :: Version
-version = Version {versionBranch = [0,1,0,0], versionTags = []}
+version = Version {versionBranch = [1,1,0,0], versionTags = []}
 bindir, libdir, datadir, libexecdir :: FilePath
 
 bindir     = "/Users/adinapoli/programming/haskell/alfredodinapoli.com/.hsenv/cabal/bin"
-libdir     = "/Users/adinapoli/programming/haskell/alfredodinapoli.com/.hsenv/cabal/lib/website-0.1.0.0/ghc-7.6.3"
-datadir    = "/Users/adinapoli/programming/haskell/alfredodinapoli.com/.hsenv/cabal/share/website-0.1.0.0"
+libdir     = "/Users/adinapoli/programming/haskell/alfredodinapoli.com/.hsenv/cabal/lib/website-1.1.0.0/ghc-7.6.3"
+datadir    = "/Users/adinapoli/programming/haskell/alfredodinapoli.com/.hsenv/cabal/share/website-1.1.0.0"
 libexecdir = "/Users/adinapoli/programming/haskell/alfredodinapoli.com/.hsenv/cabal/libexec"
 
 getBinDir, getLibDir, getDataDir, getLibexecDir :: IO FilePath

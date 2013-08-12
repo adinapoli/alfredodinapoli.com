@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Control.Applicative ((<$>))
 import Data.Monoid (mappend, mconcat)
+import Control.Monad
 
 import Hakyll
 
@@ -41,8 +42,7 @@ main = hakyll $ do
   -- Static files
   match "content/*" $ do
     route rootRoute
-    compile $ do
-        staticPageCompiler
+    compile $ staticPageCompiler
         >>= loadAndApplyTemplate "templates/default.html" defaultContext
         >>= relativizeUrls
 
@@ -73,15 +73,13 @@ main = hakyll $ do
       -- Create RSS feed as well
       version "rss" $ do
           route   $ setExtension "xml"
-          compile $ loadAllSnapshots pattern "content"
-              >>= return . take 10 . recentFirst
+          compile $ take 10 <$> (recentFirst =<< loadAllSnapshots pattern "content")
               >>= renderAtom (feedConfiguration title) feedCtx
 
   -- Render each and every post
   match "posts/*" $ do
     route $ setExtension ".html"
-    compile $ do
-        pandocCompiler
+    compile $ pandocCompiler
           >>= saveSnapshot "content"
           >>= return . fmap demoteHeaders
           >>= loadAndApplyTemplate "templates/post.html" (postCtx tags)
@@ -105,9 +103,7 @@ main = hakyll $ do
   -- Render RSS feed
   create ["rss.xml"] $ do
       route idRoute
-      compile $ do
-          loadAllSnapshots "posts/*" "content"
-              >>= return . take 10 . recentFirst
+      compile $ take 10 <$> (recentFirst =<< loadAllSnapshots "posts/*" "content")
               >>= renderAtom (feedConfiguration "All posts") feedCtx
 
   match "templates/*" $ compile templateCompiler
@@ -118,7 +114,6 @@ main = hakyll $ do
       >>= loadAndApplyTemplate "templates/default.html" defaultContext
       >>= relativizeUrls
 
-
 -------------------------------------------------------------------------------
 -- Ausiliary functions
 postCtx :: Tags -> Context String
@@ -128,11 +123,11 @@ postCtx tags = mconcat [ modificationTimeField "mtime" "%U"
                        , defaultContext ]
 
 -------------------------------------------------------------------------------
-postList :: Tags -> Pattern -> ([Item String] -> [Item String])
+postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
          -> Compiler String
 postList tags pattern preprocess' = do
     postItemTpl <- loadBody "templates/postitem.html"
-    posts       <- preprocess' <$> loadAll pattern
+    posts       <- loadAll pattern >>= preprocess'
     applyTemplateList postItemTpl (postCtx tags) posts
 
 -------------------------------------------------------------------------------
