@@ -4,8 +4,6 @@ description: Downloading a file in Haskell in 40 SLOC
 tags: haskell, fp
 ---
 
-## Slick file download with Haskell
-
 Lately I've submitted a [patch](https://github.com/tmhedberg/hsenv/pull/32)
 to Hsenv featuring the ability to download a file over HTTP without
 external tools (e.g. curl), but using nothing more than awesome Haskell.

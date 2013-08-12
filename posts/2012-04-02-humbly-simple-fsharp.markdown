@@ -4,7 +4,6 @@ description: Here I describe a simple scenario where monads are useful.
 tags: fp, fsharp
 ---
 
-##Humbly simple F# Maybe monad application scenario
 I won't turn this article in another spammish claim about monads and functional
 programming. If you are interested in digging inside it, from a theoretical
 point of view, I suggest you start <a
@@ -116,7 +115,8 @@ let inline (|@|) (p1 : Price option) (p2 : Price option) =
 ~~~~~
 
 Ok, so let's clarify things a bit. The easiest way to think about monads, in my opinion, is like a sort of Lego pieces, each piece may contain a value (or not, it depends).
-<a href="http://alfredodinapoli.files.wordpress.com/2012/04/drawing-18.png"><img class="aligncenter size-full wp-image-467" title="Drawing 18" src="http://alfredodinapoli.files.wordpress.com/2012/04/drawing-18.png" alt="" width="630" height="391" /></a>
+<div class="text-center">
+<img class="embedded-img" src="http://alfredodinapoli.files.wordpress.com/2012/04/drawing-18.png" width="630" height="391" /></div>
 
 In this case in order to concatenate our computations we need to concatenate only the same Lego pieces together. Do you remember in the primary school when teachers keep you telling that you can't sum pears with apples? The concept is more or less the same. So we can sum and combine only monads of the same type. But how? The answer lies in the lines of code above. With the operator <em>let!</em> we performs a sort of <em>destructuring</em>  (to be precise a <em>monadic binding</em>) which means that we peek inside our Lego piece and we take out the content, whether it exists or not. <em>Yes, whether it exists or not.</em> In this specific case, the Maybe monad ensures us that failure is propagated. In other terms, if you "sum" a <em>Some(value)</em> with <em>None</em>, we will obtain <em>None</em>, because <em>None</em> is the <em>Zero</em> value for that monad. I don't want to dig too much inside this theoretical stuff, but every monad has it's zero, a value you can sum against without having an impact on the overall computation (think about the (+) operator, 0 (zero) is the numeric value you can sum indefinitely without affecting the result). All this babbling means that if <em>v1</em> and <em>v2</em> binds to a "real" float, the result will be wrapped inside a <em>Some(v1+v2)</em>, which is the real sum. Otherwise a <em>None</em> will be returned. Gosh, I hope is clear enough. To clarify, here is an example of our new operator in action:
 

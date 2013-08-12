@@ -4,7 +4,6 @@ description: A fast and handy way to generate a corpus of random strings.
 tags: fp, haskell
 ---
 
-##Fast Random Strings Generation in Haskell
 Yesterday morning there was an interesting question on Haskell Cafe:
 
 <div markdown="1">

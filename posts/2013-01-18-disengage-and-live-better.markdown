@@ -4,7 +4,6 @@ description: A small trick to disengage
 tags: self, programming
 ---
 
-##Disengage and live better
 I'm reading a book called [The power of full engagement](http://www.amazon.com/Power-Full-Engagement-Managing-Performance/dp/0743226755),
 which basically states that is important to alternate periods of great focus
 (engagement) with period of relax (disengaging). This theory is supported from

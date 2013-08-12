@@ -3,8 +3,6 @@ title: Yes, I am another Mac OS X user that jumped off the ship
 tags: macosx, linux, bodhi
 ---
 
-##Yes, I'm another Mac OS X user that jumped off the ship
-
 Let's begin saying that I'm not an occasional Mac user.
 I bought my first Mac in 2007 and user it almost every
 day of my life to every kind of task: from music processing to programming.

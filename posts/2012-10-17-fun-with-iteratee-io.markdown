@@ -4,7 +4,6 @@ description: How many occurrences of Adenine a DNA Genome has?
 tags: fp, haskell
 ---
 
-##Fun with Iteratee IO
 Iteratee IO is an IO technique popularized by
 [Oleg Kiselyov](http://okmij.org/ftp/Streams.html#iteratee), who gives
 the following definition inside his website:

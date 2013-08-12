@@ -1,5 +1,4 @@
 html{
-    //font-family: 'ABeeZee', sans-serif;
     font-size:14px;
     text-align:left;
     margin: 0;
@@ -25,15 +24,20 @@ hr {
     margin-top: 20px;
 }
 
+.embedded-img {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
 img {
   border: 0px solid #eaeadc;
   padding: 2px;
 }
 
-img.no-border {
-  border: 0;
-  padding: 0;
-  background: none;
+.social {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
 }
 
 .glance-box

@@ -4,7 +4,6 @@ description: A report of this closing year
 tags: self
 ---
 
-##2012 Report
 2012 has been a big deal for me:
 
 * On May I graduated, taking my master degree

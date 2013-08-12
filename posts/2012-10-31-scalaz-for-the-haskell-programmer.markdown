@@ -4,8 +4,6 @@ description: A (hope) useful vademecuum about scalaz programming
 tags: fp, scala, haskell
 ---
 
-##Scalaz for the Haskell Programmer - Part 1
-
 [scalaz](https://github.com/scalaz/scalaz) is an awesome library that extends
 the Scala Core, providing FP goodies that every Haskell programmer loves and
 needs. Yes, I'm obviously talking about ```Functors```, ```Monads``` and

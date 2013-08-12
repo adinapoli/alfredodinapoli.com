@@ -4,8 +4,6 @@ description: Sometimes fixing is better than creating
 tags: self, programming
 ---
 
-##I love to be a windows repairer
-
 This is something I was thinking about yesterday night, trying to get asleep.
 Some of my colleagues are very argumentative about the role a computer
 scientist must have: someone thinks that only who builds abstractions (call 

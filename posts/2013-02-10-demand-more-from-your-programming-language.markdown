@@ -4,8 +4,6 @@ description: Simple but often forgotten thoughts on Haskell
 tags: fp, haskell, scala
 ---
 
-## Demand more from your programming language
-
 First of all, this is not a post about "Your language is better than yours".
 No. So no flame war incoming. This is simply a post about some simple concept
 in Haskell that sometimes we (at least I) forgot because I give them away as

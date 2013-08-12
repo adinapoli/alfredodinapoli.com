@@ -4,7 +4,6 @@ description: How can I sleep at night knowing State is pure
 tags: fp, haskell
 ---
 
-# State is pure
 Maybe (or maybe not) it happened to you at least once during your Haskell
 journey to look at functions like this...
 
