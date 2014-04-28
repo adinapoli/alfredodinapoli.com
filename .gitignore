@@ -11,3 +11,5 @@ dist/*
 .hsenv_master/
 .hsenv_alfredodinapoli.com/
 dist
+.cabal-sandbox*
+cabal.sandbox.config
