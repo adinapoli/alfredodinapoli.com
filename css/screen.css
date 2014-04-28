@@ -5,6 +5,9 @@ html{
     padding: 0;
 }
 
+a:link { color: RoyalBlue; }
+a:visited { color: RoyalBlue; }
+
 hr {
     border: 0px;
     background-color: #c0c0c0;

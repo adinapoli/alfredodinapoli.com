@@ -1,0 +1,158 @@
+.TH "pandoc\-citeproc" "1" "August 31, 2013" "pandoc\-citeproc manual" ""
+.SH NAME
+.PP
+pandoc\-citeproc \- filter to resolve citations in a pandoc document.
+.SH SYNOPSIS
+.PP
+pandoc\-citeproc [options] [file..]
+.SH DESCRIPTION
+.PP
+The \f[C]pandoc\-citeproc\f[] executable has two modes, filter mode and
+convert mode.
+.SS Filter mode
+.PP
+Run without options, it acts as a filter that takes a JSON\-encoded
+Pandoc document, formats citations and adds a bibliography, and returns
+a JSON\-encoded pandoc document.
+.PP
+To process citations with pandoc, call pandoc\-citeproc as a filter:
+.IP
+.nf
+\f[C]
+pandoc\ \-\-filter\ pandoc\-citeproc\ input.md\ \-s\ \-o\ output.html
+\f[]
+.fi
+.PP
+The bibliography will be put into a pandoc \f[C]Div\f[] container with
+class \f[C]references\f[].
+.PP
+pandoc\-citeproc will look for the following metadata fields in the
+input:
+.PP
+\f[C]bibliography\f[]: A path, or YAML list of paths, of bibliography
+files to use.
+These may be in any of the formats supported by bibutils.
+.IP
+.nf
+\f[C]
+Format\ \ \ \ \ \ \ \ \ \ \ \ File\ extension
+\-\-\-\-\-\-\-\-\-\-\-\-\ \ \ \ \ \ \-\-\-\-\-\-\-\-\-\-\-\-\-\-
+MODS\ \ \ \ \ \ \ \ \ \ \ \ \ \ .mods
+BibLaTeX\ \ \ \ \ \ \ \ \ \ .bib
+BibTeX\ \ \ \ \ \ \ \ \ \ \ \ .bibtex
+RIS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .ris
+EndNote\ \ \ \ \ \ \ \ \ \ \ .enl
+EndNote\ XML\ \ \ \ \ \ \ .xml
+ISI\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .wos
+MEDLINE\ \ \ \ \ \ \ \ \ \ \ .medline
+Copac\ \ \ \ \ \ \ \ \ \ \ \ \ .copac
+JSON\ citeproc\ \ \ \ \ .json
+\f[]
+.fi
+.PP
+\f[C]references\f[]: A YAML list of references.
+Each reference is a YAML object.
+The format is essentially CSL JSON format.
+Here is an example:
+.IP
+.nf
+\f[C]
+\-\ id:\ doe2006
+\ \ author:
+\ \ \ \ family:\ Doe
+\ \ \ \ given:\ [John,\ F.]
+\ \ title:\ Article
+\ \ page:\ 33\-34
+\ \ issued:
+\ \ \ \ year:\ 2006
+\ \ type:\ article\-journal
+\ \ volume:\ 6
+\ \ container\-title:\ Journal\ of\ Generic\ Studies
+\f[]
+.fi
+.PP
+The contents of fields will be interpreted as markdown when appropriate:
+so, for example, emphasis and strong emphasis can be used in title
+fileds.
+Simple tex math will also be parsed and rendered appropriately.
+.PP
+\f[C]csl\f[] or \f[C]citation\-style\f[]: Path to a CSL style file.
+If the file is not found relative to the working directory,
+pandoc\-citeproc will look in the \f[C]$HOME/.csl\f[] directory (or
+\f[C]C:\\Users\\USERNAME\\AppData\\Roaming\\csl\f[] in Windows 7).
+.PP
+\f[C]citation\-abbreviations\f[]: Path to a CSL abbreviations JSON file.
+The format is described
+here (http://citationstylist.org/2011/10/19/abbreviations-for-zotero-test-release).
+Here is a short example:
+.IP
+.nf
+\f[C]
+{\ "default":\ {
+\ \ \ \ "container\-title":\ {
+\ \ \ \ \ \ \ \ \ \ \ \ "Lloyd\[aq]s\ Law\ Reports":\ "Lloyd\[aq]s\ Rep",
+\ \ \ \ \ \ \ \ \ \ \ \ "Estates\ Gazette":\ "EG",
+\ \ \ \ \ \ \ \ \ \ \ \ "Scots\ Law\ Times":\ "SLT"
+\ \ \ \ }
+\ \ }
+}
+\f[]
+.fi
+.PP
+The metadata must contain either \f[C]references\f[] or
+\f[C]bibliography\f[] or both as a source of references.
+\f[C]csl\f[] and \f[C]citation\-abbreviations\f[] are optional.
+If \f[C]csl\f[] is not provided, \f[C]chicago\-author\-date.csl\f[] will
+be used by default.
+.SS Convert mode
+.PP
+If the option \f[C]\-\-bib2yaml\f[] or \f[C]\-\-bib2json\f[] is used,
+\f[C]pandoc\-citeproc\f[] will not process citations; instead, it will
+treat its input (from stdin or files) as a bibliography and convert it
+either to a pandoc YAML metadata section, suitable for inclusion in a
+pandoc document (\f[C]\-\-bib2yaml\f[]), or as a CSL JSON bibliography,
+suitable for import to zotero (\f[C]\-\-bib2json\f[]).
+.PP
+The \f[C]\-\-format\f[] option can be used to specify the bibliography
+format, though when files are used, \f[C]pandoc\-citeproc\f[] can
+generally guess this from the extension.
+.PP
+This mode supersedes the old \f[C]biblio2yaml\f[] program.
+.SH OPTIONS
+.TP
+.B \f[C]\-h,\ \-\-help\f[]
+Print usage information.
+.RS
+.RE
+.TP
+.B \f[C]\-V,\ \-\-version\f[]
+Print version.
+.RS
+.RE
+.TP
+.B \f[C]\-y,\ \-\-bib2yaml\f[]
+Convert bibliography to YAML suitable for inclusion in pandoc metadata.
+.RS
+.RE
+.TP
+.B \f[C]\-j,\ \-\-bib2json\f[]
+Convert bibliography to CSL JSON suitable for import into Zotero.
+.RS
+.RE
+.TP
+.B \f[C]\-f\f[] \f[I]FORMAT\f[], \f[C]\-\-format=\f[]\f[I]FORMAT\f[]
+Specify format of bibliography to be converted.
+Legal values are \f[C]biblatex\f[], \f[C]bibtex\f[], \f[C]ris\f[],
+\f[C]endnote\f[], \f[C]endnotexml\f[], \f[C]isi\f[], \f[C]medline\f[],
+\f[C]copac\f[], and \f[C]json\f[].
+.RS
+.RE
+.SH AUTHORS
+.PP
+Andrea Rossato and John MacFarlane.
+.SH SEE ALSO
+.PP
+\f[C]pandoc\f[] (1).
+.PP
+The pandoc\-citeproc source code and all documentation may be downloaded
+from <http://github.com/jgm/pandoc-citeproc/>.
