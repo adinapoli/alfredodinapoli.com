@@ -14,7 +14,7 @@ main = do
   case args of
     ["--publish", comment] -> publish comment
     ["--publish"] -> publish "Site update"
-    _ -> putStrLn "usage: site-ctl --publish"
+    _ -> putStrLn "usage: site-ctl --publish [comment]"
 
 
 publish :: String -> IO ()
