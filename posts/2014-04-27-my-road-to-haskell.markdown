@@ -30,7 +30,7 @@ appreciate the succinctness of algebraic data types and recursive functions on
 data, but alas my colleagues (me include, I'll be honest) failed to see any
 real world application with that. In other terms, it was a nice way to program,
 but in a "toy environment", or in academia, which is, I guess, one of the false
-myth we are fighting hard to bust.
+myths we are fighting hard to bust.
 Anyway, my first foray into functional programming concluded with a full score
 in that exam, but I rapidly forgot about OCaml and went back into OOP and Java land.
 
@@ -38,7 +38,7 @@ in that exam, but I rapidly forgot about OCaml and went back into OOP and Java l
 Fast-forward to Autumn 2009. I graduated with full marks, getting my Bachelor in
 Computer Science with a thesis regarding a geo-tagging web application, with some
 flavours of artificial intelligence. It was programmed using my favourite tool at
-the time, Python. I felled in love with Python during the summer, when my professor
+the time, Python. I fell in love with Python during the summer, when my professor
 suggested it as a nice system language to implement my thesis with (the thesis was
 on a different topic that I later changed into the aforementioned webapp). I embraced
 Python completely, being truly refreshing after the clunkiness of Java, so I started
@@ -60,7 +60,7 @@ language which will be able to restore
 A language which is fast, expressive, with a great library ecosystem, with a strong community.
 [Drunk with the sense of power](https://www.youtube.com/watch?v=bzkRVzciAZg)
 this search gave me, I really liked to write small
-programs (tipically a Project Euler challenge), and implement/benchmark it using
+programs (typically a Project Euler challenge), and implement/benchmark it using
 different programming languages. My [old blog](alfredodinapoli.wordpress.com) is
 full of articles about FP and Clojure (mostly), but
 [this relic](http://alfredodinapoli.wordpress.com/2010/11/01/a-minimalistic-implementation-of-the-hangman-game-in-clojure/)
@@ -83,7 +83,7 @@ dust into my bookshelf, so did Haskell in my "to-learn" list.
 
 ## Searching for the Holy Grail of the Holy Grail
 My search didn't stop to Clojure, though. The thing was that I couldn't put up
-with the fact it was running of the JVM, inheriting all its problems. Furthermore,
+with the fact it was running on the JVM, inheriting all its problems. Furthermore,
 I really wanted something like Common Lisp and its SBCL compiler, capable of
 producing efficient native code. So, once again, I started searching and I can't
 remember why, but in the back on my mind I still had this small thing about Haskell:
@@ -297,7 +297,7 @@ of everything. This is what I learned and what I think might be an interesting l
 (sorry for the following, it's full of conditionals, a nightmare for a non-native writer!):
 
 * **Don't be afraid to take leaps into the dark**: I turned down a job offer in
-  the safe harbor of my home city for something totally new and scaring. If I didn't do
+  the safe harbor of my home city for something totally new and scary. If I didn't do
   that, today I probably wouldn't be an Haskell programmer.
 
 * **Life is about opportunities, seize them**: Think about what would have happened if
@@ -310,7 +310,7 @@ of everything. This is what I learned and what I think might be an interesting l
   I contributed to Snap. There is a substantial difference to say "I have used Snap", as
   opposed as "I used Snap and I have implemented feature X".
 
-* **Constantly sharp your saw**: If I felt "realised", today I would still be working
+* **Constantly sharpen your saw**: If I felt "realised", today I would still be working
   in Manchester. The burning desire I had to work as a professional Haskell dev caused
   me to spend my spare time programming and studying.
 
