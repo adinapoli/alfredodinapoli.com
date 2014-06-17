@@ -4,7 +4,7 @@ def publish(comment="Site Update"):
     """
     Invoke this to publish everything.
     """
-    update_site()
+    #update_site()
     commit(comment)
     push("master")
 
