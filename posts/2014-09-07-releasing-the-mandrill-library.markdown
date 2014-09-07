@@ -1,5 +1,5 @@
 ---
-title: ANN: The mandrill package for interfacing with the Mandrill API
+title: ANN: Releasing the mandrill package on Hackage
 description: Releasing a new library on Hackage
 tags: haskell
 ---
