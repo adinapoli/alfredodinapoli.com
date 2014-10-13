@@ -8,28 +8,46 @@ import Text.Printf
 import Data.Monoid
 
 
+----------------------------------------------------------------------
+data DeployTarget = GoDaddy | DigitalOcean deriving (Show, Eq, Read)
+
+
+----------------------------------------------------------------------
+toIP :: DeployTarget -> T.Text
+toIP DigitalOcean = T.pack "5.101.97.178"
+toIP GoDaddy = T.pack "188.121.46.128"
+
+----------------------------------------------------------------------
+toDeployPath :: DeployTarget -> T.Text
+toDeployPath DigitalOcean = "root@"
+                          <> toIP DigitalOcean
+                          <> ":/home/purely-functional-io/html"
+toDeployPath GoDaddy = "adinapoli@"
+                     <> toIP GoDaddy
+                     <> ":/home/content/24/10017624/html/"
+
+
+----------------------------------------------------------------------
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-    ["--publish", comment] -> publish comment
-    ["--publish"] -> publish "Site update"
+    ["--publish"] -> publish
     _ -> putStrLn "usage: site-ctl --publish [comment]"
 
 
-publish :: String -> IO ()
-publish comment = shelly $ verbosely $ do
+publish :: IO ()
+publish = shelly $ verbosely $ escaping False $ do
   updateSite
-  commit comment
-  push "master"
   syncWithRsync
 
 
 syncWithRsync :: Sh ()
 syncWithRsync = do
-  run_ "rsync" (T.words "-r _site/* ~/github/adinapoli.bitbucket.org/")
   run_ "rsync" (T.words $ "-avzr -e ssh --rsync-path=bin/rsync _site/* " <>
-                "adinapoli@188.121.46.128:/home/content/24/10017624/html/")
+                toDeployPath GoDaddy)
+  run_ "rsync" (T.words $ "-avzr -e ssh _site/* " <>
+                toDeployPath DigitalOcean)
 
 updateSite :: Sh ()
 updateSite = run_ "site" ["build"]
