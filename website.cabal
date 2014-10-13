@@ -8,6 +8,7 @@ executable site
   main-is: Site.hs
   build-depends:
       base >= 4 && < 5,
+      shelly >= 1.5.2,
       hakyll >= 4.0.0.0 && <= 5.0.0.0
 
 executable site-ctl

@@ -1,9 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-import Control.Applicative ((<$>))
 import Data.Monoid (mappend, mconcat)
-import Control.Monad
 
 import Hakyll
+import Shelly
+
+removeOAndHiFiles :: Rules ()
+removeOAndHiFiles = preprocess $
+  shelly $ verbosely $ escaping False $ do
+    chdir "posts" $ do
+      rm_f "*.o"
+      rm_f "*.hi"
 
 -- Probably wrong.
 staticPageCompiler :: Compiler (Item String)
@@ -76,8 +82,10 @@ main = hakyll $ do
           compile $ take 10 <$> (recentFirst =<< loadAllSnapshots pattern "content")
               >>= renderAtom (feedConfiguration title) feedCtx
 
+  match ("posts/*.o" .||. "posts/*.hi") $ removeOAndHiFiles
+
   -- Render each and every post
-  match "posts/*" $ do
+  match ("posts/*.markdown" .||. "posts/*.lhs") $ do
     route $ setExtension ".html"
     compile $ pandocCompiler
           >>= saveSnapshot "content"
