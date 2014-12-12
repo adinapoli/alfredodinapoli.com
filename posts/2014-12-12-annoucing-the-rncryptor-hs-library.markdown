@@ -6,7 +6,7 @@ tags: haskell, fp
 
 ## Announcing (and releasing) the rncryptor-hs library
 
-Today I'm releasing the very supercalifragilistic release
+Today I'm releasing the very supercalifragilistic first version
 of the [rncryptor-hs](https://github.com/adinapoli/rncryptor-hs) library.
 This library is a reasonably fast implementation of the [RNCryptor](https://github.com/RNCryptor)
 encrypted file format by [Rob Napier](http://robnapier.net/). It comes in two flavour:
