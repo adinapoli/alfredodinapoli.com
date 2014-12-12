@@ -79,8 +79,8 @@ A lot of things actually! On top of my minds:
 - Make it independent from any streaming libraries, so that you can plug
   your own (conduit, pipes, you name it)
 
-PR are highly encouraged! So XMas is coming, so are your spare time, so consider
-improving the Haskell library ecosystem :)
+PR are highly encouraged! XMas is coming, so is your spare time, please consider
+improving the Haskell library ecosystem ;)
 
 The library is available on [Hackage](http://hackage.haskell.org/package/rncryptor), grab it while it's hot!
 
