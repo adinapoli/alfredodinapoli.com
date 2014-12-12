@@ -86,7 +86,7 @@ The library is available on [Hackage](http://hackage.haskell.org/package/rncrypt
 
 # Acknowledgements
 
-A big thank you to Rob Napier to kindly replying to my email with lots of useful
+A big thank you to Rob Napier for kindly replying to my email with lots of useful
 insights which allowed me to fix a bug in my decryption routine.
 
 Alfredo
