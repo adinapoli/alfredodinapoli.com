@@ -40,7 +40,7 @@ h1, h2, h3, h4 { color: #333; }
 p { font-size: 100%; line-height: 18px; padding-right: 3em; }
 a { color: #990003 }
 a:hover { text-decoration: none; }
-strong { font-weight: bold; }
+strong { font-weight: 900; }
 em { font-style: italic; }
 li { line-height: 24px; border-bottom: 1px solid #ccc; }
 p.enlarge { font-size: 144%; padding-right: 6.5em; line-height: 24px; }
@@ -65,10 +65,19 @@ a#pdf:hover { background: #222; }
 .job p { margin: 0.75em 0 3em 0; }
 
 .last { border: none; }
-.skills-list {  }
-.skills-list ul { margin: 0; }
-.skills-list li { margin: 3px 0; padding: 3px 0; }
-.skills-list li span { font-size: 152%; display: block; margin-bottom: -2px; padding: 0 }
+
+.skills-list { font-weight: initial; }
+.skills-list ul { margin: 0; padding: 0; }
+.skills-list li {
+    margin: 3px 0;
+    padding: 3px 0;
+    line-height: 24px;
+    border-bottom: none;
+    list-style-type: square;
+}
+.notable { }
+.notable span { font-weight: 900; }
+
 .talent { width: 32%; float: left }
 .talent h2 { margin-bottom: 6px; }
 
