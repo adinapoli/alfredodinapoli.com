@@ -59,6 +59,10 @@ foldPaginator (PaginatorFetch cont) tkn acc = do
     leaf@(PaginatorLeaf _) -> foldPaginator leaf Nothing acc
     nextFetch              -> foldPaginator nextFetch t' acc'
 
+----------------------------------------------------------------------------------
+filterPaginator :: Monad m => ForwardPaginator m i [a] -> (a -> Bool) -> ForwardPaginator m i [a]
+filterPaginator x pred = List.filter pred <$> x
+
 --------------------------------------------------------------------------------
 next :: Monad m
       => ForwardPaginator m i a
@@ -98,39 +102,31 @@ findPaginator (PaginatorFetch cont) tkn prd = do
 --------------------------------------------------------------------------------
 ecrListImagesPaginated :: Repository -> ECRPaginator Sh [ECRImage]
 ecrListImagesPaginated repo = PaginatorFetch $ \_ -> do
-  initialState <- run "aws" [ "ecr"
-                            , "list-images"
-                            , "--region"
-                            , "eu-west-1"
-                            , "--repository-name"
-                            , repo
-                            ]
+  initialState <- run "aws" cmd
   case JSON.eitherDecode (toS initialState) of
-    Left ex -> do
-      echo "aws ecr list-images failed to decode to valid JSON. Error was: "
-      echo (toS . show $ ex)
-      return (Nothing, mempty, PaginatorLeaf mempty)
+    Left ex -> yieldZero ex
     Right (ECRListImages Nothing items) -> return (Nothing, items, PaginatorLeaf mempty)
     Right (ECRListImages mbToken items) -> return (mbToken, items, fetch)
   where
+    yieldZero ex = do
+      echo "aws ecr list-images failed to decode to valid JSON. Error was: "
+      echo (toS . show $ ex)
+      return (Nothing, mempty, PaginatorLeaf mempty)
+    cmd = [ "ecr"
+          , "list-images"
+          , "--region"
+          , "eu-west-1"
+          , "--repository-name"
+          , repo
+          ]
     fetch :: ECRPaginator Sh [ECRImage]
     fetch = PaginatorFetch $ \token -> do
       case token of
         Nothing -> return (Nothing, mempty, PaginatorLeaf mempty)
         Just t  -> do
-          rawJson <- run "aws" [ "ecr"
-                               , "list-images"
-                               , "--next-token", t
-                               , "--region"
-                               , "eu-west-1"
-                               , "--repository-name"
-                               , repo
-                               ]
+          rawJson <- run "aws" cmd
           case JSON.eitherDecode (toS rawJson) of
-            Left ex -> do
-              echo "aws ecr list-images failed to decode to valid JSON. Error was: "
-              echo (toS . show $ ex)
-              return (Nothing, mempty, PaginatorLeaf mempty)
+            Left ex -> yieldZero ex
             Right (ECRListImages mbToken items) -> return (mbToken, items, fetch)
 
 --------------------------------------------------------------------------------
