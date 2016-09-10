@@ -1,6 +1,5 @@
 ---
-title: ANN: snaplet-purescript
-description: Releasing snaplet purescript
+title: snaplet purescript
 tags: haskell
 ---
 
