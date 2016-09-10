@@ -1,5 +1,5 @@
 ---
-title: snaplet purescript
+title: Announcing "snaplet-purescript"
 tags: haskell
 ---
 
