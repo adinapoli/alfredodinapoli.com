@@ -1,5 +1,5 @@
 ---
-title: My ZuriHac 2014 project: Revamping snaplet-perf
+title: My ZuriHac 2014 project
 description: Description of my project at this ZuriHac
 tags: haskell, snap, zurihac
 ---
