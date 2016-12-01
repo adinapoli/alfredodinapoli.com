@@ -62,16 +62,16 @@ a#pdf:hover { background: #222; }
 
 .job { position: relative; margin-bottom: 1em; padding-bottom: 1em; border-bottom: 1px solid #ccc; }
 .job h4 { position: absolute; top: 0.35em; right: 0 }
-.job p { margin: 0.75em 0 3em 0; }
+.job p { margin: 0.55em 0 1em 0; }
 
 .last { border: none; }
 
 .skills-list { font-weight: initial; }
-.skills-list ul { margin: 0; padding: 0; }
+.skills-list ul { margin: 0px; padding: 0px; }
 .skills-list li {
-    margin: 3px 0;
-    padding: 3px 0;
-    line-height: 24px;
+    margin-bottom: 10px;
+    padding: 0px;
+    line-height: 18px !important;
     border-bottom: none;
     list-style-type: square;
 }
