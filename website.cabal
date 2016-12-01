@@ -1,13 +1,26 @@
 name:                website
-version:             1.1.0.0
+version:             1.2.0.0
 license-file:        LICENSE
 build-type:          Simple
 cabal-version:       >=1.8
+
+library
+  hs-source-dirs:
+    code
+  build-depends: base >= 4 && < 5,
+                 aeson,
+                 text,
+                 shelly,
+                 string-conv,
+                 mtl
+  exposed-modules:
+    Paginator
 
 executable site
   main-is: Site.hs
   build-depends:
       base >= 4 && < 5,
+      shelly >= 1.5.2,
       hakyll >= 4.0.0.0 && <= 5.0.0.0
 
 executable site-ctl

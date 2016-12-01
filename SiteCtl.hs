@@ -8,36 +8,40 @@ import Text.Printf
 import Data.Monoid
 
 
+----------------------------------------------------------------------
+data DeployTarget = GoDaddy deriving (Show, Eq, Read)
+
+
+----------------------------------------------------------------------
+toIP :: DeployTarget -> T.Text
+toIP GoDaddy = T.pack "188.121.46.128"
+
+----------------------------------------------------------------------
+toDeployPath :: DeployTarget -> T.Text
+toDeployPath GoDaddy = "adinapoli@"
+                     <> toIP GoDaddy
+                     <> ":/home/content/24/10017624/html/"
+
+
+----------------------------------------------------------------------
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-    ["--publish", comment] -> publish comment
-    ["--publish"] -> publish "Site update"
+    ["--publish"] -> publish
     _ -> putStrLn "usage: site-ctl --publish [comment]"
 
 
-publish :: String -> IO ()
-publish comment = shelly $ verbosely $ do
+publish :: IO ()
+publish = shelly $ verbosely $ escaping False $ do
   updateSite
-  commit comment
-  push "master"
   syncWithRsync
 
 
 syncWithRsync :: Sh ()
 syncWithRsync = do
-  run_ "rsync" (T.words "-r _site/* ~/github/adinapoli.bitbucket.org/")
   run_ "rsync" (T.words $ "-avzr -e ssh --rsync-path=bin/rsync _site/* " <>
-                "adinapoli@188.121.46.128:/home/content/24/10017624/html/")
+                toDeployPath GoDaddy)
 
 updateSite :: Sh ()
 updateSite = run_ "site" ["build"]
-
-commit :: String -> Sh ()
-commit comment = escaping False $ do
-  run_ "git" (T.words . T.pack $ printf "add . && git commit -m \"%s\"" comment)
-
-
-push :: String -> Sh ()
-push branch = run_ "git" (T.words $ T.pack (printf "push origin %s" branch))

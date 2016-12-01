@@ -13,3 +13,6 @@ dist/*
 dist
 .cabal-sandbox*
 cabal.sandbox.config
+.DS_Store
+posts/*.o
+.stack-work
