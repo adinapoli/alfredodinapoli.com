@@ -40,7 +40,7 @@ publish = shelly $ verbosely $ escaping False $ do
 
 syncWithRsync :: Sh ()
 syncWithRsync = do
-  run_ "rsync" (T.words $ "-avzr -e ssh --rsync-path=bin/rsync _site/* " <>
+  run_ "rsync" (T.words $ "-avzr -e 'ssh -oHostKeyAlgorithms=+ssh-dss' --rsync-path=bin/rsync _site/* " <>
                 toDeployPath GoDaddy)
 
 updateSite :: Sh ()
