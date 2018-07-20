@@ -1,8 +1,9 @@
 /* Loosely based on pygment's tango colors */
 pre
 {
-    border: 1px solid #888; 
-    padding: 5px;
+    border: 1px solid #eee !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
 }
 
 table.sourceCode, tr.sourceCode, td.sourceCode, table.sourceCode pre

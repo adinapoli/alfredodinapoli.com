@@ -1,7 +1,0 @@
----
-title:
-description:
-tags:
----
-
-# Title
