@@ -40,6 +40,8 @@ publish = shelly $ verbosely $ escaping False $ do
 
 syncWithRsync :: Sh ()
 syncWithRsync = do
+  -- Do not ship any draft
+  rm_rf "_site/drafts"
   run_ "rsync" (T.words $ "-avzr -e 'ssh -oHostKeyAlgorithms=+ssh-dss' --rsync-path=bin/rsync _site/* " <>
                 toDeployPath GoDaddy)
 
