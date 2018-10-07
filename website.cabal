@@ -5,8 +5,7 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  hs-source-dirs:
-    code
+  hs-source-dirs: src
   build-depends: base >= 4 && < 5,
                  aeson,
                  text,
@@ -17,7 +16,8 @@ library
     Paginator
 
 executable site
-  main-is: Site.hs
+  hs-source-dirs: app
+  main-is: Main.hs
   build-depends:
       base >= 4 && < 5,
       shelly >= 1.5.2,
