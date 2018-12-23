@@ -154,6 +154,27 @@ I have tested this approach myself when migrating the key from a laptop to
 another and it worked just fine, so hopefully this will be useful to you as
 well.
 
+# (Update 2018-12-23) A possible improvement
+
+My friend Edsko pointed out a few quirks in my original scheme. In particular,
+assuming the possibility that Dropbox can actually be violated and that the
+last piece of the puzzle standing between the full key is the QR code, using
+the first chunk as our unencrypted QR code is a poor choice. First of all,
+we are still subject to bruteforce attacks as now all it takes for the attacker
+to get knowledge of the key is to bruteforce 1/4 of it. Not only that, but
+crucially the first part of the key includes a few bytes for the header (the
+`-----BEGIN PGPG PRIVATE KEY BLOCK-----`) which means there are actually even
+fewer bytes to bruteforce.
+
+_A better scheme_ here would be to:
+
+* Encrypt with a symmetric key _all_ the chunks;
+* Turn into QR codes the chunks _in the middle_.
+
+This way, we are not only eliminating the problem of the header, but also
+never storing something unencrypted. The obvious consequence is that now we
+need an extra step to recover our key.
+
 # Other alternatives
 
 Somebody also suggested to use something like [paperbak](https://github.com/Rupan/paperbak),
