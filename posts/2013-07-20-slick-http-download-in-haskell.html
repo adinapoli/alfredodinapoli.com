@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Slick file download with Haskell in 40 SLOC</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>.</p>
+<br>
+<p>Lately I’ve submitted a <a href="https://github.com/tmhedberg/hsenv/pull/32">patch</a> to Hsenv featuring the ability to download a file over HTTP without external tools (e.g. curl), but using nothing more than awesome Haskell. I’ve posted the cool snippet on Reddit, and someone asked for a version with a progress bar, similar to what have been implemented in Python here:</p>
+<p><a href="http://stackoverflow.com/a/22776">Download a file with Python - SO</a></p>
+<p>I came up with a nice version which does rudimental error handling over HTTP response codes, which implements a progress bar and that has a constant memory usage, because we still retain all the benefits of programming with streaming libraries, namely <a href="http://hackage.haskell.org/package/io-streams">io-streams</a> and <a href="http://hackage.haskell.org/package/http-streams">http-streams</a>. Without further ado, let me show you the code:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span> </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.ByteString</span> (<span class="dt">ByteString</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString</span> <span class="kw">as</span> <span class="dt">B</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString.Char8</span> <span class="kw">as</span> <span class="dt">C8</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.IO.Streams</span> (<span class="dt">InputStream</span>, <span class="dt">OutputStream</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">System.IO.Streams</span> <span class="kw">as</span> <span class="dt">S</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Network.Http.Client</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Network.Socket</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Text.Printf</span> (printf)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ot">withProgressBar ::</span> <span class="dt">Integer</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                <span class="ot">-&gt;</span> <span class="dt">InputStream</span> <span class="dt">ByteString</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                <span class="ot">-&gt;</span> <span class="dt">OutputStream</span> <span class="dt">ByteString</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>withProgressBar fileSize inS outS <span class="ot">=</span> go (<span class="dv">0</span><span class="ot"> ::</span> <span class="dt">Int</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    go blocksRead <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      block <span class="ot">&lt;-</span> S.read inS</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>      <span class="kw">case</span> block <span class="kw">of</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">Just</span> d) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> currentBlocks <span class="ot">=</span> blocksRead <span class="op">+</span> B.length d</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> percentage <span class="ot">=</span> <span class="fu">fromIntegral</span> (currentBlocks <span class="op">*</span> <span class="dv">100</span>) <span class="op">/</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">fromIntegral</span> fileSize</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>            printf <span class="st">&quot;%10d [%3.2f%%]\r&quot;</span> currentBlocks (<span class="ot">percentage ::</span> <span class="dt">Double</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>            S.write (<span class="dt">Just</span> d) outS <span class="op">&gt;&gt;</span> go currentBlocks</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">return</span> ()</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="ot">downloadFile ::</span> <span class="dt">URL</span> <span class="ot">-&gt;</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>downloadFile url name <span class="ot">=</span> withSocketsDo <span class="op">$</span> get url <span class="op">$</span> \response inStream <span class="ot">-&gt;</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> getStatusCode response <span class="kw">of</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      <span class="dv">200</span> <span class="ot">-&gt;</span> <span class="kw">let</span> fileSize <span class="ot">=</span> <span class="fu">maybe</span> <span class="dv">0</span> (\fs <span class="ot">-&gt;</span> <span class="fu">read</span> (C8.unpack fs)<span class="ot"> ::</span> <span class="dt">Integer</span>)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>                            (getHeader response <span class="st">&quot;Content-Length&quot;</span>)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="kw">in</span> S.withFileAsOutput name (withProgressBar fileSize inStream)</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>      code <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="op">$</span> <span class="st">&quot;Failed to download &quot;</span> <span class="op">++</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>                      name <span class="op">++</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;: http response returned &quot;</span> <span class="op">++</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">show</span> code</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> url <span class="ot">=</span> <span class="st">&quot;http://audacity.googlecode.com/files/audacity-macosx-ub-2.0.3.dmg&quot;</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span> <span class="op">$</span> <span class="st">&quot;Downloading &quot;</span> <span class="op">++</span> url</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>  downloadFile (C8.pack url) <span class="st">&quot;audacity.dmg&quot;</span></span></code></pre></div>
+<p>As you can see, it’s less than 40 lines of code! (ok, a bit more, but just because I’ve splitted the type signature and the error message on multiple lines to make it fit the blog template). Even better, as someone suggested on Reddit, we can make this code multi-platform using <code>withSocketsDo</code> before <code>get</code>. We need this on Windows machines only (to initialize the underlying socket), but due to the fact <code>withSocketsDo</code> is implemented as <code>id</code> on *nix platforms, everything will just work. Once again, Haskell rocks.</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2013-07-20-slick-http-download-in-haskell.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2013-07-20-slick-http-download-in-haskell.html';
+  var disqus_title = 'Slick file download with Haskell in 40 SLOC';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

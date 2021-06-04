@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Humbly simple F# Maybe monad application scenario</h1>
+
+<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'fsharp'." href="../tags/fsharp.html">fsharp</a>.</p>
+<br>
+<p>I won’t turn this article in another spammish claim about monads and functional programming. If you are interested in digging inside it, from a theoretical point of view, I suggest you start <a href="http://en.wikipedia.org/wiki/Monad_(functional_programming)">here</a> to get the gist of what I’m talking about. Let’s say briefly that monads are a useful and clever way to write safe and more beautiful code. For once let’s focus to the practical side of the question, without further ado.</p>
+<p>###A simple scenario Suppose you are working on a real world application for a supermarket, and you need to create a simple data structure to store products, with their IDs and prices. The pair (key,value) immediately make the word dictionary to spring up in mind. So you want to create a data structures that embeds a dictionary and you want also to expose a bunch of APIs for inserting a new product and to get the price of a product given his ID. In a standard Object Oriented language you would end up writing a thing like this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Inventory</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    Inventory<span class="op">();</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> Stock<span class="op">(</span><span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;</span> id<span class="op">,</span> <span class="dt">float</span> price<span class="op">){</span> <span class="va">inventory_</span><span class="op">[</span>id<span class="op">]</span> <span class="op">=</span> price<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> Price<span class="op">(</span><span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;;</span> id<span class="op">){</span> <span class="op">...</span> <span class="op">}</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>map<span class="op"> &lt;</span> <span class="bu">std::</span>string<span class="op">,</span> <span class="dt">float</span><span class="op">&gt;</span> <span class="va">inventory_</span><span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Let’s focus our attention to the Price method. You are asking the price for a certain product, given his id. This translates in a lookup inside our inventory map. But what about if the product doesn’t exists? Good programmers would throw an exception, that will be captured at run-time somewhere, leading to a code that we know very well, and that’s not so beautiful to look at:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> sumPrices<span class="op">(</span><span class="at">const</span> Inventory<span class="op">&amp;;</span> i<span class="op">,</span> <span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;;</span> id1<span class="op">,</span> <span class="at">const</span> <span class="bu">std::</span>string<span class="op"> </span>id2<span class="op">)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">float</span> p1 <span class="op">=</span> i<span class="op">.</span>Price<span class="op">(</span>id1<span class="op">);</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">float</span> p2 <span class="op">=</span> i<span class="op">.</span>Price<span class="op">(</span>id2<span class="op">);</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> p1 <span class="op">+</span> p2<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span>ProductNotFoundException e<span class="op">)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> <span class="co">//handle somehow }</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Monads and F# comes to the rescue, allowing us to write a great deal more beautiful code than this. Let’s see how.</p>
+<p>###Separating the impure from the pure Now let’s move our problem in the F# and .NET world. We need to create a type to model an Inventory, expose the above mentioned APIs and also provide a mechanism to sum prices, printing the total whether all the id were found, an error otherwise. The simplest thing to do is to reuse one of the existing .NET classes, to be precise a <em>System.Collections.Generic.Dictionary:</em></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> ProductId = <span class="dt">string</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Price = <span class="dt">float</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Inventory<span class="op">()</span> =</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> inv_ = <span class="kw">new</span> System<span class="kw">.</span>Collections<span class="kw">.</span>Generic<span class="kw">.</span>Dictionary&lt;ProductId, Price&gt;<span class="op">()</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">member</span> this.Stock <span class="op">(</span>id : ProductId<span class="op">)</span> <span class="op">(</span>price : Price<span class="op">)</span> =</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        inv_.Add<span class="op">(</span>id, price<span class="op">)</span></span></code></pre></div>
+<p>So, we have defined two type synonyms for a better understanding of the problem, this new type as well as a member to stock a new product, given its id and its price. Now we must be wary about writing the Price member, because in case of unsuccessful lookup .NET throws a <em>System.Collections.Generic.KeyNotFoundException</em>, which is not good in our pure functional world. We elegantly solve this using the <em>Option</em> type. We can see <em>Option</em> as a type (to be precise it’s a discriminated union) that represent only two possibles values: A success value where it wraps up the result in the type constructor <em>Some</em>, and a failure which translates to the value <em>None</em>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Option&lt;'a&gt; =</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    | Some <span class="kw">of</span> 'a</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    | None</span></code></pre></div>
+<p>Now we can separate the “impure”, null-mined .NET world from our domain:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">member</span> this.Price <span class="op">(</span>id : ProductId<span class="op">)</span> =</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">try</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        Some<span class="op">(</span>inv_.<span class="op">[</span>id<span class="op">])</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">with</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        | : ? System<span class="kw">.</span>Collections<span class="kw">.</span>Generic<span class="kw">.</span>KeyNotFoundException -&gt; None</span></code></pre></div>
+<p>Now every time we ask for a product, we don’t take the risk of raising an exception, while having an <em>Option<Price></em> back give us a great power, because we can pattern match against an Option type to discriminate a function behavior according to the value. Little example:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&gt;<span class="kw">let</span> inv = <span class="kw">new</span> Inventory<span class="op">()</span>;;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> inv : Inventory</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>&gt; inv.Stock <span class="st">&quot;foo&quot;</span> <span class="fl">10.0</span>;;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> it : <span class="dt">unit</span> = <span class="op">()</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>&gt; inv.Price <span class="st">&quot;foo&quot;</span>;;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> it : Price <span class="dt">option</span> = Some <span class="fl">10.0</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>&gt; inv.Price <span class="st">&quot;doesnotexists&quot;</span>;;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> it : Price <span class="dt">option</span> = None</span></code></pre></div>
+<p>Pretty neat isn’t it? Now that we have this nice type to work with, let’s solve the second part of the problem: how to sum two or more product’s prices, displaying the sum or an error messages if some product doesn’t exist. To achieve our goal, we’ll use the Maybe monad, implemented inside the <a href="https://github.com/fsharp/fsharpx">FSharpx </a>library.</p>
+<p>###Concatenating computations I won’t bother you with jabbering about computational expressions and so on, but I’ll show you the code. Let’s first create a function that takes the computation final result (under the form of  an <em>Option<Price></em>) and print a success or a failure message:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> reporter <span class="op">(</span>priceSum : Price <span class="dt">option</span><span class="op">)</span> : <span class="dt">unit</span> =</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> priceSum <span class="kw">with</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    | Some<span class="op">(</span>p<span class="op">)</span> -&gt; printfn <span class="st">&quot;Total price: %g.&quot;</span> p</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    | None    -&gt; printfn <span class="st">&quot;One or more id(s) not found.&quot;</span></span></code></pre></div>
+<p>Nothing particularly amazing here. Now let’s create a new infix function (for the lay people: a function that can be invoked between two parameters, in an infix way). Bear in mind that this is not always the way to go, because creating too much weird operators can lead to a less readable code, but here we won’t care and proceed anyway:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">inline</span> <span class="op">(</span>|@|<span class="op">)</span> <span class="op">(</span>p1 : Price <span class="dt">option</span><span class="op">)</span> <span class="op">(</span>p2 : Price <span class="dt">option</span><span class="op">)</span> =</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    maybe<span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! v1 = p1</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! v2 = p2</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span>! Some<span class="op">(</span>v1 + v2<span class="op">)</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+Ok, so let’s clarify things a bit. The easiest way to think about monads, in my opinion, is like a sort of Lego pieces, each piece may contain a value (or not, it depends).
+<div class="text-center">
+<img class="embedded-img" src="http://alfredodinapoli.files.wordpress.com/2012/04/drawing-18.png" width="630" height="391" />
+</div>
+<p>In this case in order to concatenate our computations we need to concatenate only the same Lego pieces together. Do you remember in the primary school when teachers keep you telling that you can’t sum pears with apples? The concept is more or less the same. So we can sum and combine only monads of the same type. But how? The answer lies in the lines of code above. With the operator <em>let!</em> we performs a sort of <em>destructuring</em>  (to be precise a <em>monadic binding</em>) which means that we peek inside our Lego piece and we take out the content, whether it exists or not. <em>Yes, whether it exists or not.</em> In this specific case, the Maybe monad ensures us that failure is propagated. In other terms, if you “sum” a <em>Some(value)</em> with <em>None</em>, we will obtain <em>None</em>, because <em>None</em> is the <em>Zero</em> value for that monad. I don’t want to dig too much inside this theoretical stuff, but every monad has it’s zero, a value you can sum against without having an impact on the overall computation (think about the (+) operator, 0 (zero) is the numeric value you can sum indefinitely without affecting the result). All this babbling means that if <em>v1</em> and <em>v2</em> binds to a “real” float, the result will be wrapped inside a <em>Some(v1+v2)</em>, which is the real sum. Otherwise a <em>None</em> will be returned. Gosh, I hope is clear enough. To clarify, here is an example of our new operator in action:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>&gt; <span class="kw">let</span> price1 = Some<span class="op">(</span><span class="fl">10.0</span><span class="op">)</span>;;</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> price1 : <span class="dt">float</span> <span class="dt">option</span> = Some <span class="fl">10.0</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>&gt; <span class="kw">let</span> price2 = Some<span class="op">(</span><span class="fl">4.90</span><span class="op">)</span>;;</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> price2 : <span class="dt">float</span> <span class="dt">option</span> = Some <span class="fl">4.9</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>&gt; price1 |@| price2;;</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> it : Price <span class="dt">option</span> = Some <span class="fl">14.9</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>&gt; price1 |@| None;;</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> it : Price <span class="dt">option</span> = None</span></code></pre></div>
+<p>Seen? Pretty cool, isn’t it? No meaningless exceptions, no null spreading everywhere. Just simple type who are concatenated to form a result.</p>
+<p>###The final touch: making it more general As final step we’ll write a simple function that takes a list of ids, an inventory and prints our total whether it “exists” (i.e if every product is inside the inventory) or failure message if something goes wrong. Here we go:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sumAndReport <span class="op">(</span>inventory : Inventory<span class="op">)</span> <span class="op">(</span>ids : ProductId list<span class="op">)</span> : <span class="dt">unit</span> =</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> basket = List<span class="kw">.</span>map <span class="op">(</span><span class="kw">fun</span> pid -&gt; inventory.Price<span class="op">(</span>pid<span class="op">))</span> ids</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">in</span> List<span class="kw">.</span>reduce <span class="op">(</span><span class="kw">fun</span> p1 p2 -&gt; p1 |@| p2<span class="op">)</span> basket</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    |&gt; reporter</span></code></pre></div>
+<p>It should be clear enough. If you are an F# newcomer, the |&gt; is the <em>pipeline </em>operator, is passes the result on the right side to a function on the left. In worth noting that when we get the list of products with the basket let binding, we don’t care whether those products exist! In fact, monads (in this case the Maybe monad) abstract the computation incapsulating a success or a failure in a way that we can control, combine and mix without worrying about the rest. And this is only the tip of the iceberg!</p>
+<p>I redirect you to this <a href="https://gist.github.com/2274497">gist</a>, where you’ll find the full source code, as well as a couple of data for testing purpose.</p>
+<p>###Conclusions Monads are a clever idea to encapsulate a lot of things: failure, state, IO, etc.. and having monads support in F# is simply awesome. The real world can benefit from this strange creatures, I believe. In an upcoming article we’ll see how make our code even more simple, beautiful and short thanks to some feedback provided on the gist from the user <a href="https://github.com/mausch">mausch</a>.</p>
+<p>Stay tuned!</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2012-04-02-humbly-simple-fsharp.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2012-04-02-humbly-simple-fsharp.html';
+  var disqus_title = 'Humbly simple F# Maybe monad application scenario';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Releasing the threads-supervisor library</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'life'." href="../tags/life.html">life</a>.</p>
+<br>
+<h2 id="releasing-the-threads-supervisor-library">Releasing the threads-supervisor library</h2>
+<p>I’m happy to announce the first release of <a href="https://github.com/adinapoli/threads-supervisor">threads-supervisor</a>, a small library I have extracted from some code I wrote at work (thanks to Iris Connect for allowing me to release it). The library itself does only one thing: it allows you to fork an IO computation in a supervised fashion, restarting it in case of failure. In a sense, the library it’s similar in spirit to Erlang’s OTP approach to process supervision and supervision trees. At the moment, we support only one restart strategy, Erlang’s <code>OneForOne</code>, which basically means “please always restart this thread”. Of course, threads-supervisor is not as feature complete as the OTP counterpart, nor it aims to be.</p>
+<h2 id="why-not-use-distributed-process-immortal-async-slave-threads-yet-another-library">Why not use <code>distributed-process</code>, <code>immortal</code>, <code>async</code>, <code>slave-threads</code>, <code>yet-another-library</code>?</h2>
+<p>The aim of this small paragraph is not to convince you that my library the best in town (it’s not!), but more to justify my thought process behind deciding to write it. When I looked at <code>distributed-process</code>, it was clear that it was offering exactly this kind of supervision and much, much more. The problem is the library is certainly geared towards Cloud Haskell and the idea of the distributed closures, therefore if you want to use it, you have to buy the full package. What I wanted, instead, was a simple library, with minimal dependencies, which could be used as a replacement of <code>forkIO</code>, with minimal fuss.</p>
+<p><code>immortal</code> is a very nice library indeed, but I also wanted built-in event logging with opt-in subscription, as well as the possibility of compose my supervisors into a nice supervision tree.</p>
+<p>The same sort of reasoning can be generalised; the available library in the ecosystem where close enough to what I wanted but not <strong>exactly</strong> what I wanted. Therefore, I decided it was just simpler to whip up my small abstraction on top of the concurrency primitives.</p>
+<h2 id="using-the-library">Using the library</h2>
+<p>Extensive documentation can be found reading the <a href="http://hackage.haskell.org/package/threads-supervisor-1.0.1.0/docs/Control-Concurrent-Supervisor-Tutorial.html">tutorial</a>, but I’m going to report here the relevant passages.</p>
+<p>Use <code>threads-supervisor</code> if you want the “poor-man’s Erlang supervisors”. <code>threads-supervisor</code> is an IO-based library with minimal dependencies which does only one thing: It provides you a ‘Supervisor’ entity you can use to monitor your forked computations. If one of the managed threads dies, you can decide if and how to restart it. This gives you:</p>
+<ul>
+<li>Protection against silent exceptions which might terminate your workers.</li>
+<li>A simple but powerful way of structure your program into a supervision tree, where the leaves are the worker threads, and the nodes can be other supervisors being monitored.</li>
+<li>A disaster recovery mechanism.</li>
+</ul>
+<p>Who worked with Haskell’s concurrency primitives will be surely familiar with the <code>forkIO</code> function, which allow us to fork an IO computation in a separate green thread. <code>forkIO</code> is great, but is also very low level, and has a couple of subtleties, as you can read from this passage in the documentation:</p>
+<pre><code>The newly created thread has an exception handler that discards the exceptions
+`BlockedIndefinitelyOnMVar`,`BlockedIndefinitelyOnSTM`, and `ThreadKilled`,
+and passes all other exceptions to the uncaught exception handler.</code></pre>
+<p>To mitigate this, we have a couple of libraries available, for example <a href="http://hackage.haskell.org/package/async">async</a> and <a href="http://hackage.haskell.org/package/slave-thread">slave-threads</a>.</p>
+<p>But what about if I do not want to take explicit action, but instead specifying upfront how to react to disaster, and leave the library work out the details? This is what this library aims to do.</p>
+<p>In this example, let’s create four different threads:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job1 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>job1 <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">5000000</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fail</span> <span class="st">&quot;Dead&quot;</span></span></code></pre></div>
+<p>This job will die after five seconds.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job2 ::</span> <span class="dt">ThreadId</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>job2 tid <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">3000000</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  killThread tid</span></code></pre></div>
+<p>With this other job instead, we wait three seconds, and then kill a target thread, generating an asynchronous exception.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job3 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>job3 <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">5000000</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">error</span> <span class="st">&quot;Oh boy, I'm good as dead&quot;</span></span></code></pre></div>
+<p>This guy is very similar to the first one, except for the fact <code>error</code> is used instead of <code>fail</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job4 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>job4 <span class="ot">=</span> threadDelay <span class="dv">7000000</span></span></code></pre></div>
+<p><code>job4</code> is what we wish for all our real-world functions: smooth sailing. These jobs represent a significant pool of our everyday computations in the IO monad.</p>
+<h3 id="creating-a-supervisorspec">Creating a SupervisorSpec</h3>
+<p>A ‘SupervisorSpec’ simply holds the state of our supervision, and can be safely shared between supervisors. Under the hood, both the <code>SupervisorSpec</code> and the <code>Supervisor</code> share the same structure; in fact, they are just type synonyms:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">SupervisorSpec</span> <span class="ot">=</span> <span class="dt">Supervisor_</span> <span class="dt">Uninitialised</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Supervisor</span> <span class="ot">=</span> <span class="dt">Supervisor_</span> <span class="dt">Initialised</span></span></code></pre></div>
+<p>The important difference though, is that the <code>SupervisorSpec</code> does not imply the creation of an asynchronous thread, which the latter does. To keep separated the initialisation of the data structure from the logic of supervising, we use GADTs and type synonyms to force you create a spec first. Creating a spec it just a matter of calling <code>newSupervisorSpec</code>.</p>
+<h3 id="creating-a-supervisor">Creating a Supervisor</h3>
+<p>Creating a ‘Supervisor’ from a ‘SupervisionSpec’, is as simple as calling <code>newSupervisor</code>. Immediately after doing so, a new thread will be started, monitoring any subsequent IO actions submitted to it.</p>
+<h3 id="supervising-some-threads">Supervising some threads</h3>
+<p>Let’s wrap everything together into a full blown example:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> bracketOnError (<span class="kw">do</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  supSpec <span class="ot">&lt;-</span> newSupervisorSpec</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  sup1 <span class="ot">&lt;-</span> newSupervisor supSpec</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  sup2 <span class="ot">&lt;-</span> newSupervisor supSpec</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  sup1 <span class="ot">`monitor`</span> sup2</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup2 <span class="dt">OneForOne</span> job3</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  j1 <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> job1</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> (job2 j1)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> job4</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkIO (go (eventStream sup1))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> sup1) shutdownSupervisor (\_ <span class="ot">-&gt;</span> threadDelay <span class="dv">10000000000</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>   go eS <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>     newE <span class="ot">&lt;-</span> atomically <span class="op">$</span> readTBQueue eS</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>     <span class="fu">print</span> newE</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>     go eS</span></code></pre></div>
+<p>What we have done was spawning our supervisors out from a spec, and using our swiss knife <code>forkSupervised</code> to spawn four supervised IO computations. As you can see, if we partially apply <code>forkSupervised</code>, its type resemble <code>forkIO</code>’s one; this is by design, as we want to keep this API as IO-friendly as possible.</p>
+<p>In the very same example, we also create another supervisor (from the same spec, but you can create a separate one as well) and we ask the first supervisor to monitor the second one.</p>
+<p>Each <code>Supervisor</code> gives you access the its internal event stream, retrievable, under the form of a <code>TBQueue</code>, by calling <code>eventStream</code>.</p>
+<p>If you run this program, hopefully you should see on stdout something like this:</p>
+<pre><code>ChildBorn ThreadId 62 2015-02-13 11:51:15.293882 UTC
+ChildBorn ThreadId 63 2015-02-13 11:51:15.293897 UTC
+ChildBorn ThreadId 64 2015-02-13 11:51:15.293904 UTC
+ChildDied ThreadId 61 (MonitoredSupervision ThreadId 61) 2015-02-13 11:51:15.293941 UTC
+ChildBorn ThreadId 65 2015-02-13 11:51:15.294014 UTC
+ChildFinished ThreadId 64 2015-02-13 11:51:18.294797 UTC
+ChildDied ThreadId 63 thread killed 2015-02-13 11:51:18.294909 UTC
+ChildDied ThreadId 62 Oh boy, I'm good as dead 2015-02-13 11:51:20.294861 UTC
+ChildRestarted ThreadId 62 ThreadId 68 OneForOne 2015-02-13 11:51:20.294861 UTC
+ChildFinished ThreadId 65 2015-02-13 11:51:22.296089 UTC
+ChildDied ThreadId 68 Oh boy, I'm good as dead 2015-02-13 11:51:25.296189 UTC
+ChildRestarted ThreadId 68 ThreadId 69 OneForOne 2015-02-13 11:51:25.296189 UTC
+ChildDied ThreadId 69 Oh boy, I'm good as dead 2015-02-13 11:51:30.297464 UTC
+ChildRestarted ThreadId 69 ThreadId 70 OneForOne 2015-02-13 11:51:30.297464 UTC
+ChildDied ThreadId 70 Oh boy, I'm good as dead 2015-02-13 11:51:35.298123 UTC
+ChildRestarted ThreadId 70 ThreadId 71 OneForOne 2015-02-13 11:51:35.298123 UTC</code></pre>
+<h2 id="conclusions">Conclusions</h2>
+<p>I hope that you are now convinced that this library can be of some use to you! It’s on Hackage, play with it!</p>
+<p>Alfredo</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2015-02-13-releasing_the_threads_supervisor_library.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2015-02-13-releasing_the_threads_supervisor_library.html';
+  var disqus_title = 'Releasing the threads-supervisor library';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

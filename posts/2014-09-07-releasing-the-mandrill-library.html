@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Releasing the mandrill package on Hackage</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
+<br>
+<h2 id="releasing-the-mandrill-package">Releasing the “mandrill” package</h2>
+<p>Today I’m releasing the <a href="https://hackage.haskell.org/package/mandrill">mandrill</a> package for interfacing with the <a href="https://mandrillapp.com/api/docs/">Mandrill API</a>. In case you don’t know what Mandrill is, is an API-based service for sending transactional emails. The free plan ships with a free and attractive quota of 12k email a month, which makes it a cheap solution for small-medium businesses.</p>
+<h2 id="about-the-mandrill-package">About the mandrill package</h2>
+<p>The package per se is not rocket science: it just ships a bunch of boilerplate to be able to send and receive JSON from Mandrill. On top of this tough:</p>
+<ul>
+<li>It provide decent documentation;</li>
+<li>It <a href="https://travis-ci.org/adinapoli/mandrill">compiles and supports</a> GHC 7.4, 7.6 and 7.8, making it usable in production even if you are running a couple of GHC versions behind;</li>
+<li>It ships with a low level IO-based API as well as an handy transformer.</li>
+</ul>
+<h2 id="what-has-been-wrapped">What has been wrapped</h2>
+<p>The library scratches my own itches, namely be able to send quickly and easily an email message using Mandrill. Pull Requests are certainly welcome, please <a href="https://github.com/adinapoli/mandrill">fork away</a>!</p>
+<h2 id="getting-started">Getting started</h2>
+<p>Using the built-in transformer is as easy as:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Text.Email.Validate</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Network.API.Mandrill</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> validate <span class="st">&quot;foo@example.com&quot;</span> <span class="kw">of</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Left</span> err   <span class="ot">-&gt;</span> <span class="fu">print</span> <span class="op">$</span> <span class="st">&quot;Invalid email!&quot;</span> <span class="op">++</span> <span class="fu">show</span> err</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> addr <span class="ot">-&gt;</span> runMandrill <span class="st">&quot;MYTOKENHERE&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> msg <span class="ot">=</span> <span class="st">&quot;Hello from Haskell&quot;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      res <span class="ot">&lt;-</span> sendEmail (newTextMessage addr [addr] <span class="st">&quot;Hello&quot;</span> msg)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">case</span> res <span class="kw">of</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">MandrillSuccess</span> k <span class="ot">-&gt;</span> liftIO (<span class="fu">print</span> k)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">MandrillFailure</span> f <span class="ot">-&gt;</span> liftIO (<span class="fu">print</span> f)</span></code></pre></div>
+<h2 id="the-choice-of-email-validate">The choice of email-validate</h2>
+<p>Astute readers will notice I have used the <a href="https://hackage.haskell.org/package/email-validate">email-validate</a> package from Hackage. Even though I like the fact you are forced to validate your email before sending them out, I also feel this might become burdensome on the long run. I’m open to feedback here.</p>
+<h2 id="getting-the-package">Getting the package</h2>
+<p>The package is available on Hackage as we speak:</p>
+<pre><code>cabal install mandrill</code></pre>
+<p>Enjoy! Alfredo</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2014-09-07-releasing-the-mandrill-library.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2014-09-07-releasing-the-mandrill-library.html';
+  var disqus_title = 'Releasing the mandrill package on Hackage';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

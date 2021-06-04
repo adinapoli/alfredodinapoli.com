@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Paginators are Mealy Machines in disguise</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>.</p>
+<br>
+<h2 id="paginators-are-mealy-machines-in-disguise">Paginators are Mealy Machines in disguise</h2>
+<pre><code>Summary: At work I needed to stream some data out from a service which returned data in paginated chunks.
+Using a very simple data type based on Mealy Machines worked surprisingly well.</code></pre>
+<p>One of the aspect I enjoy most of programming is when you have the chance of applying something you have learned in the real world. A couple of weeks ago I needed to create a tool to “garbage collect” old <a href="https://aws.amazon.com/ecr/">ECR</a> images. Very simply put, <em>ECR</em> stands for <em>EC2 Container Registry</em> and is no more, no less, a private Docker Registry you can use as part of the impressive AWS (<em>Amazon Web Service</em>) toolkit.</p>
+<p><em>ECR</em> works by having a set of <em>repositories</em>, and for each of them you can upload up to 500 Docker images. If you exceed this limit, you will have either to delete some images to create free space, or contact the Amazon customer service to dump the upper limit up. My team uses <code>ECR</code> to store the images associated to the Haskell micro services we deploy using <a href="https://aws.amazon.com/documentation/elastic-beanstalk/">Elastic Beanstalk</a>, and each time we do a deploy, we create and upload a new versioned image for each micro service, so it comes as no surprise that space in the repositories is going to finish sooner or later. So the problem is simple: “I have some images stored in the cloud and I need to delete them”.</p>
+<p>Now, we could have used the quite impressive <a href="http://hackage.haskell.org/package/amazonka-ecr">amazonka-ecr</a> to solve our problem, but historically we have been using the <a href="https://aws.amazon.com/cli/">aws-cli</a> even before Amazonka was around, and sometimes is just super easy to slurp the output of a cli application and to decode that from JSON. Short story short, this is why we didn’t piggyback on this excellent third-party library, but that’s a bit of an OT. What’s important is that to solve our problem, we only need two commands from the <code>aws-cli</code>: <a href="http://docs.aws.amazon.com/cli/latest/reference/ecr/list-images.html">list-images</a> to retrieve all our images, and <a href="http://docs.aws.amazon.com/cli/latest/reference/ecr/batch-delete-image.html">batch-delete-image</a> to delete the ones which meet our criteria (in our case that would be deleting anything older than 2 months).</p>
+<p><code>list-image</code> doesn’t return the whole set of images, as this would be a beefy JSON! What it does instead, is to return a JSON packet with a <code>Token</code> identifying if we have more data to fetch. This is a standard <code>pagination</code> technique: other strategies would be, for example, to return the current page and the total number of pages, so that the user can advance forward or backward. We can easily model an <code>ECRImage</code> as a simple data type by following the specification on the <code>list-image</code> page:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- Useful import to use in the rest of the post</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Aeson</span> <span class="kw">as</span> <span class="dt">JSON</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.Aeson.TH</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.Functor.Identity</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.List</span> <span class="kw">as</span> <span class="dt">List</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.String.Conv</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Shelly</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ECRImage</span> <span class="ot">=</span> <span class="dt">ECRImage</span> {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="ot">    imageDigest ::</span> <span class="dt">T.Text</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> imageTag    ::</span> <span class="dt">Maybe</span> <span class="dt">T.Text</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  } <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>deriveFromJSON defaultOptions { omitNothingFields <span class="ot">=</span> <span class="dt">True</span> } '<span class="dt">'ECRImage</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">NextToken</span> <span class="ot">=</span> <span class="dt">T.Text</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ECRListImages</span> <span class="ot">=</span> <span class="dt">ECRListImages</span> {</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="ot">    nextToken ::</span> <span class="dt">Maybe</span> <span class="dt">NextToken</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> imageIds  ::</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>deriveFromJSON defaultOptions { omitNothingFields <span class="ot">=</span> <span class="dt">True</span> } '<span class="dt">'ECRListImages</span></span></code></pre></div>
+<p>The <code>ECRListImages</code> is an umbrella type we define to parse the raw JSON that AWS gives us, which will include the token <em>AND</em> the data fetched so far. When I approached this problem, I knew two things for sure:</p>
+<ul>
+<li>I didn’t want to fetch the whole dataset into memory, but rather processing it in chunks</li>
+<li>The problem itself was screaming “streaming!”</li>
+</ul>
+<p>Although I could have simply written a recursive function which would fetch the current data and the token, process it, and recur in case we still had data to fetch, that stroke me as a poor solution. Not bacause it was <em>intrinsically</em> bad, but only because it felt a bit ad-hoc and didn’t compose very well. What if I wanted to step through the data “one chunk” at the time? What if I wanted to filter each chunk according to a predicate and retain only a subset of it? Sure, I could extend my function which a predicate to filter on, but that felt even more ad-hoc. So I took a step backward and wondered if I could come up with a super tiny abstraction to “step” through the data whilst retaining code reuse and composition. After some failing attempt, I came up with this small data structure, which I’m calling here <code>ForwardPaginator</code> to stress the fact we cannot iterate backward (yet), which is something I didn’t need to support anyway:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ForwardPaginator</span> m i o <span class="ot">=</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">PaginatorLeaf</span> o</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">PaginatorFetch</span> (<span class="dt">Maybe</span> i <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> i, o, <span class="dt">ForwardPaginator</span> m i o))</span></code></pre></div>
+<p>A <code>ForwardPaginator</code> effectively models a tree of computations; we can have a <em>leaf</em>, meaning we have just started our machine and are at step zero, or a <em>fetch</em> step that, given an input <code>i</code> will produce a triple <code>(newInput, output, paginator)</code>, doing (or not) some monadic effect in the process (thus the <code>m</code> wrapping). Due to the fact we could have exhausted our input, we encapsulate this possibility in a <code>Maybe</code>, which explains the presence of those <code>Maybe i</code>. We can even define what seems to be a legal <code>Functor</code> instance for it:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Functor</span> m <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">ForwardPaginator</span> m i) <span class="kw">where</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmap</span> f (<span class="dt">PaginatorLeaf</span>  a) <span class="ot">=</span> <span class="dt">PaginatorLeaf</span> (f a)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmap</span> f (<span class="dt">PaginatorFetch</span> g) <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \nextToken <span class="ot">-&gt;</span> (\(x,y,z) <span class="ot">-&gt;</span> (x, f y, <span class="fu">fmap</span> f z)) <span class="op">&lt;$&gt;</span> g nextToken</span></code></pre></div>
+<p>(Note to the reader: I have the intuition we should be able to define a <code>Contravariant</code> instance for our <code>ForwardPaginator</code>, but I’m not 100% sure as <code>i</code> appears both in positive and negative position. A <code>Profunctor</code> even? Please comment below or on Reddit if you think this is possible, I simply haven’t tried yet.)</p>
+<p>If you squint hard, you will recognise that what we have in the <code>PaginatorFetch</code> step is essentially <code>Mealy</code> machine! This is not very surprising; <a href="http://neilmitchell.blogspot.it/2013/12/progress-reporting-in-shake.html">Neil Mitchell used it in Shake</a> only to discover his data structure was indeed a Mealy machine and his definition was almost verbatim to the one included in the <a href="http://hackage.haskell.org/package/machines-0.6.1/docs/Data-Machine-Mealy.html">machine package</a>. What I find cool is that both me and Neil went through the same creative process; we modeled our solution using an abstraction we later found out be something already present in literature! I find both depressing and invigorating to discover that your clever idea is something someone thought about a long time before you! Oh well, at least that gave me the confidence I was on the right track. Incidentally, <a href="https://ocharles.org.uk/blog/posts/2013-08-01-getting-started-with-netwire-and-sdl.html">Ollie blogged</a> in 2013 about FRP and Netwire, and guess what his <code>Auto</code> type looks like ;)</p>
+<p>The reader might be thinking by now “Ok, but what can you do with this?” A Mealy machine is something very simple at its heart, and copying its definition from Wikipedia <em>“…is a finite-state machine whose output values are determined both by its current state and the current inputs.[…]”</em>. Simply put, we can use the current state and the current input(s) to decide where to go next (which could be advance the machine or stop altogether). To be completely honest with you, whilst writing this blog post, I was on the fence about considering what’s inside a <code>PaginatorFetch</code> a Mealy or a Moore machine, as it resemble a bit of both, but I <em>eventually settle on the former, as effectively it’s the input (the “token”) which determines if we can step further or not</em>.</p>
+<p>Armed with our <code>ForwardPaginator</code>, let’s generalise it to our domain problem:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">NextToken</span> <span class="ot">=</span> <span class="dt">T.Text</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Repository</span> <span class="ot">=</span> <span class="dt">T.Text</span> <span class="co">-- Will use this later</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">ECRPaginator</span> m a <span class="ot">=</span> <span class="dt">ForwardPaginator</span> m <span class="dt">NextToken</span> a</span></code></pre></div>
+<p>Now, let’s get the elephant out of the room and let me give you the (rather) uninteresting definition of our ECR paginator. I personally think that the semantic of the data structure and the operations we can perform of it are much more interesting, but I wanted to post a “real world” paginator just to prove this stuff can also pay the bills ;)</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">ecrListImagesPaginated ::</span> <span class="dt">Repository</span> <span class="ot">-&gt;</span> <span class="dt">ECRPaginator</span> <span class="dt">Sh</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ecrListImagesPaginated repo <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \_ <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  initialState <span class="ot">&lt;-</span> run <span class="st">&quot;aws&quot;</span> cmd</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> JSON.eitherDecode (toS initialState) <span class="kw">of</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Left</span> ex <span class="ot">-&gt;</span> yieldZero ex</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> (<span class="dt">ECRListImages</span> <span class="dt">Nothing</span> items) <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Nothing</span>, items, <span class="dt">PaginatorLeaf</span> <span class="fu">mempty</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> (<span class="dt">ECRListImages</span> mbToken items) <span class="ot">-&gt;</span> <span class="fu">return</span> (mbToken, items, fetch)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    yieldZero ex <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      echo <span class="st">&quot;aws ecr list-images failed to decode to valid JSON. Error was: &quot;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      echo (toS <span class="op">.</span> <span class="fu">show</span> <span class="op">$</span> ex)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span> (<span class="dt">Nothing</span>, <span class="fu">mempty</span>, <span class="dt">PaginatorLeaf</span> <span class="fu">mempty</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    cmd <span class="ot">=</span> [ <span class="st">&quot;ecr&quot;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;list-images&quot;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;--region&quot;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;eu-west-1&quot;</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;--repository-name&quot;</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>          , repo</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>          ]</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="ot">    fetch ::</span> <span class="dt">ECRPaginator</span> <span class="dt">Sh</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    fetch <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \token <span class="ot">-&gt;</span> <span class="kw">case</span> token <span class="kw">of</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Nothing</span>, <span class="fu">mempty</span>, <span class="dt">PaginatorLeaf</span> <span class="fu">mempty</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> t  <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        rawJson <span class="ot">&lt;-</span> run <span class="st">&quot;aws&quot;</span> cmd</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">case</span> JSON.eitherDecode (toS rawJson) <span class="kw">of</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Left</span> ex <span class="ot">-&gt;</span> yieldZero ex</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Right</span> (<span class="dt">ECRListImages</span> mbToken items) <span class="ot">-&gt;</span> <span class="fu">return</span> (mbToken, items, fetch)</span></code></pre></div>
+<p>The caveat here is that we need to repeat the call to <code>aws ecr</code> twice as we need to call it at least once to acquire a valid token, so that externally we will be able to pass <code>Nothing</code> to our paginator to start it. I have chosen <code>Sh</code> as my monad of choice (from the <a href="http://hackage.haskell.org/package/shelly">shelly</a> package), so that I can run <code>bash</code> commands easily.</p>
+<p>Now the fun begins! What we can do with this paginator and more generally with a <code>ForwardPaginator</code>?</p>
+<p>The first operation we can think of is effectively “stepping” the paginator, and implementing this function is not very hard:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">next ::</span> <span class="dt">Monad</span> m</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>     <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>     <span class="co">-- ^ The initial input state to use.</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> i, a, <span class="dt">ForwardPaginator</span> m i a)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>next (<span class="dt">PaginatorLeaf</span> i) _ <span class="ot">=</span> <span class="fu">return</span> (<span class="dt">Nothing</span>, i, <span class="dt">PaginatorLeaf</span> i)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>next (<span class="dt">PaginatorFetch</span> cont) tkn <span class="ot">=</span> cont tkn</span></code></pre></div>
+<p>Note how this function is completely generic in terms of <code>m</code>, <code>i</code> and <code>a</code>, apart from the <code>Monad</code> constraint, which means I can “step” arbitrary paginators – talk about code reuse! Another thing we might want is to be evil and fold all the data returned from the paginator into a giant collection. Not hard as well:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">foldPaginator ::</span> (<span class="dt">Monad</span> m, <span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> m a</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>foldPaginator (<span class="dt">PaginatorLeaf</span> items) _ acc <span class="ot">=</span> <span class="fu">return</span> (items <span class="ot">`mappend`</span> acc)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>foldPaginator (<span class="dt">PaginatorFetch</span> cont) tkn acc <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  (t', acc', res) <span class="ot">&lt;-</span> cont tkn</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> res <span class="kw">of</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    leaf<span class="op">@</span>(<span class="dt">PaginatorLeaf</span> _) <span class="ot">-&gt;</span> foldPaginator leaf <span class="dt">Nothing</span> acc</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    nextFetch              <span class="ot">-&gt;</span> foldPaginator nextFetch t' acc'</span></code></pre></div>
+<p>Again, the only constrain is that our accumulator must be a <code>Monoid</code>, so that we can effectively concatenate all the results together. This would also effectively allow us to return <em>all</em> the <code>ECRImage</code>(s) at once, but beware that this would load them into memory – not recommended for your production services!</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">ecrListImages ::</span> <span class="dt">Repository</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ecrListImages repo <span class="ot">=</span> shelly <span class="op">$</span> foldPaginator (ecrListImagesPaginated repo) <span class="dt">Nothing</span> <span class="fu">mempty</span></span></code></pre></div>
+<p>Something nice we can do with a <code>ForwardPaginator</code> is being able to find a particular element matching a predicate, short-circuiting our paginator as soon as we find a match, in order to avoid work and more generally expensive calls to external services:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">findPaginator ::</span> <span class="dt">Monad</span> m</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>              <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i [a]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>              <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>              <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Bool</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>              <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> a)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>findPaginator (<span class="dt">PaginatorLeaf</span> v) _ prd <span class="ot">=</span> <span class="fu">return</span> <span class="op">$</span> List.find prd v</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>findPaginator (<span class="dt">PaginatorFetch</span> cont) tkn prd <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  (t',items,cont') <span class="ot">&lt;-</span> cont tkn</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> List.find prd items <span class="kw">of</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Just</span> i  <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">Just</span> i</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Nothing</span> <span class="ot">-&gt;</span> findPaginator cont' t' prd</span></code></pre></div>
+<h3 id="pure-or-impure-pick-your-monad">Pure or impure? Pick your monad!</h3>
+<p>To wrap up this blog post, I also wanted to show you how we are not bounded to use a “impure” monad for our <code>ForwardPaginator</code>: we could use something like <code>Identity</code>, <code>State</code>, <code>Reader</code> and so on and so forth. As an example, we will create a <code>ForwardPaginator</code> which can be built out of a pure function (full disclosure: <code>fib</code>, the classic, hehe) and everything will be pure to please the Haskell gods. Let’s start by defining both our pure function and the associated paginator:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fib ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fib <span class="dv">0</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fib <span class="dv">1</span> <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>fib n <span class="ot">=</span> fib (n <span class="op">-</span> <span class="dv">1</span>) <span class="op">+</span> fib (n <span class="op">-</span> <span class="dv">2</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="ot">fibPaginator ::</span> <span class="dt">ForwardPaginator</span> <span class="dt">Identity</span> <span class="dt">Int</span> <span class="dt">Integer</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>fibPaginator <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \continue <span class="ot">-&gt;</span> <span class="kw">case</span> continue <span class="kw">of</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Just</span> <span class="dv">1</span>, fib <span class="dv">0</span>, fibPaginator)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Just</span> i  <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Just</span> <span class="op">$</span> i <span class="op">+</span> <span class="dv">1</span>, fib i, fibPaginator)</span></code></pre></div>
+<p>The slight twist is that in case we have no initial input, we return the base case of the recursion, otherwise we iterate in an infinite fashion, exactly like the original <code>fib</code> function. Now we can easily step the paginator using <code>next</code> to get one result at time, or create a convenient <code>take</code> function to get values out our infinite stream:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">takePaginator ::</span> (<span class="dt">Monad</span> m) <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> m [a]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>takePaginator (<span class="dt">PaginatorLeaf</span> v) _ _ <span class="ot">=</span> <span class="fu">return</span> [v]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>takePaginator (<span class="dt">PaginatorFetch</span> cont) tkn n</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> n <span class="op">&lt;=</span> <span class="dv">0</span> <span class="ot">=</span> <span class="fu">return</span> []</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    (newToken, o, newPaginator) <span class="ot">&lt;-</span> cont tkn</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    (o <span class="op">:</span>) <span class="op">&lt;$&gt;</span> takePaginator newPaginator newToken (n <span class="op">-</span> <span class="dv">1</span>)</span></code></pre></div>
+<p>Using it is simple enough:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runIdentity <span class="op">$</span> takePaginator fibPaginator <span class="dt">Nothing</span> <span class="dv">10</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">8</span>,<span class="dv">13</span>,<span class="dv">21</span>,<span class="dv">34</span>]</span></code></pre></div>
+<p>As a bonus, as <code>ForwardPaginator</code> is a functor, we can easily map a function on the output values as we stream them:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runIdentity <span class="op">$</span> takePaginator ((<span class="op">*</span><span class="dv">2</span>) <span class="op">&lt;$&gt;</span> fibPaginator) <span class="dt">Nothing</span> <span class="dv">10</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">0</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>,<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">26</span>,<span class="dv">42</span>,<span class="dv">68</span>]</span></code></pre></div>
+<h3 id="stepping-backwards">Stepping backwards</h3>
+<p>A bit of a pet peeve the reader migth have with this paginator is that is lacks the ability to step backward, and that would certainly be a valid concern. I still think though that adding the ability to iterate backward should be possible provided that we create a function <code>back</code> which bound the paginator monad to be a <code>MonadState (Maybe i)</code>, so that we can store the previous token and go backward and forward as we please. Something like this, for example:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">prev ::</span> <span class="dt">MonadState</span> (<span class="dt">Maybe</span> i) m</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>     <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>     <span class="co">-- ^ The initial input state to use.</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> i, <span class="dt">Maybe</span> a, <span class="dt">ForwardPaginator</span> m i a)</span></code></pre></div>
+<p>I think we need to yield a <code>Maybe a</code> as output in case we want to step backward but we are already at the first “page”: in that case, we should yield no result. Maybe, if the readers are interested, I could explore this possibility in a subsequent blog post, which should effectively give us a <code>Paginator</code> worth its name, to be used in each scenario which requires bidirectional pagination.</p>
+<h3 id="conclusions">Conclusions</h3>
+<p>The ideas presented here are very simple but at the same time quite effective; They allowed me to solve my original problem in a nice compact way. Using <code>findPaginator</code> and the <code>Functor</code> instance I was able to first stop as soon as the current result set contained values I was interested in, and I was able to “zoom” only on pieces of the <code>ECRImage</code> data structure to extract things like the <code>ImageDigest</code>. So, next time you need to implement some form of pagination, remember you have the arsenal of Mealy and Moore Machines at your disposal: it’s not surprising they are called <em>stream transducers</em>!</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2016-09-10-paginators-are-mealy-machines-in-disguise.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2016-09-10-paginators-are-mealy-machines-in-disguise.html';
+  var disqus_title = 'Paginators are Mealy Machines in disguise';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

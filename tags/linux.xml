@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Alfredo Di Napoli's Tech Blog</title>
+    <link href="http://www.alfredodinapoli.com/tags/linux.xml" rel="self" />
+    <link href="http://www.alfredodinapoli.com" />
+    <id>http://www.alfredodinapoli.com/tags/linux.xml</id>
+    <author>
+        <name>Alfredo Di Napoli</name>
+        <email>alfredo.dinapoli@gmail.com</email>
+    </author>
+    <updated>2018-12-20T00:00:00Z</updated>
+    <entry>
+    <title>How to backup and store your GPG private key (semi) securely</title>
+    <link href="http://www.alfredodinapoli.com/posts/2018-12-20-semi-secure-gpg-key-backup.html" />
+    <id>http://www.alfredodinapoli.com/posts/2018-12-20-semi-secure-gpg-key-backup.html</id>
+    <published>2018-12-20T00:00:00Z</published>
+    <updated>2018-12-20T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<pre><code>Summary: splitting your key into multiple pieces and do something different with each piece is a not-too-shabby way to secure your GPG private key.</code></pre>
+<p><strong>Disclaimer: I am not a security expert, and there is no such thing as “perfect security”, thus the witty title of my blog post. You are encouraged to try out what I am describing here, but I am not responsible for any misuse or data loss occurring while trying out the steps below.</strong></p>
+<p>I am guilty of discovering the power and versatility of GPG keys only in my late 30s (I know, I know). It happened by pure chance as it was a required step for my previous job. It’s a really nice way to bind and verify digital identities to some random bits sitting in your computer. Plus, it opens up new exciting possibilities, like securing all your passwords with something like <a href="https://www.passwordstore.org/">pass</a>. However, this has the (expected) consequence that now your GPG key becomes a single point of failure and if it gets lost or, worse, stolen, it can be quite a disaster.</p>
+<p>To mitigate this, saving it somewhere safe is paramount. This begs the question: “how?”. I usually have (enough but not too much) trust in cloud providers like Dropbox, Google Drive &amp; co, but ultimately you are sending your precious data over the network (hoping the connection is secure and the traffic not spoofed) and if one of these services gets compromised, the integrity and security of your data also is.</p>
+<p>To mitigate this, I have been researching ways of securely storing my private GPG key, and I think what I came up with is decent (at least for my use case).</p>
+<h2 id="first-attempt">First attempt</h2>
+<p>My first attempt was - as suggested around - to use something like <code>qrencode</code> to turn my GPG key into a QR code I could then print and store in a closet. Then I could use something like <a href="http://manpages.ubuntu.com/manpages/bionic/man1/zbarimg.1.html">zbarimg</a> to retrive my key. However, this approach releaved to be not practical as my key is too big and it doesn’t fit into a QR code.</p>
+<h2 id="the-final-solution">The final solution</h2>
+<p>I ended up splitting my key into 4 parts, and I have <em>then encoded as a QR code only the first part</em>; the other three have been encrypted with a symmetric key (i.e. <code>gpg -c your-file</code>). By doing that, I can store the encrypted parts inside Dropbox, and print the first part and store it physically in a safe place.</p>
+<h2 id="why">Why?</h2>
+<p>That’s a fair question; in principle, simply encrypting my GPG key with a symmetric key and upload it to Dropbox might have been enough, but I feel like this schema opens up more possibilities. I especially like the fact I am not dependant on just one cloud provider and that, even if Dropbox is ever compromised, and even if by some quantum-computer-miracle my symmetric key is bruteforced, the attacker would still miss the last piece of the puzzle (no pun intended).</p>
+<p>Last but not least, here I have only used a single symmetric key for all the three parts of my key, but nobody is preventing me from using two or even three different ones. This way, even if one symmetric key is leaked somehow, the attacker couldn’t still have access to my full GPG key (provided he could get his hands on the QR code, of course).</p>
+<h2 id="the-scripts">The scripts</h2>
+<p>I have two scripts that I have whipped up: the first one exports my GPG key and split it into chunks:</p>
+<pre><code>#!/usr/bin/env bash
+
+# First export your gpg key like so:
+#
+# gpg --export-secret-keys -a -o mykey.asc
+#
+# Then this script will generate 4 qr codes for your key. At this point
+# it&#39;s up to you what to do with these images.
+
+split -b 2800 $1 mykey-
+
+for file in mykey-??; do
+    &lt;&quot;$file&quot; qrencode -o &quot;$file&quot;.png
+done</code></pre>
+<p>Running this script giving as input the filename of your exported key would first split it into multiple parts and finally for each of them run <code>qrencode</code>. At this point you would be left with an <code>.asc</code> file (which you might want to delete now) and a bunch of files like, for example:</p>
+<pre><code>mykey-aa
+mykey-aa.png
+mykey-ab
+mykey-ab.png
+...</code></pre>
+<p>At this point you can delete all the <code>.png</code> but the first one, and conversely delete the first <code>mykey-aa</code> keeping the other around. Now, for each of the “chunks” (except the one and only <code>.png</code>, of course) proceed to the gpg encryption with a symmetric key of your choice. For example:</p>
+<pre><code>gpg -c mykey-ab</code></pre>
+<p>This will spawn pinetry and allow you to insert the password. At the end of this operation, you should have multiple <code>.gpg</code> files: these are the ones you can store on Dropbox. Your files should be looking somewhat like this:</p>
+<pre><code>mykey-aa.png
+mykey-ab.gpg
+mykey-ac.gpg
+mykey-ad.gpg</code></pre>
+<h3 id="reconstructing-the-key">Reconstructing the key</h3>
+<p>Once the time will come to reconstruct your key, you can use this other script:</p>
+<pre><code>#!/usr/bin/env bash
+
+RESULT=mykey.asc
+
+zbarimg --raw $1-aa.png | perl -pe &#39;chomp if eof&#39; - &gt; $RESULT
+
+for f in $1-ab.gpg $1-ac.gpg $1-ad.gpg; do
+  echo $f;
+  gpg -dq $f &gt;&gt; $RESULT;
+done
+
+# Sanity check
+gpg --dearmor $RESULT &gt;/dev/null</code></pre>
+<p>You have to supply to this script the <code>basename</code> of your files (in our example would be <code>mykey</code>) and the script would first read the QR code, then decrypt the other chunks (in my case they are just 3 and are hardcoded in the script, your mileage might vary) and <em>dulcis in fundo</em> it will perform a sanity check on the reconstructed key.</p>
+<p>Voilà, your key has been reconstructed! You can now import the key again inside your GPG keychain by doing <code>gpg --import &lt;key&gt;</code>.</p>
+<p>I have tested this approach myself when migrating the key from a laptop to another and it worked just fine, so hopefully this will be useful to you as well.</p>
+<h1 id="update-2018-12-23-a-possible-improvement">(Update 2018-12-23) A possible improvement</h1>
+<p>My friend Edsko pointed out a few quirks in my original scheme. In particular, assuming the possibility that Dropbox can actually be violated and that the last piece of the puzzle standing between the full key is the QR code, using the first chunk as our unencrypted QR code is a poor choice. First of all, we are still subject to bruteforce attacks as now all it takes for the attacker to get knowledge of the key is to bruteforce 1/4 of it. Not only that, but crucially the first part of the key includes a few bytes for the header (the <code>-----BEGIN PGPG PRIVATE KEY BLOCK-----</code>) which means there are actually even fewer bytes to bruteforce.</p>
+<p><em>A better scheme</em> here would be to:</p>
+<ul>
+<li>Encrypt with a symmetric key <em>all</em> the chunks;</li>
+<li>Turn into QR codes the chunks <em>in the middle</em>.</li>
+</ul>
+<p>This way, we are not only eliminating the problem of the header, but also never storing something unencrypted. The obvious consequence is that now we need an extra step to recover our key.</p>
+<h1 id="other-alternatives">Other alternatives</h1>
+<p>Somebody also suggested to use something like <a href="https://github.com/Rupan/paperbak">paperbak</a>, which is ultimately possible but I was put off by what seemed to be quite a careful procedure for restoring the data from the printed bitmap. In particular the readme explains how is important to have a good printer etc etc, so I didn’t want to take the risk.</p>]]></summary>
+</entry>
+<entry>
+    <title>Yes, I am another Mac OS X user that jumped off the ship</title>
+    <link href="http://www.alfredodinapoli.com/posts/2012-07-31-jumped-off-macosx-ship.html" />
+    <id>http://www.alfredodinapoli.com/posts/2012-07-31-jumped-off-macosx-ship.html</id>
+    <published>2012-07-31T00:00:00Z</published>
+    <updated>2012-07-31T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>Let’s begin saying that I’m not an occasional Mac user. I bought my first Mac in 2007 and user it almost every day of my life to every kind of task: from music processing to programming. I don’t claim to be the best programmer in the world (I’m not), but I’m a graduated Computer Science guy, so both hardware and especially software are my bread and butter. This story, as said, began in 2007, when I got my first MacBook: back in those days, Apple computers shipped with Tiger or Panther, two great OS. My computer was blazing fast, responsive and lean. I was still happy with Leopard, even though I noticed a small performance deficit respect to its old brothers. I bought a MacBook Pro late in 2009, currently equipped with a <em>Core 2 Duo</em>, an <em>NVIDIA GeForce 9400M</em> and <em>8 GB of RAM</em>.</p>
+<p>Unfortunately, at least in my opinion, Mac OS X bloated release after release. The point is that Apple is also a hardware seller, so they ship a product that is usually intended to run well on the latest hardware, without worrying too much about older hardware. I experienced the same behavior with my iPhone 3G: it was blazing fast just released, pretty slow after each update of iOS. I’m not criticing Apple behaviour, I understand that market is governed by rules, but these rules begin to cripple my “Mac OS faith”.</p>
+<p>The upgrade to Moutain Lion was the straw that broke the camel’s back. Not only was the system slower than before, but I don’t subscribe with some choices that have been made about the direction Mac Os X points toward. They want to blur the line between a Desktop and a mobile system, but this is not suitable for developer’s needs. A developer don’t want the dust to be hidden under the carpet, but want to have the freedom to bend the system to his needs. Two small but meaninful examples of this “blurring” trend:</p>
+<ul>
+<li><p>During the transition from Snow Leopard to Lion, Apple automatically hid the <em>~/Library</em> directory. This was a nuisance for me, because I used to fiddle with files in it a lot, so I had to re-enable it with a command-line option or use the Finder option <em>Go to folder</em>.</p></li>
+<li><p>In Mountain Lion, by default, is not possible to open software downloaded from a source that is not the Apple Store. Obviously, you can re-enable the intended behavior using <em>System Preferences</em>, but why on earth is that the default option?</p></li>
+</ul>
+<p>In my opinion, these are only two small example the shows a worring trend. Some people denigrate Windows or Ubuntu for hiding the dust under the carpet (ofter these system are addressed as systems for dumb people), but Mac OS X is doing exactly the same thing!</p>
+<p>After much though, I decided to do a clean install of Mac OS X and to have a double-partitioned system. I reserved 50 of my 250GB to Mountain Lion and the rest to Linux (in particular to <a href="http://www.bodhilinux.com/">Bodhi Linux</a>).</p>
+<p>Am I crazy? Probably yes, probably not. I’ve decided that a small Mac OS X partition was necessary for very specific tasks (Adobe and Office suites, to sync my iPad and my iPod) but all the rest will be demanded to Bodhi.</p>
+<p>###A praise to Bodhi Linux Seldom in my life I was surprised by a piece of software. Maybe the first time was with Panther (ah, my first Macbook). I stumbled upon Bodhi by chance, searching for the best (here read, the most compatible) distribution for my MacBook 5,5. Being a Zen guy myself, Bodhi incarnates (no pun intended) my idea of software: lean, barebone, fast. You decide what to add. You pay for what you want to include. This philosophy is witnessed by the size of the .ISO, only 526MB! Bodhi ships with <a href="http://www.enlightenment.org/">Enlightenment</a>, a Desktop Manager that used to be bugged as hell. Fortunately, it used, because E17 seems to be a solid manager, I suspect thanks to the wonderful job of the Bodhi team. Now my system is fast, lean, responsive, and best of all, I can bend it to my needs. The dust is there, where I want it to be.</p>
+<p>###In the end Farewell Mac OS X, you served me well during these years. Probably we’ll encouter again soon, maybe with Mac OS XI. But I really hope to see the trend change. In the meantime, Windows 8 is approaching. Almost everyone praises it, so I’m freaking curious to see what lies in store. In this period, after Steve premature demise, the OS is open again. Will Mac OS triumph, or Windows will take even more market? We’ll see. In the meantime I feel 10 year younger, when I installed and enjoyed my first Linux distro. It was a Mandriva, but it seems to me like the door for an amazing world.</p>]]></summary>
+</entry>
+
+</feed>

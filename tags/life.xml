@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Alfredo Di Napoli's Tech Blog</title>
+    <link href="http://www.alfredodinapoli.com/tags/life.xml" rel="self" />
+    <link href="http://www.alfredodinapoli.com" />
+    <id>http://www.alfredodinapoli.com/tags/life.xml</id>
+    <author>
+        <name>Alfredo Di Napoli</name>
+        <email>alfredo.dinapoli@gmail.com</email>
+    </author>
+    <updated>2015-02-13T00:00:00Z</updated>
+    <entry>
+    <title>Releasing the threads-supervisor library</title>
+    <link href="http://www.alfredodinapoli.com/posts/2015-02-13-releasing_the_threads_supervisor_library.html" />
+    <id>http://www.alfredodinapoli.com/posts/2015-02-13-releasing_the_threads_supervisor_library.html</id>
+    <published>2015-02-13T00:00:00Z</published>
+    <updated>2015-02-13T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h1 id="releasing-the-threads-supervisor-library">Releasing the threads-supervisor library</h1>
+<p>I’m happy to announce the first release of <a href="https://github.com/adinapoli/threads-supervisor">threads-supervisor</a>, a small library I have extracted from some code I wrote at work (thanks to Iris Connect for allowing me to release it). The library itself does only one thing: it allows you to fork an IO computation in a supervised fashion, restarting it in case of failure. In a sense, the library it’s similar in spirit to Erlang’s OTP approach to process supervision and supervision trees. At the moment, we support only one restart strategy, Erlang’s <code>OneForOne</code>, which basically means “please always restart this thread”. Of course, threads-supervisor is not as feature complete as the OTP counterpart, nor it aims to be.</p>
+<h1 id="why-not-use-distributed-process-immortal-async-slave-threads-yet-another-library">Why not use <code>distributed-process</code>, <code>immortal</code>, <code>async</code>, <code>slave-threads</code>, <code>yet-another-library</code>?</h1>
+<p>The aim of this small paragraph is not to convince you that my library the best in town (it’s not!), but more to justify my thought process behind deciding to write it. When I looked at <code>distributed-process</code>, it was clear that it was offering exactly this kind of supervision and much, much more. The problem is the library is certainly geared towards Cloud Haskell and the idea of the distributed closures, therefore if you want to use it, you have to buy the full package. What I wanted, instead, was a simple library, with minimal dependencies, which could be used as a replacement of <code>forkIO</code>, with minimal fuss.</p>
+<p><code>immortal</code> is a very nice library indeed, but I also wanted built-in event logging with opt-in subscription, as well as the possibility of compose my supervisors into a nice supervision tree.</p>
+<p>The same sort of reasoning can be generalised; the available library in the ecosystem where close enough to what I wanted but not <strong>exactly</strong> what I wanted. Therefore, I decided it was just simpler to whip up my small abstraction on top of the concurrency primitives.</p>
+<h1 id="using-the-library">Using the library</h1>
+<p>Extensive documentation can be found reading the <a href="http://hackage.haskell.org/package/threads-supervisor-1.0.1.0/docs/Control-Concurrent-Supervisor-Tutorial.html">tutorial</a>, but I’m going to report here the relevant passages.</p>
+<p>Use <code>threads-supervisor</code> if you want the “poor-man’s Erlang supervisors”. <code>threads-supervisor</code> is an IO-based library with minimal dependencies which does only one thing: It provides you a ‘Supervisor’ entity you can use to monitor your forked computations. If one of the managed threads dies, you can decide if and how to restart it. This gives you:</p>
+<ul>
+<li>Protection against silent exceptions which might terminate your workers.</li>
+<li>A simple but powerful way of structure your program into a supervision tree, where the leaves are the worker threads, and the nodes can be other supervisors being monitored.</li>
+<li>A disaster recovery mechanism.</li>
+</ul>
+<p>Who worked with Haskell’s concurrency primitives will be surely familiar with the <code>forkIO</code> function, which allow us to fork an IO computation in a separate green thread. <code>forkIO</code> is great, but is also very low level, and has a couple of subtleties, as you can read from this passage in the documentation:</p>
+<pre><code>The newly created thread has an exception handler that discards the exceptions
+`BlockedIndefinitelyOnMVar`,`BlockedIndefinitelyOnSTM`, and `ThreadKilled`,
+and passes all other exceptions to the uncaught exception handler.</code></pre>
+<p>To mitigate this, we have a couple of libraries available, for example <a href="http://hackage.haskell.org/package/async">async</a> and <a href="http://hackage.haskell.org/package/slave-thread">slave-threads</a>.</p>
+<p>But what about if I do not want to take explicit action, but instead specifying upfront how to react to disaster, and leave the library work out the details? This is what this library aims to do.</p>
+<p>In this example, let’s create four different threads:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job1 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>job1 <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">5000000</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fail</span> <span class="st">&quot;Dead&quot;</span></span></code></pre></div>
+<p>This job will die after five seconds.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job2 ::</span> <span class="dt">ThreadId</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>job2 tid <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">3000000</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  killThread tid</span></code></pre></div>
+<p>With this other job instead, we wait three seconds, and then kill a target thread, generating an asynchronous exception.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job3 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>job3 <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">5000000</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">error</span> <span class="st">&quot;Oh boy, I&#39;m good as dead&quot;</span></span></code></pre></div>
+<p>This guy is very similar to the first one, except for the fact <code>error</code> is used instead of <code>fail</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job4 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>job4 <span class="ot">=</span> threadDelay <span class="dv">7000000</span></span></code></pre></div>
+<p><code>job4</code> is what we wish for all our real-world functions: smooth sailing. These jobs represent a significant pool of our everyday computations in the IO monad.</p>
+<h2 id="creating-a-supervisorspec">Creating a SupervisorSpec</h2>
+<p>A ‘SupervisorSpec’ simply holds the state of our supervision, and can be safely shared between supervisors. Under the hood, both the <code>SupervisorSpec</code> and the <code>Supervisor</code> share the same structure; in fact, they are just type synonyms:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">SupervisorSpec</span> <span class="ot">=</span> <span class="dt">Supervisor_</span> <span class="dt">Uninitialised</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Supervisor</span> <span class="ot">=</span> <span class="dt">Supervisor_</span> <span class="dt">Initialised</span></span></code></pre></div>
+<p>The important difference though, is that the <code>SupervisorSpec</code> does not imply the creation of an asynchronous thread, which the latter does. To keep separated the initialisation of the data structure from the logic of supervising, we use GADTs and type synonyms to force you create a spec first. Creating a spec it just a matter of calling <code>newSupervisorSpec</code>.</p>
+<h2 id="creating-a-supervisor">Creating a Supervisor</h2>
+<p>Creating a ‘Supervisor’ from a ‘SupervisionSpec’, is as simple as calling <code>newSupervisor</code>. Immediately after doing so, a new thread will be started, monitoring any subsequent IO actions submitted to it.</p>
+<h2 id="supervising-some-threads">Supervising some threads</h2>
+<p>Let’s wrap everything together into a full blown example:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> bracketOnError (<span class="kw">do</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  supSpec <span class="ot">&lt;-</span> newSupervisorSpec</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  sup1 <span class="ot">&lt;-</span> newSupervisor supSpec</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  sup2 <span class="ot">&lt;-</span> newSupervisor supSpec</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  sup1 <span class="ot">`monitor`</span> sup2</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup2 <span class="dt">OneForOne</span> job3</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  j1 <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> job1</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> (job2 j1)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> job4</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkIO (go (eventStream sup1))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> sup1) shutdownSupervisor (\_ <span class="ot">-&gt;</span> threadDelay <span class="dv">10000000000</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>   go eS <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>     newE <span class="ot">&lt;-</span> atomically <span class="op">$</span> readTBQueue eS</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>     <span class="fu">print</span> newE</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>     go eS</span></code></pre></div>
+<p>What we have done was spawning our supervisors out from a spec, and using our swiss knife <code>forkSupervised</code> to spawn four supervised IO computations. As you can see, if we partially apply <code>forkSupervised</code>, its type resemble <code>forkIO</code>’s one; this is by design, as we want to keep this API as IO-friendly as possible.</p>
+<p>In the very same example, we also create another supervisor (from the same spec, but you can create a separate one as well) and we ask the first supervisor to monitor the second one.</p>
+<p>Each <code>Supervisor</code> gives you access the its internal event stream, retrievable, under the form of a <code>TBQueue</code>, by calling <code>eventStream</code>.</p>
+<p>If you run this program, hopefully you should see on stdout something like this:</p>
+<pre><code>ChildBorn ThreadId 62 2015-02-13 11:51:15.293882 UTC
+ChildBorn ThreadId 63 2015-02-13 11:51:15.293897 UTC
+ChildBorn ThreadId 64 2015-02-13 11:51:15.293904 UTC
+ChildDied ThreadId 61 (MonitoredSupervision ThreadId 61) 2015-02-13 11:51:15.293941 UTC
+ChildBorn ThreadId 65 2015-02-13 11:51:15.294014 UTC
+ChildFinished ThreadId 64 2015-02-13 11:51:18.294797 UTC
+ChildDied ThreadId 63 thread killed 2015-02-13 11:51:18.294909 UTC
+ChildDied ThreadId 62 Oh boy, I&#39;m good as dead 2015-02-13 11:51:20.294861 UTC
+ChildRestarted ThreadId 62 ThreadId 68 OneForOne 2015-02-13 11:51:20.294861 UTC
+ChildFinished ThreadId 65 2015-02-13 11:51:22.296089 UTC
+ChildDied ThreadId 68 Oh boy, I&#39;m good as dead 2015-02-13 11:51:25.296189 UTC
+ChildRestarted ThreadId 68 ThreadId 69 OneForOne 2015-02-13 11:51:25.296189 UTC
+ChildDied ThreadId 69 Oh boy, I&#39;m good as dead 2015-02-13 11:51:30.297464 UTC
+ChildRestarted ThreadId 69 ThreadId 70 OneForOne 2015-02-13 11:51:30.297464 UTC
+ChildDied ThreadId 70 Oh boy, I&#39;m good as dead 2015-02-13 11:51:35.298123 UTC
+ChildRestarted ThreadId 70 ThreadId 71 OneForOne 2015-02-13 11:51:35.298123 UTC</code></pre>
+<h1 id="conclusions">Conclusions</h1>
+<p>I hope that you are now convinced that this library can be of some use to you! It’s on Hackage, play with it!</p>
+<p>Alfredo</p>]]></summary>
+</entry>
+<entry>
+    <title>Convince me to use Rust</title>
+    <link href="http://www.alfredodinapoli.com/posts/2014-12-17-convince-me-to-use-rust.html" />
+    <id>http://www.alfredodinapoli.com/posts/2014-12-17-convince-me-to-use-rust.html</id>
+    <published>2014-12-17T00:00:00Z</published>
+    <updated>2014-12-17T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h2 id="convince-me-to-use-rust">Convince me to use Rust</h2>
+<p><strong>TL;TR I really like Rust, but I feel overwhelmed by its syntax and complexity, so I hope the Rust community will sell me the language, convincing me to learn it.</strong></p>
+<p>As we approach the new year, it seems quite natural to follow this <a href="http://matt.might.net/articles/programmers-resolutions/">list</a> of things I should aim to do in 2015. One of them is learning a new language, which I feel it’s quite an important one. After having a love-hate relationship with high and low level languages, I’m not in that period of my life where I would like to learn a new system language. I’ve done a bit of C/C++ back in university days, so I know what lies in store, even considering the latest available standards (i.e. c11, C++11, C++14 and so on). I would like to learn something <em>different</em>, and I went back and forth in deciding whether I should learn Go or Rust (I know, potentially I should learn both). The real question is: Which of the two?</p>
+<h2 id="about-me">About me</h2>
+<p>First of all, let me say I’m a <a href="http://www.alfredodinapoli.com/oss.html">Haskell hacker</a>. Not only am I a OSS contributor, but I’m lucky enough to get paid to code in Haskell during my everyday job. So I am a firm believer that a strong type system and a strong compiler really matters in delivering robust software. So, in a sense, it seems that the natural continuation in my skills development would be to learn Rust, which gets a <strong>lot</strong> of things right (but I’m sure you didn’t need me to discover this): immutability by default, a sophisticated borrow checker, ADTs, pattern matching, (limited form of) monads and even HKT (only emulated for now, hopefully fully supported in Rust 1.0).</p>
+<h2 id="so-what">So what?</h2>
+<p>So what? You might be thinking, which would be a perfectly reasonable feeling. If you feel Rust is the “next big thing”, you should learn it as your next system language, right? That’s true, but I want to play the devil’s advocate here, and I really hope the Rust community will jump on me and completely sell me the language, so I will happily hack in it during 2015 (together with Haskell, of course!).</p>
+<h2 id="zen">Zen</h2>
+<p>If you are not familiar with the <a href="http://www.amazon.com/Complete-Idiots-Guide-Living-Edition/dp/159257243X">Zen</a> philosophy, I will definitely suggest you to dig more into it. Zen can be a lot of things, a religion, a way of living, and a way of coding, too. What I really appreciate of the Zen culture is that things like “beauty” and “simplicity” are something which should be researched in everything we do (also “perfection”, but that sounds more like utopia!). Leaving apart <a href="https://www.python.org/dev/peps/pep-0020/">other kind of Zen manifesto</a>, I’m a strong believer that beauty in code leads to simplicity, which leads to beauty, which leads to simplicity, which..</p>
+<p>Let’s take Haskell, for example. Don’t you find this is utterly beautiful?</p>
+<pre><code>fmap :: (Functor f) =&gt; (a -&gt; b) -&gt; f a -&gt; f b</code></pre>
+<p>If you are unfamiliar with Haskell it doesn’t matter, all you need to know is that this is the function signature for the <code>fmap</code> function, which can be specialised for lists, to name one data structure. What I like here is that:</p>
+<ul>
+<li>It’s simple, with a minimal syntax</li>
+<li>It’s completely generic, where <code>a</code>, <code>b</code> and <code>f</code> are completely parametric</li>
+<li>I can see upfront the “contract” of this function: <code>f</code> must be a <a href="http://en.wikipedia.org/wiki/Functor">functor</a></li>
+</ul>
+<p>Something which puts me off from learning Rust is the “eye bleeding” (perhaps I’m a bit exaggerating here!) I have when I look at certain snippets of Rust code. I feel overwhelmed by the variety of operators you can use to denote your variables, the macro applications, the trait implementations and much more. These are just two examples I copied opening two random Rust projects on Github:</p>
+<pre><code>/// An abstraction to receive `NetworkStream`s.
+pub trait NetworkAcceptor&lt;S: NetworkStream&gt;: Acceptor&lt;S&gt; + Clone + Send {
+    /// Closes the Acceptor, so no more incoming connections will be handled.
+    fn close(&amp;mut self) -&gt; IoResult&lt;()&gt;;
+}
+
+/// An abstraction over streams that a Server can utilize.
+pub trait NetworkStream: Stream + Any + StreamClone + Send {
+    /// Get the remote address of the underlying connection.
+    fn peer_name(&amp;mut self) -&gt; IoResult&lt;SocketAddr&gt;;
+}
+
+#[doc(hidden)]
+pub trait StreamClone {
+    fn clone_box(&amp;self) -&gt; Box&lt;NetworkStream + Send&gt;;
+}
+
+impl&lt;T: NetworkStream + Send + Clone&gt; StreamClone for T {
+    #[inline]
+    fn clone_box(&amp;self) -&gt; Box&lt;NetworkStream + Send&gt; {
+        box self.clone()
+    }
+}</code></pre>
+<pre><code>impl&lt;&#39;c&gt; Cursor&lt;&#39;c&gt; {
+    /// Create a new cursor instance
+    pub fn new(line: &amp;&#39;c mut Line, offset: uint) -&gt; Cursor&lt;&#39;c&gt; {
+        let mut cursor = Cursor {
+            offset: offset,
+            line: line,
+        };
+
+        // check that the current offset is longer than the length of the line
+        let offset = cursor.get_offset();
+        let line_length = cursor.get_line().len();
+        if offset &gt; line_length {
+            cursor.set_offset(line_length);
+        }
+        cursor
+    }
+}</code></pre>
+<p>This is obviously very much subjective, but I find Rust code <strong>very</strong> dense; someone could say the same of Haskell, I suppose, so I’m not sure how much my point stands. But when I look at Rust, I basically see C++ in disguise (angular brackets everywhere, very dense and complicated). Having programmed in C++ before, I was really hoping, in a sense, to get a breath of fresh air.</p>
+<p>On the contrary, <strong>Go</strong> seems to be exactly the opposite: I basically call it “C with concurrency”. But it has a strange allure, probably deriving from its simplicity: <strong>I like simple things</strong>. On the other hand, it goes against my outlook on software development, as is not very “safe”, as far as the compiler and the type checker is concerned. But the visual overhead is much less.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>If you make it till here, you guess this is <strong>not</strong> a flame post. It’s just my personal ruminations in what makes me feel reluctant in spending my time learning Rust. I really hope people will help me see through the syntax and appreciate the true sprit of the language.</p>]]></summary>
+</entry>
+<entry>
+    <title>My Road to Haskell</title>
+    <link href="http://www.alfredodinapoli.com/posts/2014-04-27-my-road-to-haskell.html" />
+    <id>http://www.alfredodinapoli.com/posts/2014-04-27-my-road-to-haskell.html</id>
+    <published>2014-04-27T00:00:00Z</published>
+    <updated>2014-04-27T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h1 id="my-road-to-haskell">My road to Haskell</h1>
+<p>Recently on Reddit <a href="http://www.reddit.com/r/haskell/comments/23pipv/job_offer_at_createnet_italy/">there was</a> a discussion about a job offer posted but that received few attentions, which triggered my interested, being myself very involved in that context. I have also asked if people would have been interested in my “Road to Haskell” (trademark by <a href="https://www.youtube.com/watch?v=mpby_hz8lFc">Chris Forno</a>), and due to the fact, surprisingly, they were, here I am. I wanted to write such a blog post for a while, but never found the inspiration I was looking for. So (long breath), what follows is my story, who I am and how I went from being an Haskell novice to a professional.</p>
+<h2 id="fall-2007">Fall 2007</h2>
+<p>Every great story begins with “Once upon a time” or “Fall YYYY”, so for me we need to rewind time back in 2007. At the time, I was deep into my second year of university, and for the first time I took a look to my curricula’s full program and with my surprise I saw a mandatory course called “Functional Programming”. Before, I never heard about functional programming, being our university quite fundamentalist in Java and OOP. Between general skepticism and mocking from my colleagues, we attended the course (as said, it was mandatory). We were roughly 150 students, but I think probably just 10 or so were really interested. The course used OCaml and unfortunately lacked a bit of real world pragmatism. It was the type of course which really makes you appreciate the succinctness of algebraic data types and recursive functions on data, but alas my colleagues (me include, I’ll be honest) failed to see any real world application with that. In other terms, it was a nice way to program, but in a “toy environment”, or in academia, which is, I guess, one of the false myths we are fighting hard to bust. Anyway, my first foray into functional programming concluded with a full score in that exam, but I rapidly forgot about OCaml and went back into OOP and Java land.</p>
+<h2 id="python-it.org">Python-it.org</h2>
+<p>Fast-forward to Autumn 2009. I graduated with full marks, getting my Bachelor in Computer Science with a thesis regarding a geo-tagging web application, with some flavours of artificial intelligence. It was programmed using my favourite tool at the time, Python. I fell in love with Python during the summer, when my professor suggested it as a nice system language to implement my thesis with (the thesis was on a different topic that I later changed into the aforementioned webapp). I embraced Python completely, being truly refreshing after the clunkiness of Java, so I started blogging about it, and I signed up on <a href="http://www.python-it.org/">Python-it.org</a>, the de-facto forum for Italian pythonists. There I met a lot of nice people, and in general started to expand my horizons, talking and interacting with people outside my university, which developed the “Java tunnel vision” I told you about. I don’t know exactly how happened, but in one topic in that forum they started to talk about functional programming languages, and they named a few: Clojure, Scheme and Haskell. There was a guy I admired a lot which had a crush with Scheme, and being Clojure very similar I started to explore the two languages almost at the same time.</p>
+<h2 id="the-holy-grail-search-begins">The holy Grail search begins</h2>
+<p>I bet we all had this phase of our CS life where we relentelessy search for the “Holy Grail” of programming languages, the Satori language if you prefer. The perfect language which will be able to restore <a href="https://www.quora.com/Reviews-of-Haskell/review/Edward-Kmett">our faith into programming</a>. A language which is fast, expressive, with a great library ecosystem, with a strong community. <a href="https://www.youtube.com/watch?v=bzkRVzciAZg">Drunk with the sense of power</a> this search gave me, I really liked to write small programs (typically a Project Euler challenge), and implement/benchmark it using different programming languages. My <a href="alfredodinapoli.wordpress.com">old blog</a> is full of articles about FP and Clojure (mostly), but <a href="http://alfredodinapoli.wordpress.com/2010/11/01/a-minimalistic-implementation-of-the-hangman-game-in-clojure/">this relic</a> is the first piece of Haskell I ever wrote. I wrote it, as usual, to compare implementation and quirks of different functional programming languages. It’s quite funny to get back to this code in retrospective, there were also a lot of grammatical mistakes, and the sentence “the pattern match magic”, makes me smile! Nevertheless, this was my first exposure to the language, and despite missing completely the notion of “monad”, I was able to whip up that program just playing “type tetris” and searching for some basic tutorial on internet. Despite the final goal of the blog post “I’m looking forward to digging deeper in Haskell”, I rapidly went back to Clojure. What didn’t work for me at the time was not the learning curve, but the fact that I couldn’t understand Haskell in its foundations. Reading “Real World Haskell” one of the first topics I was introduced was the “Maybe datatype”, but I wasn’t able to understand <em>why</em> I needed the complication of wrapping my values into something I needed to unwrap later on. “Why not use something like Python’s <code>None</code> of Clojure’s <code>nil</code>?” - I thought at time. So “Real World Haskell” rapidly finished accumulating dust into my bookshelf, so did Haskell in my “to-learn” list.</p>
+<h2 id="searching-for-the-holy-grail-of-the-holy-grail">Searching for the Holy Grail of the Holy Grail</h2>
+<p>My search didn’t stop to Clojure, though. The thing was that I couldn’t put up with the fact it was running on the JVM, inheriting all its problems. Furthermore, I really wanted something like Common Lisp and its SBCL compiler, capable of producing efficient native code. So, once again, I started searching and I can’t remember why, but in the back on my mind I still had this small thing about Haskell: elegant, capable of compiling to efficient native code, fast if optimized. So I went to my <a href="http://amazon.co.uk/">local bookshop</a> and I ordered a copy of “Learn you a Haskell for Great Good!”</p>
+<h2 id="reinassance-and-rebirth">Reinassance and rebirth</h2>
+<p>That book is, hands down, the reason why I am an Haskell programmer today and why I didn’t grow up with the false belief that Haskell sucked and was <a href="http://en.wikipedia.org/wiki/The_Fox_and_the_Grapes">sour</a>. LYAH really showed me that Haskell was the most elegant programming language I ever saw, built out from mathematical foundations. And suddently I realised why I needed the Maybe type and to wrap my value with it! I was so enthusiastic that I started blogging about it (someone perhaps will remember my “Let’s build and Elemental Battle System in Haskell” series). I was by any means good at it, but I do loved it, and this was the important thing.</p>
+<h2 id="my-master-degree-and-my-thesis">My master degree and my thesis</h2>
+<p>When the time came for me to undertake the ordeal of writing a master degree thesis, I wanted to have the professor which taught us “Distributed Programming”, which is not idiosyncratic against functional programming but certainly appreciate more languages like C++. He despise Java, which creates immediately a strong empathy! I based my thesis project on a simple truth: things like <code>map :: (a -&gt; b) -&gt; [a] -&gt; [b]</code> are parallel by nature, so why we don’t try to implement a nice subset of functional programming functions where the computations can be run on the GPU? I used OpenCL to write a C++ wrapper around them, with sugar on top. My final plan was to bind this C++ framework to a FP language. I do wanted to choose Haskell, but I wasn’t proficient enough at the time, and I didn’t want to get stuck too much trying to make it work. My professor was a bit more accustomed in Erlang, and it offered a sort of “process-based” way to integrate with basically everything, so we choose Erlang. I never programmed in Erlang after my thesis (so no love at first sight!), but I did recognize that C++ was a nice and powerful imperative language, much more widespread than Haskell in Italy, so after graduation my mission was: let’s get proficient with C++ and let’s find a decent job in Italy. Haskell was still there, occupying a small part of my hearth, but I was simply trying to be realistic, maximizing my chances to get a job.</p>
+<h2 id="my-first-job-well-kinda-of">My first job (well, kinda of)</h2>
+<p>On June, 2012, I started my first job. It was an intership for a company which operates in the defense field. I was really excited, being this place a C++ shop. I said to myself “It’s done! I’m in Rome (my city), doing awesome C++, and if I work my ass hard after the intership I might be offered a full time job, and then I’ll be on the top of the world!”. But life had different projects for me. To start with, the intership was absolutely menial; my job was to investigate whether JavaRT was a suitable candidate to supersed C++ in a system critical environment (short answer: NO). So I basically worked my ass hard and finished the intership in 1 month, despite the 6 they allocated with it. This means that while they tried to feed me with different tasks (which was good), I found myself having a bit of spare time, especially in the morning. It was clear that the job I dreamt about wasn’t exactly the reality I was living in. So in my “idle time”, I used to study Haskell, <a href="http://www.cs.cmu.edu/~rwh/theses/okasaki.pdf">Okasaki’s book</a> and <a href="http://sist.sysu.edu.cn/~isslxm/DSA/textbook/Skiena.-.TheAlgorithmDesignManual.pdf">algorithms and data structures</a>, to keep my mind sharp. It was during my intership I <a href="http://www.reddit.com/r/haskell/comments/w86gu/my_current_job_task_is_boring_so_i_wrote_a_simple/">wrote that small Shelly tool</a> for glueing different tools together. During my internship I also explored streaming IO and I <a href="http://permalink.gmane.org/gmane.comp.lang.haskell.cafe/100402">asked help to the Haskell community</a> to land a job in functional programming. I always said to myself, for everything in life “For what I lack in [Skill X], I will make it up with perseverance”, which might be read as “Even if you are not Edward Kmett, you should try to get an Haskell job anyway”. So I did.</p>
+<h2 id="my-path-to-glory">My path to glory</h2>
+<p>First thing was to realise what I wanted, so I started by <a href="http://www.alfredodinapoli.com/posts/2012-09-13-getting-serious-about-haskell.html">blogging</a> that “I wanted to earn a living with FP”. Ok, so that was out of the way, but how to achieve it? When I asked help the the Haskell community, Doug Beardsley, one of the lead developer of Snap, suggest me to contribute to a large Haskell project to expand my knowledge of the language, and he kindly offered me help to get my foot wet with Snap, in order to be able to contribute to it. I remember with a bittersweet longing those days: I worked 9 to 5, I came back at home, I had a snappy chat with my mom consuming my evening snack and then I was on IRC chatting with Doug about Snaplets, Handlers and other Snap internal concepts. Thanks to him I was able to implement the <code>Snap.Snaplet.Test</code> module which came out in Snap 0.10. It was announced in <a href="http://snapframework.com/blog/2012/12/10/snap-0.10-released">this changelog</a> and I was damn proud to know that people were going to use something I wrote. It was an awesome sensation (after that, I contributed to dozens of other Haskell libs). But when I read those changelog I was not in my small bedroom in Rome, but in my personal flat in Manchester, because in the meantime I landed a job as Scala Programmer.</p>
+<h2 id="the-ordeal-to-my-first-fp-job">The ordeal to my first FP Job</h2>
+<p>Let’s get back on track on the main plot-line of this story: it’s end of June/July, and I knew for sure that my current job was not what I would have expected, and I wanted to earn a living with FP. As said, I started to study FP seriously and looking for jobs outside Italy, as I knew was impossible to find something FP-related in Rome or even in Italy. So I said “why aim low?” and I applied for <a href="https://www.janestreet.com/">Jane Street</a>, which you certainly heard, unless you have been living under a rock. If was end of August, my parents were away for holidays and I had plugged my Mac to my dad’s LCD screen in the living room. I was browsing email with Mutt when I decided to apply for JS (unfortunate acronym, I know). So I prepared a cover letter and I sent it. With my surprise, less then 24 hours later they went back to me: I had a call scheduled with New York city three days later! You could image this was kind of a life changer for me; I was going to have a full blown job interview, for a dream job, completely in a foreign language, and I was scared as fuck! Details are not important here, but I remember myself refreshing OCaml (we meet again!) at 3 o clock in the morning, with sweat pearls dropping from my head, in a really hot Rome’s night. Short story short, with my personal satisfaction I was able to pass 2 phone interviews. I failed the third, and the 11th September (I remember it as it’s an unfortunate date of a tragic event) I received a polite rejection letter. I was sad but at the same time euphoric; I was able, with nothing but my own strength and will, to pass two notoriously-tough job interviews! I still remember the facial expressions of my friends when I told them about my interview questions - “What?” - they said - “binary heaps? Context free grammars?”. The surprise stemmed from the fact rarely in Italy, for entry job positions, you are asked to code. Bad attitude, I know. Anyway, I was happy, I was doing a menial job but inside me I wanted to yell people “I know what a monad is and I passed two phone interviews with Jane Street! And you keep me here writing Word documents!”. I was fully determined, and I applied to different shops until <a href="www.cakesolutions.net">Cake Solutions</a> gave me a chance, even though I had just minor Scala experience, and, in general, no job experience at all. I was scared by the perspective of going in a foreign country, alone, to work with a language I wasn’t fully proficient with! Lots of uncertainties, but I leaped into this new adventure nevertheless! That was, in retrospective, the hardest choice I had to undertake in my life, also complicated by the fact that, when I resigned from the internship, they offered me a full time contract. Basically, my resignations acted as a catalyst for what they had prepared for me. Well, I <strong>turned it down</strong>. Not for smugness, but just because I was certain that if I wasn’t going to leap into the dark at that time (namely moving to the UK), probably now nothing of this would have never happened. So I went straight and on the 11th of November, 2012, I flew with a single, no return ticket to Manchester.</p>
+<h2 id="the-manchester-era">The Manchester era</h2>
+<p>Manchester is a particular city; Can’t express myself, but has a nice contract between the old and the new. It’s not uncommon to find very recent building next to second industrial revolution mills. In fact, Cake Solutions’ office is hosted within this mill:</p>
+<div data-align="center">
+<p><img width=400 src="../img/2014/cake_mill.jpg"/></p>
+</div>
+<p>Once arrived I was obviously overwhelmed by the new job, and I asked for suggestions pretty much everywhere and pretty much to everyone (even to Edward Kmett, which I cold-emailed, and he was kind enough to reply. I wrote again to Edward a year later once I got my Haskell job). Scala was a good start but obviously was not the language I wanted to program with, because <strong>I wanted to program in Haskell</strong>. So again, I spent my gloomy Mancunian evenings hacking some Haskell and developing further my knowledge. It was mainly on personal projects, which sometimes elicited bugs or limitations of existing libraries, which I promptly fixed with PR. This was another important step, as it became natural with time to simply go in, modify a library to fix a bug and yield a PR. Anyway, I was <em>happier</em> in Manchester than I was in Rome (jobwise, I missed the rest), but I knew my journey was not complete. Once in Manchester, I said to myself “wait, now I am in UK, so I can attend one of the Skills Matter courses on Haskell!”, and being Cake Solutions a SM’s partner, I asked if they had access to some sort of discount for these courses, which are notoriously very expensive. I wasn’t even sure if that was worth asking, as I didn’t even have all the money to afford it (my savings were exactly the ones of a guy just started working), but with my immense surprise <strong>Cake offered to pay for it in full!</strong>. Not just the course, but the train and a one night stay in London! If there is a public space to thank Cake Solutions for this, I think I’ll use this one: thanks! Needless to say, the course was amazing (tiny detail I missed, it’s hosted at the SM’s HQ but Well Typed is responsible for the teaching and the material provided). During those two fantastic days I met another bunch of eager haskellers willing to expand their knowledge, as well as two Well Typed gurus like Edsko de Vries and Andres Loh. Following Andres’ advice I tried to stay in touch after the course, asking Haskell question that Andres, always patiently, answered. Back in Manchester though, everything was the same: I had to put in the cloakroom my Haskell hat, to put back the JVM one. To complicate things, Cake was also moving to a slightly different business plan, where Java and bigger corporate projects were going to be preferred to Scala. How ironic! The fate I tried so hard to escape from came back to haunt me miles away from home! It was early July. It was time for me to change.</p>
+<h2 id="summer-2013">Summer 2013</h2>
+<p>I was lurking in the shadows during my even-gloomier Mancunian evenings for a job post or a pseudo-haskelly job. For a nice coincidence <a href="http://www.well-typed.com/blog/80/">Well Typed was hiring</a>, and I said “I know to not have enough skills to be considered an expert, but I want to accept this challenge and apply anyway. What do I have to lose?”. So I did. I also did a couple of interviews for full time Haskell shops which ultimately yield a failure, but I was happy anyway, because for the first time in my life I was able to <strong>start and end a full job interview using nothing but Haskell</strong>. This was another important milestone, realizing that Haskell started as an hobby language and now it was a language that, potentially, was as suitable as Python for a job interview. Then I was off for my summer holidays to Italy, with a pending application to WT (which I obviously gave for granted as a failure) and a couple of failed more, but I was confident I was finally proficient enough with the language.</p>
+<h2 id="vieste">Vieste</h2>
+<div data-align="center">
+<p><img width=400 src="../img/2014/vieste.jpg"/></p>
+</div>
+<p>I remember it pretty vividly. I was sitting with my girlfriend in a restaurant in Vieste, Puglia, Italy, having a quite eventful dinner. While waiting for our main courses, I lazily checked my email and with my surprise I found a reply to my WT job application of more than 1 month ago from Duncan and Andres! Obviously, being WT so focused in hiring experts I didn’t even pass the pre-screening. Another company could have just said “Ok, you didn’t pass, best luck for your search”. But Well Typed was different! Duncan said that one of WT’s client was looking to hire for a web developer with Haskell and Ruby knowledge. Despite the word “Ruby” made me cringe, I thought to myself “Haskell and web development, I can do this!”. And obviously I said this strong of my contribution to Snap! So I asked Duncan politely to put me in touch with this client. To be honest I wasn’t betting on it too much: previous experiences taught me that usually these things die by natural causes for different reasons: the company stop hiring, they find another candidate before reaching you, the person meant to introduce you simply forgot, etc. Luckily for me, this was not the case. On the 29th of August, when I was back from a long day of consulting in Wales, I received a mail from Duncan with the aforementioned job offer, from the client which would have become my employer, <a href="http://www.irisconnect.co.uk/">Iris Connect</a>.</p>
+<h2 id="almost-present-days">(Almost) present days</h2>
+<p>I took an eventful journey to meet Chris Dornan and the rest of Iris’ team, and spent a Saturday morning with him going through my personal project, a Snap RESTful server really close in terms of business goal to the one Iris is (still) developing. At the end of the day, I had a job offer!</p>
+<h2 id="takehome-lessons">Takehome lessons</h2>
+<p>So, looking back in retrospective, I was able to go from Haskell novice to professionally employed in less than 2 years, despite I have been tinkering with Haskell from 2010. Was I lucky? smart? stubborn? determined? Probably a bit of everything. This is what I learned and what I think might be an interesting life lesson (sorry for the following, it’s full of conditionals, a nightmare for a non-native writer!):</p>
+<ul>
+<li><p><strong>Don’t be afraid to take leaps into the dark</strong>: I turned down a job offer in the safe harbor of my home city for something totally new and scary. If I didn’t do that, today I probably wouldn’t be an Haskell programmer.</p></li>
+<li><p><strong>Life is about opportunities, seize them</strong>: Think about what would have happened if I was too shy to ask Cake Solutions about Skills Matter’s courses. They would have never payed for the course, I would have never met Andres and probably never applied to WT. Duncan would have probably not even considered referring me to Iris.</p></li>
+<li><p><strong>Try to contribute to a “famous” Haskell OSS</strong>: I was able to land this job also because I had experience with web dev in Haskell. But I had experience mostly because I contributed to Snap. There is a substantial difference to say “I have used Snap”, as opposed as “I used Snap and I have implemented feature X”.</p></li>
+<li><p><strong>Constantly sharpen your saw</strong>: If I felt “realised”, today I would still be working in Manchester. The burning desire I had to work as a professional Haskell dev caused me to spend my spare time programming and studying.</p></li>
+<li><p><strong>Be receptive, do networking</strong>: Having a strong network is vital. Try to actively contribute to the community, let other Haskeller know you. Let them think “I have already heard about John Doe”. Even if just an handfull will do, you won’t be a total stranger but someone into the community. I think this is the best thing which can happen to an Haskeller.</p></li>
+</ul>
+<p>I hope this wasn’t too long. It probably is, and also full of mistakes. Bear with me, I found myself to be much more comfortable with code! And remember, nothing is free in this life, and come with a price, unless is unconditional love from your parent and certain type of monads:</p>
+<pre><code>data F f a = R a | F (f (F f a))</code></pre>
+<p>Alfredo</p>]]></summary>
+</entry>
+
+</feed>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Fun with Iteratee IO</h1>
+
+<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
+<br>
+<p>Iteratee IO is an IO technique popularized by <a href="http://okmij.org/ftp/Streams.html#iteratee">Oleg Kiselyov</a>, who gives the following definition inside his website:</p>
+<div class="glance-box" data-markdown="1">
+<p>Iteratee IO is a style of incremental input processing with precise resource control. The style encourages building input processors from a user-extensible set of primitives by chaining, layering, pairing and other modes of compositions. The programmer is still able, where needed, to precisely control look-ahead, the allocation of buffers, file descriptors and other resources. The style is especially suitable for processing of communication streams, large amount of data, and data undergone several levels of encoding such as pickling, compression, chunking, framing. It has been used for programming high-performance (HTTP) servers and web frameworks, in computational linguistics and financial trading.</p>
+</div>
+<p><br></p>
+<p>Sounds appealing, isn’t it? If you would like to go further, I suggest you take a look to his excellent paper <a href="http://okmij.org/ftp/Haskell/Iteratee/describe.pdf">here</a>.</p>
+<h4 id="the-gist-of-iteratee-io">The gist of Iteratee IO</h4>
+<p>Probably I’m not the right person for explaining what Iteratee IO is about, and the linked paper does a better job than me, so I warmly recommend you read it. In layman’s terms, the entire bulk of the Iteratee IO gravitates around three main concepts:</p>
+<ul>
+<li><p>An <code>Enumerator</code>, which is an entity that handle our resource in a convenient way.</p></li>
+<li><p>An <code>Enumeratee</code>, which is a “stream adapter” capable of changing the characteristics of our stream. A typical <code>Enumeratee</code>, for example, could receive as input a <code>Text</code> stream and produce as output a <code>ByteString</code> stream.</p></li>
+<li><p>An <code>Iteratee</code>, which is where our computation actually happens.</p></li>
+</ul>
+<p>Probably the whole concept is a great deal more complex than what I told you here, but is all you need to begin working with Iteratee IO, in my opinion.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE BangPatterns #-}</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.ByteString</span> (<span class="dt">ByteString</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString.Char8</span> <span class="kw">as</span> <span class="dt">B</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Enumerator</span> (<span class="dt">Iteratee</span>, (==&lt;&lt;))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Enumerator</span> <span class="kw">as</span> <span class="dt">E</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Enumerator.Binary</span> <span class="kw">as</span> <span class="dt">EB</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Enumerator.List</span> <span class="kw">as</span> <span class="dt">EL</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Environment</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ot">countCharBS ::</span> (<span class="dt">Monad</span> m) <span class="ot">=&gt;</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Iteratee</span> <span class="dt">ByteString</span> m <span class="dt">Integer</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>countCharBS needle <span class="ot">=</span> loop <span class="dv">0</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span> loop n <span class="ot">=</span> EL.head <span class="op">&gt;&gt;=</span> check n</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        check n <span class="dt">Nothing</span> <span class="ot">=</span> <span class="fu">return</span> n</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        check n (<span class="dt">Just</span> t) <span class="ot">=</span> </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> <span class="op">!</span>acc <span class="ot">=</span> (n <span class="op">+</span> <span class="fu">toInteger</span> (B.count needle t)) </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>          <span class="kw">in</span> loop acc</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    args <span class="ot">&lt;-</span> getArgs</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> args <span class="kw">of</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>      (fname<span class="op">:</span>needle<span class="op">:</span>[]) <span class="ot">-&gt;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>          <span class="kw">case</span> needle <span class="kw">of</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>            (c<span class="op">:</span><span class="st">&quot;&quot;</span>) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>                cnt <span class="ot">&lt;-</span> E.run <span class="op">$</span> EB.enumFile fname <span class="op">==&lt;&lt;</span> countCharBS c</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>                <span class="fu">print</span> cnt</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>            _ <span class="ot">-&gt;</span> <span class="fu">print</span> <span class="st">&quot;I need a single char to process.&quot;</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>      _ <span class="ot">-&gt;</span> <span class="fu">print</span> <span class="st">&quot;Error in accessing file.&quot;</span></span></code></pre></div>
+<p>Our Iteratee is dead-simple: We ask for the next line from the stream with <code>head</code> and if we haven’t reached the end of the stream, we count the occurrences of our char <code>needle</code> inside <code>t</code>. As you can imagine, <code>run</code> actually runs our Iteratee, using <code>==&lt;&lt;</code> which is “the most primitive stream operator. <code>enum ==&lt;&lt; iter</code> returns a new iteratee which will read from <code>enum</code> before continuing.”</p>
+<p>So in this example, who is the <code>Enumerator</code>? Well, unsurprisingly enough is <code>enumFile</code>, which open a file an returns an <code>Enumerator</code> that, as the name implies, enumerates that file.</p>
+<p>Bear in mind that we need to evaluate our loop strictly, or the memory consumption of our program will explode. This is trivial if we recall how Haskell manages lazyness: if the result is not demanded, it allocates a <code>thunk</code>, which is an unevaluated computation. This can be problematic for performance-critical code.</p>
+<h4 id="counting-char-occurences-in-large-files">Counting <code>Char</code> occurences in large files</h4>
+<p>The next step I wanted to achieve was to count occurrences of a certain <code>Char</code> inside a large file, to see how well Iteratee IO behaved. So I downloaded a random dataset from the <a href="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data/HG00096/sequence_read/SRR062634_1.filt.fastq.gz">1000 Genome Project</a> to answer this question: How many <a href="http://en.wikipedia.org/wiki/Adenine">Adenine</a> (modeled inside the file with the letter <code>A</code>) are present in this DNA Genome? The compressed file was around <code>2.2GB</code>, whereas the uncompressed version took up to <code>6GB</code> of disk space.</p>
+<h4 id="normalizing-with-sed">Normalizing with <code>sed</code></h4>
+<p>As you may image, a file of that type doesn’t merely contain the sole list of nucleobased which compose the whole DNA sequence, but they are interspersed with metadata that is used to interpret these data in a meaningful way. For the purpose of our research, the latter are simply noise we want to get rid of. There are many ways to complete this task, but for such a big file I’ve found convenient processing it with <a href="http://www.grymoire.com/Unix/Sed.html">sed</a>. Like almost every Unix tools it’s very efficient even for huge files, and the best thing is that require constant memory for the whole computation. Let’s take an excerpt of the unprocessed file with head:</p>
+<pre><code>@SRR062634.1 HWI-EAS110_103327062:6:1:1092:8469/1
+GGGTTTTCCTGAAAAAGGGATTCAAGAAAGAAAACTTACATGAGGTGATTGTTTAATGTTGCTACCAAAGAAGAGAGAGTTACCT
++
+@C'@9:BB:?DCCB5CC?5C=?5@CADC?BDB)B@?-A@=:=:@CC'C&gt;5AA+*+2@@'-?&gt;5-?C=@-??)'&gt;&gt;B?D@?*?A##
+@SRR062634.2 HWI-EAS110_103327062:6:1:1107:21105/1
+ACCGTGAGCAATCAGCTGCCATCAACGTGGAGGTAAGACTCTCCACCTGCAAAAACATTACAACTTGCTGAAGGCTGAGATACTT
++
+FDEFF?DFEFE?BEEEEED=DB:DCEAEEB,CC=@B=5?B?CC5C?B+A??=&gt;:CC&lt;9-B2=@&gt;-?:-&lt;A@@A?9&gt;*0&lt;:'0%6,
+@SRR062634.3 HWI-EAS110_103327062:6:1:1110:17198/1
+TAGATATTTTTGTTTTAACTGCTGTAGAAAATTAAGACATAAACTAAGAAATATCCCATGAAGGAATGAGTATACTGTTTCTACT
++
+-?3-C22646@-@3@@3-=-====CBB@DB-A-=-AA@C-&lt;AA7&gt;D=ABDA;?CDDDD5D?DD55:&gt;:AB&gt;5?-CCCC#######
+@SRR062634.4 HWI-EAS110_103327062:6:1:1112:12923/1
+AGATGAGTTTCACAAAGTAAGCAACTTGATATCCAAATAATCAACACCCAACTCAAGAAAAAGATCATTACCAGAAACTAATAAA
++
+??EEEDB?D-?AAA-AA?&gt;-&gt;BC:ADB:--A55ACCA:D6C:?5@CADD6=C5:CD?D4;,::?,CC-5A@C-?D5@+-BB?BC*
+@SRR062634.5 HWI-EAS110_103327062:6:1:1113:19453/1
+CTGTATCTAGGTTTTGTCCTTACATGTATATAACCTACACCCACAGTTTACCATCCGTGACATTTTCTTTCCTCTCCAGTCGTAC
++
+CC?-?BAAB?E:B@@A7A?5CCBBBB@B?ABB?B@BB=B-BB=?#########################################</code></pre>
+<p>As you can see, we got a entire “good” line, as well as several “bad” lines we would like to filter. With <code>sed</code> we can obtain a clean file in four passes:</p>
+<pre><code>sed '/+/d' SRR062634_1.filt.fastq &gt; DNA1.bin
+sed '/^@/d' DNA1.bin &gt; DNA2.bin
+sed '/#$/d' DNA2.bin &gt; DNA3.bin
+sed '/^.*?.*$/d' DNA3.bin &gt; DNA_final.bin</code></pre>
+<p>In a nutshell, these say to <code>sed</code>:</p>
+<ul>
+<li><p>Remove all lines that match <code>+</code></p></li>
+<li><p>Remove all lines that start with <code>@</code></p></li>
+<li><p>Remove all lines that end with <code>#</code></p></li>
+<li><p>Remove every line which contains <code>?</code></p></li>
+</ul>
+<p>Let’s see the result of our <code>DNA_final.bin</code>:</p>
+<pre><code>GGGTTTTCCTGAAAAAGGGATTCAAGAAAGAAAACTTACATGAGGTGATTGTTTAATGTTGCTACCAAAGAAGAGAGAGTTACCT
+ACCGTGAGCAATCAGCTGCCATCAACGTGGAGGTAAGACTCTCCACCTGCAAAAACATTACAACTTGCTGAAGGCTGAGATACTT
+TAGATATTTTTGTTTTAACTGCTGTAGAAAATTAAGACATAAACTAAGAAATATCCCATGAAGGAATGAGTATACTGTTTCTACT
+AGATGAGTTTCACAAAGTAAGCAACTTGATATCCAAATAATCAACACCCAACTCAAGAAAAAGATCATTACCAGAAACTAATAAA
+CTGTATCTAGGTTTTGTCCTTACATGTATATAACCTACACCCACAGTTTACCATCCGTGACATTTTCTTTCCTCTCCAGTCGTAC
+TTAGGTTTTAATGTTTGGGAAACTAAATCTCTCCTCTATCCAAGTGTACATGCTTTCGTTTTATCCCTTTGTCTCAATCAATGAC
+GATGTGCAGGTTTGTTACACAGGTAAATGTGTGCCATGGTGGTTTGCTGCACCTATCAACCCACCCCTTAGGTATCAAGATCTCC
+TATAATTTACGAAAATTCTTTAATGCTGAAAAAAAGATGAAAATTCATTAATCTGAATGTCAATTCGGTCTTGTTCCAAACAGTT
+GTGAAAGCTTAATGATACCATATGTGCTAAATTGTAAATTAATCTATCTCACCCGTTTCAGGAATTTCTTTTCAGTATTAATAGG
+TTAGAATTTTATAATACAAAACATGCCTATGTAAATCACCGGAAAATTTTTCTAATGTCCCTATTCCATAAACATATTTATTTTA
+GAATGGAATAGAATGGGATGGAATGAAACCGAATTGTCTGGAATGGAGTAGAATGGAATGCACATGAACTGACTGGTGTGGGATG
+ATGGGGCCAGATTTTAAAAAGCCTTGTAGGCAAGGGGTAGGGATGTGGGGTTTGTTGTATGTTCTATGGGAGGAGTTGGGGGATT
+AGAGATTGCATAACCGGATGCGTGAATTCAAAAAAGTTAAAATAACTTCATGTGATTTCGTTGTTGTTTTTTGTCATCCTGGTGG
+AAAGGACATGAAAGAAAATAGCTAATTCCAGGTGGGCTCAGAACCTCCACTTTGTAACAGGGTATGGAGAGTGCAGCCCCACTGA
+TTGTTGCCTTCAGCCTCTCTCATATCTAGTTCCGTATTCAGTACTAACTTTAACTCCCCTTAAAGTTATTACTCTAGCCACAATT
+AGAGTATTTCCTTGCCTCCAGAGGTTTACACTAGCTCCCCAGCAATGGATTGAAATGTCTGAGATGACAGATATAGATAGAGTTC
+GTTTATGACTGTATACTATTATAGACATTGCTACAAAGATGATCATAGCCATAACGGAAATAGTTTCTATAGAGGAAACAATGTT
+TGTTACCTAAGGAGCAATAAACTGGTTGTTAGAAACACCAGACTTTGATAACACTGCATGACAGATCTCTGGCATCAAGGGGAAA
+CTGTGTACTTTACTAATCTTTTTCTCCCTTTGGAATGATACTGCATCTACTCTTTTGCACCTTGCTATTGAATGGCTAGTCATAT
+TGTACATAAAATATCAAAGTACCCAAATTATACATTATATACTGTACATAAATTATGAAATTATATCAAATATATTTTATATCAT</code></pre>
+<p>Ok! Now we have a clean file to test. As a nice side-effect, we end up with a file <code>50%</code> smaller than the original.</p>
+<h4 id="finally-answering-the-question">Finally answering the question</h4>
+<p>We can now run our iteratee computation on this huge file (<code>~3GB</code>):</p>
+<pre><code>./dna_counter DNA_final.bin &quot;A&quot;
+Right 719528862</code></pre>
+<p>The computation is also pretty fast, allowing to answer our question in under <code>20 seconds</code>. So we have an average of <code>719</code> millions Adenine huh? Pretty impressive.</p>
+<h4 id="conclusions">Conclusions</h4>
+<p>Iteratee IO is an effective, fun and performant way to do IO, because it allows us to see computations as streams and to reason in terms of stream processing. I’m looking forward to experimenting further with it.</p>
+<p>Oh, one last thing, though: Haskell rocks.</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2012-10-17-fun-with-iteratee-io.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2012-10-17-fun-with-iteratee-io.html';
+  var disqus_title = 'Fun with Iteratee IO';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

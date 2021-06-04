@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>How I deploy Haskell Code</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'devops'." href="../tags/devops.html">devops</a>.</p>
+<br>
+<h2 id="how-i-deploy-haskell-code">How I deploy Haskell Code</h2>
+<pre><code>Summary: I have recently switched to build my apps using an intermediate
+Docker container and then simply drop the executable on the target machine.
+This has worked remarkably well.</code></pre>
+<p>Deploying Haskell code seems to be a pretty hot topic nowadays. Chatting with people at the Haskell Exchange last October made clear everyone has his own approach to put Haskell code into production. At work an approach I used and worked decently was to use <a href="http://www.ansible.com">Ansible</a> to build my project to an EC2 <code>development</code> machine, then dump an AMI (Amazon Machine Image) and reuse it across different environments. This had the advantage of making provisioning and rollback easy (at the end of the day you only need deploy a new AMI via the AWS’ EC2 API), but has the big snag of being quite slow if your development machine is a <code>tiny</code> instance or similar (which is typically the case for such kind of environments), as you need to perform a <code>cabal/stack</code> install remotely on the server.</p>
+<p>Since switching to <a href="https://github.com/commercialhaskell/stack">stack</a> as my project builder/manager I have adopted a different approach which uses a mixture of old and new Unix tools and - although quite simple - it’s effective. It’s important to notice that this might not work for you if you want a technique which works on <strong>ALL</strong> the different Linux distros; this technique exploits FPComplete’s <code>stack-build</code> Docker image, which is based, to the best of my knowledge, on Ubuntu/Debian. Said that, I have been able to produce executables which worked on CentOS7 out of the box.</p>
+<p>I should also add that the following techniques might be completely moot on Linux environments, where you <strong>should</strong> be using stack’s builtin <code>docker</code> feature to build your binaries. But being on Mac OS X, and considering the quirks of <code>boot2docker</code>, I was forced to find another solution. This is what I do these days:</p>
+<ul>
+<li><p>I use a <code>Dockerfile</code> for the build phase, called <code>Build.plan</code></p></li>
+<li><p>I use <code>Build.plan</code> to provision a <code>stack-linux</code> executable which will act as my local <code>stack</code> but will target the Linux environment</p></li>
+<li><p>I use <code>stack-linux</code> to install my project, mounting my local <code>$HOME/.stack</code> and <code>$PWD/.stack-work</code> in the container in order to cache builds and produce valid Unix executables.</p></li>
+<li><p>I use <code>upx</code> to compress the output executables to the bare minimum</p></li>
+<li><p>I upload the binaries &amp; the files listed in the <code>data-files</code> section of my <code>cabal</code> manifest on S3 in a folder called <code>myproject:version</code> (you can use any persistent key-value store)</p></li>
+<li><p>I use <code>aws s3 sync</code> (you can use <code>rsync</code> if not targeting the AWS platform) to update my development machine with the newly provided binaries &amp; config files</p></li>
+<li><p>I crack on with the rest of the deployment (<strong>NOTE</strong>: I still need to dump an AMI as the image needs to be used in a cluster, so YMMV)</p></li>
+</ul>
+<p>Let’s break down the points in more detail.</p>
+<h4 id="create-stack-linux">Create stack-linux</h4>
+<p>The <code>Build.plan</code> looks like this:</p>
+<pre><code>FROM fpco/stack-build:lts-3.10
+
+ADD .  /var/www/myproject
+WORKDIR /var/www/myproject
+
+CMD [&quot;stack&quot;]</code></pre>
+<p>I usually tend to invoke <code>docker</code> to tag this image to be my “builder”, like so:</p>
+<pre><code>docker build -t myproject-builder -f Build.plan .</code></pre>
+<p>Now “creating” <code>stack-linux</code> is as easy as writing the following bash script:</p>
+<pre><code>#!/usr/bin/env bash
+
+# You might not need the following.
+$({ boot2docker shellinit; } 2&gt;/dev/null)
+
+docker run --rm \
+       -v $HOME/path/to/my/project/myproject-dist:/root/.local \
+       -v $HOME/path/to/my/project/.stack-work:/var/www/myproject/.stack-work \
+       -v $HOME/.stack:/root/.stack \
+       myproject-builder:latest stack $@</code></pre>
+<p>The advantage here is that we are still writing in the host filesystem, but <code>stack</code> correctly installs the libraries in a separate folder:</p>
+<pre><code>➜  ~  ls /Users/adinapoli/work/myproject/.stack-work/install
+x86_64-linux    x86_64-osx</code></pre>
+<h4 id="buildinginstalling-the-project">Building/installing the project</h4>
+<p>At this point we are ready to call:</p>
+<pre><code>stack-linux install</code></pre>
+<p>And let it run for a while, depending on how many dependencies your projects has. At the end, you should have some linux binaries in the <code>myproject-dist</code> folder (have a look at the bash script we created for <code>stack-linux</code>). The good news is that future builds will read from your local <code>.stack-work</code> and will be much faster.</p>
+<h4 id="compressing-with-upx">Compressing with UPX</h4>
+<p>If all went well we should have a bunch of linux binaries in your <code>myproject-dist</code> which are already usable on their own. I decided to go a step further (I work remotely and I live in an area with sub-par internet connection) and compress the executables, to minimise the upload time towards S3. <code>upx</code> is a great tool that “just works”: Use it on your linux binaries and watch the size shrink down! For my work project, which is a medium Haskell app composed of roughly 13K lines of code I was able to get the final size down to <code>~9MB</code>. Not bad!</p>
+<h4 id="uploading-binaries-data-files">Uploading binaries &amp; data files</h4>
+<p>Finally we can tie the knot and upload on S3. I tend to use the <a href="http://hackage.haskell.org/package/shelly">shelly</a> library as my go-to tool for this kind of glue code:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">release ::</span> <span class="dt">T.Text</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>release vr <span class="ot">=</span> shelly <span class="op">$</span> escaping <span class="dt">False</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- If we are trying to release a version older than the current MyProject,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- we need to checkout the relevant tag.</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  currentVersion <span class="ot">&lt;-</span> liftIO extractCabalVersion</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  when (currentVersion <span class="op">&gt;=</span> vr) <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    echo <span class="st">&quot; * Older MyProject version required, checking out relevant git tag...&quot;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    run_ <span class="st">&quot;git&quot;</span> [<span class="st">&quot;checkout&quot;</span>, vr]</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> deployDir <span class="ot">=</span> <span class="st">&quot;/var/www/myproject&quot;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  run_ <span class="st">&quot;./build.sh&quot;</span> [] <span class="co">-- build.sh just calls docker build as I have showed you.</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- Find project specific files and upload them as well.</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  (_, shareDir) <span class="ot">&lt;-</span> T.breakOn <span class="st">&quot;.&quot;</span> <span class="op">.</span> T.init <span class="op">&lt;$&gt;</span> run <span class="st">&quot;scripts/stack-linux&quot;</span> [<span class="st">&quot;path&quot;</span>, <span class="st">&quot;--local-install-root&quot;</span>]</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  dataFiles <span class="ot">&lt;-</span> findDataFiles shareDir</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  echo <span class="st">&quot; * Compressing executable(s)...&quot;</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> myExes <span class="ot">=</span> [<span class="st">&quot;myexe1&quot;</span>, <span class="st">&quot;myexe2&quot;</span>] <span class="co">-- list here all the binaries you want to upload</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  forM_ myExes <span class="op">$</span> \exe <span class="ot">-&gt;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    run_ <span class="st">&quot;upx&quot;</span> [<span class="st">&quot;myproject-dist/bin/&quot;</span> <span class="op">&lt;&gt;</span> exe]</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  echo <span class="st">&quot; * Transferring compressed files to S3...&quot;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> releaseS3Prefix <span class="ot">=</span> <span class="st">&quot;s3://my-s3-bucket/&quot;</span> <span class="op">&lt;&gt;</span> vr</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  run_ <span class="st">&quot;aws&quot;</span> [<span class="st">&quot;s3&quot;</span>, <span class="st">&quot;sync&quot;</span>, dataFiles, releaseS3Prefix <span class="op">&lt;&gt;</span> deployDir <span class="op">&lt;&gt;</span> <span class="st">&quot;/&quot;</span> <span class="op">&lt;&gt;</span> dataFiles]</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  forM_ myExes <span class="op">$</span> \exe <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    run_ <span class="st">&quot;aws&quot;</span> [<span class="st">&quot;s3&quot;</span>, <span class="st">&quot;cp&quot;</span>, <span class="st">&quot;myproject-dist/bin/&quot;</span> <span class="op">&lt;&gt;</span> exe, releaseS3Prefix <span class="op">&lt;&gt;</span> <span class="st">&quot;/usr/bin/&quot;</span>]</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  echo <span class="st">&quot; * Done!&quot;</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    findDataFiles shareDir <span class="ot">=</span> T.init <span class="op">&lt;$&gt;</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>      run <span class="st">&quot;ls&quot;</span> [<span class="st">&quot;-d&quot;</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>               , shareDir <span class="op">&lt;&gt;</span> <span class="st">&quot;share/*/*&quot;</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>               , <span class="st">&quot;|&quot;</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>               , <span class="st">&quot;grep&quot;</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>               , <span class="st">&quot;myproject-&quot;</span> <span class="op">&lt;&gt;</span> vr]</span></code></pre></div>
+<p>We essentially did the steps I already explained, with this twist:</p>
+<ul>
+<li>We searched within <code>.stack-work</code> to find any file listed in the <code>data-files</code> section of the cabal manifest and we copied them over on S3. This is because, in my specific case, I had configuration files my exe needed to run. Again, YMMV!</li>
+</ul>
+<p>At this point your binaries (and config files) are on S3, properly versioned (I have used my project version here). Now rolling back it’s just a matter of transferring a couple of files over!</p>
+<p>For completeness, this is an excerpt of a section of my Ansible scripts, which copies the files as we discussed:</p>
+<pre><code>- name: Install MyProject
+  remote_user: service-runner
+  sudo: no
+  shell: aws s3 sync s3://my-s3-bucket/{{myproject_version}}/usr/bin/ /usr/local/bin/ &amp;&amp;
+         aws s3 sync s3://my-s3-bucket/{{myproject_version}}/var/www/myproject/ /var/www/project/</code></pre>
+<p>Easy!</p>
+<h4 id="caveats-and-elephants-in-the-room">Caveats and Elephants in the room</h4>
+<ul>
+<li><p>As said, this technique is by no means universal; chances are it might not suit you for various reasons.</p></li>
+<li><p>It doesn’t aim to provide static executables; as you know <a href="https://ro-che.info/articles/2015-10-26-static-linking-ghc">this is possible</a> (and not difficult at all) up to a point.</p></li>
+<li><p>You <em>might</em> (memory here does not help me) need to install whichever C library your executable depends upon. For example at least one of my projects depends from <code>libpq</code>, so I had to <code>yum install</code> that on my target machine. You don’t need to worry about that when building though, thanks to the fact that <code>stack-build</code> provides you with all you need out of the box (did I mention how great is this?)</p></li>
+</ul>
+<h4 id="conclusions">Conclusions</h4>
+<p>In this ocean full of DSLs, orchestrators and whatnot, I find this method simple and with these benefits:</p>
+<ul>
+<li>Easy versioning &amp; rollbacks</li>
+<li>Small executables (You could potentially store them as binary blobs on a K-V store like Redis)</li>
+<li>Native binaries, which entails:
+<ul>
+<li>No container overhead (even if minimal)</li>
+<li>Stability (on CentOS7 my experience with Docker was not the best, but this is for another post)</li>
+<li>No need for a private registry</li>
+</ul></li>
+<li>Cached builds (I pay the compilation time only on what’s really changed)</li>
+</ul>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2015-11-03-how-i-deploy-haskell-code.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2015-11-03-how-i-deploy-haskell-code.html';
+  var disqus_title = 'How I deploy Haskell Code';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

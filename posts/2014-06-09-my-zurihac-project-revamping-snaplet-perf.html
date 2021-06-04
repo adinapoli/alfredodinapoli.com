@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>My ZuriHac 2014 project</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'snap'." href="../tags/snap.html">snap</a>, <a title="All pages tagged 'zurihac'." href="../tags/zurihac.html">zurihac</a>.</p>
+<br>
+<p>#My ZuriHac 2014 project: Revamping snaplet-perf</p>
+<p><a href>ZuriHac</a> wrapped up yesterday, and needless to say, it was an amazing event. Bas and the other guys at <a href>Better</a> really made an incredible job, and the response from the community was just amazing. It was my first hackaton <em>ever</em>, but according to the others this year ZuriHac had three times more people than the last year, which is, I think, really promising. Being my first hackaton, I wasn’t sure about the rules, so I ended up choosing a project thinking it was mandatory; in retrospective I regret not having just jumped in and out from room to room, to meet even more people than I did. Anyway, lesson learned! The project I choose was to revamp <em>snaplet-perf</em>. In this small post (mostly written at the airport) I’ll motivate my choices and finally show you a brief demo.</p>
+<h3 id="whats-snaplet-perf">What’s snaplet-perf?</h3>
+<p>If you are not living under a Haskell-y rock, you probably know that there are at least three prominent web frameworks written in Haskell: Yesod, Snap and Happstack (list not exhaustive!). Snap 0.6 onwards introduced the concept of “Snaplets”, self contained “piece of functionality” you can plug to your application, in a sort of “off the shelf” fashion. There are many snaplets available on Hackage, so why did I choose <em>snaplet-perf</em>? When I first contributed to Snap one year and a half ago (here the <a href>full story</a>) Doug Beardsley, one of the lead dev on Snap, gave me access to a private repository (i.e. snaplet-perf) within the “Snap Framework” organization on Github, so that I could contribute to the Snap ecosystem in a sort of “low-pressure” environment. Snaplet-perf itself seems to be a sort of “middleground” for new Snap contributors. Ok, but what it does exactly? The idea behind snaplet-perf is that you plug it into your application, and it will record the response time of all your endpoints, so that you can get some insights on your data (.e.g. endpoint X is getting slower over time etc).</p>
+<h3 id="what-was-there">What was there</h3>
+<p>When I joined the project, almost two years ago, what was there was just a tiny middleware layer which was saving the response time of the endpoint using a caching library called <a href>zoom-cache</a>. The idea behind zoom-cache is that allows you to “zoom” into intervals of your data, making easy to focus on a particular period of your application lifetime. Seems neat, right? Unfortunately it turned out that for some reason snaplet-perf was slowly bit rotting, and here I’ll try to explain what I think is the cause.</p>
+<h3 id="what-was-my-plan-for-the-zurihac">What was my plan for the ZuriHac</h3>
+<p>zoom-cache turned out to be the elephant in the room. Talking with other developers which joined the project, they admitted to have being put off by the presence of zoom-cache. One week before the ZuriHac, I tried to make snaplet-perf compile again under GHC 7.8.2 before the hackaton, but several problems arose:</p>
+<ul>
+<li><p>zoom-cache was not compiling anymore, because it relies on a library called <a href>type-level</a> for “type level naturals”.</p></li>
+<li><p>type-level hasn’t been updated since 2010, it has a repository in darcs (making more difficult, at least for me, to send PR)</p></li>
+<li><p>type-level itself is full of type level programming and is heavily abusing functional dependencies in its type classes definition. Those type classes constrains were being rejected now in GHC 7.8.2, as being “not fully qualifying”. This is a random example:</p></li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Succ</span> x y <span class="op">|</span> x <span class="ot">-&gt;</span> y, y <span class="ot">-&gt;</span> x <span class="kw">where</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">...</span></span></code></pre></div>
+<p>Note how it’s basically expressing mutually recursive functional dependencies.</p>
+<h3 id="what-i-got-at-the-end-of-friday">What I got at the end of Friday</h3>
+<p>So the plan was to shave the yak a bit, fix type-level, fix zoom-cache and finally adding a nice UI on top of that, capable of showing real time graphs of the whole data. But sadly, after a day of head banging, all my solutions were going nowhere:</p>
+<ul>
+<li><p>Making type-level compile again was a no-go; we tried (Andres and Ollie tried to help me), but I concluded it was simply not worth it, at least without massive effort in rewriting part of the library.</p></li>
+<li><p>type-level itself uses Template Haskell to automatically generate this type level naturals up to 5000, so every application wanting to use any data structure with more than 5000 elements is simply constrained by this upper bound.</p></li>
+<li><p>Creating a small module within zoom-cache itself to mimic the type-level API seemed possible, but after several experiments with <code>GHC.TypeLits</code> and a massive doses of painkillers, the situation was not bright at all.</p></li>
+<li><p>zoom-cache depends upon the <code>iteratees</code> streaming library, which is fine because snap-server uses it as well. Starting from snap 1.0 though, the server will be 100% <a href>io-streams</a> powered, making somewhat unfortunate the need for two streaming libraries in the same dependency graph.</p></li>
+</ul>
+<p>Considering all this points, and considering that it was an hackaton and that I should really have fun with it, I have decided to simply drop zoom-cache altogether and using <a href>acid-state</a> for the persistence layer. If we really want, in the future, to support interval queries, we can do that using IxSet and an appropriate index on our stored date.</p>
+<h3 id="what-i-shipped">What I shipped</h3>
+<p>At the end of Sunday, I finally had a prototype which is working nicely; I didn’t feel bold enough to demo the whole thing (and I regret it, I should have probably done it!). This is the architecture in a nutshell:</p>
+<ul>
+<li><p>Whatever a user hit an endpoint, snaplet-perf will compute the start and the end time of this request, the endpoint hit and the HTTP method, creating a domain object called <code>Measurement</code>.</p></li>
+<li><p>Such a measure will be written into a <code>TBChan</code> and processed asynchronously by a worker thread.</p></li>
+<li><p>The worker thread will store the new measure into acid-state, which will keep into memory a <code>DataStorage</code> data structure which is just a <code>Map</code> in disguise, going from <code>EndpointHit -&gt; [Measurement]</code>.</p></li>
+<li><p>Once the measurement is stored, the worked thread will synchronize with a websocket worker using an <code>MVar</code>.</p></li>
+<li><p>The websocket worked will send out the measurement, encoded as JSON, to the client.</p></li>
+<li><p>The client will use such JSON to update (or create) a nice graph (made with a library called <a href>rickshaw</a> to display the measurement).</p></li>
+</ul>
+<p>A lot of this code was already there, I specifically did the worker overhaul (to use acid-state), the websocket part and the UI bit. The result can be seen in form on a small screencast here:</p>
+<p>url</p>
+<p>Note how is possible to monitor the new incoming traffic without refreshing the page!</p>
+<h3 id="drawbacks">Drawbacks</h3>
+<p>The drawbacks of the current implementation:</p>
+<ul>
+<li><p>It’s using an endpoint to retrieve ALL the stored data to populate the graphs before listening for new measurements. This will make <code>/perf/dashboard</code> slower and slower and the samples data grows. We might simply allow a configuration parameter to limit the data retrieved upfront, or using some sort of async call to gradually populate the data in chunks (here is where a streaming library wins!)</p></li>
+<li><p>Due to my breaking change (aka removing zoom-cache) I can’t simply merge this into master without having Doug approve my design choices. The project is hidden, so it would be mean from me if I just go in, fork my own fork and release this alternative version as public, as it contain work of other people as well.</p></li>
+</ul>
+<h3 id="conclusions">Conclusions</h3>
+<p>As every hacking project, is rough around the edges and can be polished further. I don’t know what the future of this project will be, as its diverging from the “official one”, but I hope Doug seeing this video will accept my beefy PR :)</p>
+<p>Alfredo</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2014-06-09-my-zurihac-project-revamping-snaplet-perf.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2014-06-09-my-zurihac-project-revamping-snaplet-perf.html';
+  var disqus_title = 'My ZuriHac 2014 project';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

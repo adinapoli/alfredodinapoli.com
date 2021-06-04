@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>The simplest Haskell Priority Queue implementation I know of</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'data-structures'." href="../tags/data-structures.html">data-structures</a>.</p>
+<br>
+<p>Nothing about what I’m going to say is novel or particularly mind-blowing, but yet useful, especially on programming competitions websites like HackerRank. This implementation is shamelessly stolen from <a href="http://www.cambridge.org/it/academic/subjects/computer-science/programming-languages-and-applied-logic/purely-functional-data-structures?format=PB&amp;isbn=9780521663502#RLHQsBjwMXbXyUFW.97">Okasaki’s book</a>.</p>
+<p>A <a href="http://algs4.cs.princeton.edu/24pq/">Priority Queue</a> can be easily implemented in an imperative setting but is not totally obvious how that could efficiently translate into a functional language, especially in a pure language like Haskell.</p>
+<p>See <a href="http://typeocaml.com/2015/03/12/heap-leftist-tree/">this blog post</a> for another excellent implementation, but in OCaml (always based on Okasaki).</p>
+<p>This is a Literate Haskell post. Let’s begin with the usual importing fandango:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">PriorityQueue</span> <span class="kw">where</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.List</span> <span class="kw">hiding</span> (insert)</span></code></pre></div>
+<p>“Leftist heaps always keeps the left branches of all roots being the longer and in worst case, they are as long as the right branches. In other word, all right branches of all roots are shortest. In order to maintain this property, <strong>each node has a rank, which indidates the length of the path between the node and the right most leaf.</strong>” – <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Rank</span> <span class="ot">=</span> <span class="dt">Int</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Heap</span> a <span class="ot">=</span> <span class="dt">Tip</span> <span class="op">|</span> <span class="dt">Node</span> <span class="ot">{-# UNPACK #-}</span> <span class="op">!</span><span class="dt">Rank</span> a (<span class="dt">Heap</span> a) (<span class="dt">Heap</span> a) <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- Rank: the length of the path between the node and the right most leaf.</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>rank <span class="dt">Tip</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>rank (<span class="dt">Node</span> r _ _ _) <span class="ot">=</span> r</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fromList ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fromList [] <span class="ot">=</span> <span class="dt">Tip</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fromList (x<span class="op">:</span>xs) <span class="ot">=</span> foldl' (\hp val <span class="ot">-&gt;</span> insert val hp) (singleton x) xs</span></code></pre></div>
+<p><code>makeHeap</code> is straightforward: we compare the two ranks, and we preserve the leftist property by setting as the rank the min of the two, and storing as the right child the smallest (aka with smallest rank) child.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">makeHeap ::</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>makeHeap x a b <span class="ot">=</span> <span class="kw">if</span> rank a <span class="op">&gt;=</span> rank b <span class="kw">then</span> <span class="dt">Node</span> (rank b <span class="op">+</span> <span class="dv">1</span>) x a b</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">else</span> <span class="dt">Node</span> (rank a <span class="op">+</span> <span class="dv">1</span>) x b a</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ot">empty ::</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>empty <span class="ot">=</span> <span class="dt">Tip</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ot">singleton ::</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>singleton x <span class="ot">=</span> <span class="dt">Node</span> <span class="dv">1</span> x <span class="dt">Tip</span> <span class="dt">Tip</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ot">insert ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>insert x h <span class="ot">=</span> merge (singleton x) h</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Merge two heaps together, preserving the leftist property via `makeHeap`.</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- Runs in O(log n).</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">-- &quot;The key insight behind leftist heaps is that two heaps can be merged by</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">-- merging their right spines as you would merge two sorted lists, and then</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co">-- swapping the children of nodes along this path as necessary to restore</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">-- the leftist property.&quot; -- Okasaki</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="ot">merge ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>merge l <span class="dt">Tip</span> <span class="ot">=</span> l</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>merge <span class="dt">Tip</span> r <span class="ot">=</span> r</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>merge h1<span class="op">@</span>(<span class="dt">Node</span> _ x l1 r1) h2<span class="op">@</span>(<span class="dt">Node</span> _ y l2 r2) <span class="ot">=</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> x <span class="op">&lt;=</span> y <span class="kw">then</span> makeHeap x l1 (merge r1 h2)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>            <span class="kw">else</span> makeHeap y l2 (merge h1 r2)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co">-- | O(1).</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="ot">peekMin ::</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>peekMin <span class="dt">Tip</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>peekMin (<span class="dt">Node</span> _ x _ _) <span class="ot">=</span> <span class="dt">Just</span> x</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="co">-- | O(1), but evaluating the second element of the tuple has same complexity</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="co">-- of `merge`.</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="ot">extractMin ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, <span class="dt">Heap</span> a)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>extractMin <span class="dt">Tip</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>extractMin (<span class="dt">Node</span> _ x a b) <span class="ot">=</span> <span class="dt">Just</span> (x, merge a b)</span></code></pre></div>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>http://typeocaml.com/2015/03/12/heap-leftist-tree/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html';
+  var disqus_title = 'The simplest Haskell Priority Queue implementation I know of';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

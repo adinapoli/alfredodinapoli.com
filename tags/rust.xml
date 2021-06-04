@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Alfredo Di Napoli's Tech Blog</title>
+    <link href="http://www.alfredodinapoli.com/tags/rust.xml" rel="self" />
+    <link href="http://www.alfredodinapoli.com" />
+    <id>http://www.alfredodinapoli.com/tags/rust.xml</id>
+    <author>
+        <name>Alfredo Di Napoli</name>
+        <email>alfredo.dinapoli@gmail.com</email>
+    </author>
+    <updated>2014-12-17T00:00:00Z</updated>
+    <entry>
+    <title>Convince me to use Rust</title>
+    <link href="http://www.alfredodinapoli.com/posts/2014-12-17-convince-me-to-use-rust.html" />
+    <id>http://www.alfredodinapoli.com/posts/2014-12-17-convince-me-to-use-rust.html</id>
+    <published>2014-12-17T00:00:00Z</published>
+    <updated>2014-12-17T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h2 id="convince-me-to-use-rust">Convince me to use Rust</h2>
+<p><strong>TL;TR I really like Rust, but I feel overwhelmed by its syntax and complexity, so I hope the Rust community will sell me the language, convincing me to learn it.</strong></p>
+<p>As we approach the new year, it seems quite natural to follow this <a href="http://matt.might.net/articles/programmers-resolutions/">list</a> of things I should aim to do in 2015. One of them is learning a new language, which I feel it’s quite an important one. After having a love-hate relationship with high and low level languages, I’m not in that period of my life where I would like to learn a new system language. I’ve done a bit of C/C++ back in university days, so I know what lies in store, even considering the latest available standards (i.e. c11, C++11, C++14 and so on). I would like to learn something <em>different</em>, and I went back and forth in deciding whether I should learn Go or Rust (I know, potentially I should learn both). The real question is: Which of the two?</p>
+<h2 id="about-me">About me</h2>
+<p>First of all, let me say I’m a <a href="http://www.alfredodinapoli.com/oss.html">Haskell hacker</a>. Not only am I a OSS contributor, but I’m lucky enough to get paid to code in Haskell during my everyday job. So I am a firm believer that a strong type system and a strong compiler really matters in delivering robust software. So, in a sense, it seems that the natural continuation in my skills development would be to learn Rust, which gets a <strong>lot</strong> of things right (but I’m sure you didn’t need me to discover this): immutability by default, a sophisticated borrow checker, ADTs, pattern matching, (limited form of) monads and even HKT (only emulated for now, hopefully fully supported in Rust 1.0).</p>
+<h2 id="so-what">So what?</h2>
+<p>So what? You might be thinking, which would be a perfectly reasonable feeling. If you feel Rust is the “next big thing”, you should learn it as your next system language, right? That’s true, but I want to play the devil’s advocate here, and I really hope the Rust community will jump on me and completely sell me the language, so I will happily hack in it during 2015 (together with Haskell, of course!).</p>
+<h2 id="zen">Zen</h2>
+<p>If you are not familiar with the <a href="http://www.amazon.com/Complete-Idiots-Guide-Living-Edition/dp/159257243X">Zen</a> philosophy, I will definitely suggest you to dig more into it. Zen can be a lot of things, a religion, a way of living, and a way of coding, too. What I really appreciate of the Zen culture is that things like “beauty” and “simplicity” are something which should be researched in everything we do (also “perfection”, but that sounds more like utopia!). Leaving apart <a href="https://www.python.org/dev/peps/pep-0020/">other kind of Zen manifesto</a>, I’m a strong believer that beauty in code leads to simplicity, which leads to beauty, which leads to simplicity, which..</p>
+<p>Let’s take Haskell, for example. Don’t you find this is utterly beautiful?</p>
+<pre><code>fmap :: (Functor f) =&gt; (a -&gt; b) -&gt; f a -&gt; f b</code></pre>
+<p>If you are unfamiliar with Haskell it doesn’t matter, all you need to know is that this is the function signature for the <code>fmap</code> function, which can be specialised for lists, to name one data structure. What I like here is that:</p>
+<ul>
+<li>It’s simple, with a minimal syntax</li>
+<li>It’s completely generic, where <code>a</code>, <code>b</code> and <code>f</code> are completely parametric</li>
+<li>I can see upfront the “contract” of this function: <code>f</code> must be a <a href="http://en.wikipedia.org/wiki/Functor">functor</a></li>
+</ul>
+<p>Something which puts me off from learning Rust is the “eye bleeding” (perhaps I’m a bit exaggerating here!) I have when I look at certain snippets of Rust code. I feel overwhelmed by the variety of operators you can use to denote your variables, the macro applications, the trait implementations and much more. These are just two examples I copied opening two random Rust projects on Github:</p>
+<pre><code>/// An abstraction to receive `NetworkStream`s.
+pub trait NetworkAcceptor&lt;S: NetworkStream&gt;: Acceptor&lt;S&gt; + Clone + Send {
+    /// Closes the Acceptor, so no more incoming connections will be handled.
+    fn close(&amp;mut self) -&gt; IoResult&lt;()&gt;;
+}
+
+/// An abstraction over streams that a Server can utilize.
+pub trait NetworkStream: Stream + Any + StreamClone + Send {
+    /// Get the remote address of the underlying connection.
+    fn peer_name(&amp;mut self) -&gt; IoResult&lt;SocketAddr&gt;;
+}
+
+#[doc(hidden)]
+pub trait StreamClone {
+    fn clone_box(&amp;self) -&gt; Box&lt;NetworkStream + Send&gt;;
+}
+
+impl&lt;T: NetworkStream + Send + Clone&gt; StreamClone for T {
+    #[inline]
+    fn clone_box(&amp;self) -&gt; Box&lt;NetworkStream + Send&gt; {
+        box self.clone()
+    }
+}</code></pre>
+<pre><code>impl&lt;&#39;c&gt; Cursor&lt;&#39;c&gt; {
+    /// Create a new cursor instance
+    pub fn new(line: &amp;&#39;c mut Line, offset: uint) -&gt; Cursor&lt;&#39;c&gt; {
+        let mut cursor = Cursor {
+            offset: offset,
+            line: line,
+        };
+
+        // check that the current offset is longer than the length of the line
+        let offset = cursor.get_offset();
+        let line_length = cursor.get_line().len();
+        if offset &gt; line_length {
+            cursor.set_offset(line_length);
+        }
+        cursor
+    }
+}</code></pre>
+<p>This is obviously very much subjective, but I find Rust code <strong>very</strong> dense; someone could say the same of Haskell, I suppose, so I’m not sure how much my point stands. But when I look at Rust, I basically see C++ in disguise (angular brackets everywhere, very dense and complicated). Having programmed in C++ before, I was really hoping, in a sense, to get a breath of fresh air.</p>
+<p>On the contrary, <strong>Go</strong> seems to be exactly the opposite: I basically call it “C with concurrency”. But it has a strange allure, probably deriving from its simplicity: <strong>I like simple things</strong>. On the other hand, it goes against my outlook on software development, as is not very “safe”, as far as the compiler and the type checker is concerned. But the visual overhead is much less.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>If you make it till here, you guess this is <strong>not</strong> a flame post. It’s just my personal ruminations in what makes me feel reluctant in spending my time learning Rust. I really hope people will help me see through the syntax and appreciate the true sprit of the language.</p>]]></summary>
+</entry>
+
+</feed>

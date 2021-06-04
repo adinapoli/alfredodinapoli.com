@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>iconv-typed: An experiment in API design and type safety</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>.</p>
+<br>
+<pre><code>Summary: I'm releasing a type safe version of the iconv library, discussing my
+API design choices and asking for feedback from the community.</code></pre>
+<hr />
+<p>I’m slowly making progress in an Haskell <a href="https://github.com/adinapoli/piece-table">piece table</a> library which could be used as a high performant data structure for text manipulation. The typical use case there would be writing a text editor in Haskell, something I had in the back of my mind doing (for fun) for a while.</p>
+<p>So far the assumption I have made whilst developing it is that user text would be encoded/decoded as <code>UTF-8</code>, but in the real world, though, this is simply not true! That’s where <a href="http://kunststube.net/encoding/">encoding</a> comes into play. I won’t get into too much detail about the <code>piece table</code> library (is not that interesting in its current shape!), but this should set the scene on why I needed text encoding in the first place.</p>
+<p>In Haskell we have a couple of choices when dealing with text encoding: we can use some <a href="http://hackage.haskell.org/package/text-1.2.2.1/docs/Data-Text-Encoding.html">functions</a> provided directly by the <code>text</code> library, use the <a href="http://hackage.haskell.org/package/encoding">encoding</a> library or use Duncan Coutt’s <a href="http://hackage.haskell.org/package/iconv-0.4.1.3/docs/Codec-Text-IConv.html">iconv</a> library. I really like <code>iconv</code> because it has such a simple API and it doesn’t assume anything on the input: the latter is given as a “blob of binary data” and it’s up to me to decide how to interpret it.</p>
+<p>Despite its simplicity, I always thought the library also had great potential for things to go wrong: first of all, an <code>EncodingName</code> is simply a <code>String</code>, which the programmer can mispell and spend hours debugging why is program in producing garbage. Secondly, it requires the manual step of retrieving the list of available encodings from the system, typically piggybacking on the underlying C/GNU library. This is why today I’m releasing <a href="https://github.com/adinapoli/iconv-typed">iconv-typed</a> mainly to gather feedback from the community. It’s such a simply abstraction over <code>iconv</code> I’m surprised nobody thought about something similar, but maybe that’s because it’s so simple people have wrote it in their own projects without releasing it, or simply because maybe it has shortcomings I haven’t anticipated!</p>
+<h3 id="a-taste-of-the-api">A taste of the API</h3>
+<p>APIwise, the library should feel familiar with the original <code>iconv</code>. Compare this short example using the <code>iconv</code> library:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DataKinds #-}</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Codec.Text.IConv</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert <span class="st">&quot;UTF-8&quot;</span> <span class="st">&quot;LATIN1&quot;</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>With the equivalent in <code>iconv-typed</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeApplications #-}</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DataKinds #-}</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Codec.Text.IConv.Typed</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert <span class="op">@</span><span class="st">&quot;UTF-8&quot;</span> <span class="op">@</span><span class="st">&quot;LATIN1&quot;</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>As you can see it’s almost identical except for the fact we are using <code>TypeApplication</code>’s <code>@</code> operator. If we mispelled by accident <code>UTF-8</code>, we would get a type error. Profit! But how does it work?</p>
+<h3 id="type-families-to-the-rescue">Type families to the rescue!</h3>
+<p>Conceptually, it’s very simple: it fetches all the available encodings in a platform-dependent way (mainly invoking <code>iconv -l</code> under the hood), and then generates a closed <a href="https://wiki.haskell.org/GHC/Type_families">type family</a> via <a href="https://wiki.haskell.org/Template_Haskell">template Haskell</a> to basically constrain the <code>Symbol</code> universe only to ones matching a valid encoding. A code snippet will demostrate this much better! We first commit the biggest sin in the whole Haskell universe and we get the encodings via <code>unsafePerformIO</code> [1] (it requires the <code>Shelly</code> library):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">getAvailableEncodings ::</span> [<span class="dt">EncodingName</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>getAvailableEncodings <span class="ot">=</span> unsafePerformIO <span class="op">$</span> shelly <span class="op">$</span> silently <span class="op">$</span> escaping <span class="dt">False</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span> T.unpack <span class="op">.</span> <span class="fu">mconcat</span> <span class="op">.</span> <span class="fu">map</span> T.words <span class="op">.</span> T.lines <span class="op">.</span> T.strip <span class="op">&lt;$&gt;</span> run <span class="st">&quot;iconv&quot;</span> [<span class="st">&quot;-l&quot;</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# NOINLINE getAvailableEncodings #-}</span></span></code></pre></div>
+<p>… and then we generate the type family where each instance would look like this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">ValidEncoding</span> (<span class="ot">k ::</span> <span class="dt">Symbol</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ValidEncoding</span> <span class="st">&quot;RETRIEVED_ENCODING_1&quot;</span> <span class="ot">=</span> <span class="dt">'True</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ValidEncoding</span> <span class="st">&quot;RETRIEVED_ENCODING_2&quot;</span> <span class="ot">=</span> <span class="dt">'True</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span></code></pre></div>
+<p>Note two things: we are using a <em>closed</em> type family to avoid “monkey patching” of our encodings (something which could happen if we chose a typeclass as an abstraction mechanism, as someone could have defined an orphan instance) and we “plug” directly each retrieved encoding as a string literal. So far so good! The “magic” between the minimal API lies in this few lines of code:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Enc</span> k1 k2 <span class="ot">=</span> <span class="dt">ByteString</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">--------------------------------------------------------------------------------</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ot">convert ::</span> <span class="kw">forall</span> k1 k2<span class="op">.</span> ( <span class="dt">KnownSymbol</span> k1</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            , <span class="dt">KnownSymbol</span> k2</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            , <span class="dt">ValidEncoding</span> k1 <span class="op">~</span> <span class="dt">'True</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            , <span class="dt">ValidEncoding</span> k2 <span class="op">~</span> <span class="dt">'True</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>         <span class="ot">=&gt;</span> <span class="dt">Enc</span> (<span class="ot">k1 ::</span> <span class="dt">Symbol</span>) (<span class="ot">k2 ::</span> <span class="dt">Symbol</span>) <span class="co">-- ^ Input text</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>         <span class="ot">-&gt;</span> <span class="dt">ByteString</span> <span class="co">-- ^ Output text</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>convert input <span class="ot">=</span> I.convert (reifyEncoding (<span class="dt">E</span> <span class="op">@</span>k1)) (reifyEncoding (<span class="dt">E</span> <span class="op">@</span>k2)) input</span></code></pre></div>
+<p>First of all, we define a type synonym called <code>Enc</code> with 2 phantom types, which will be “filled” by our encodings. This unfortunately generate ambiguity and GHC reports this at compile time. We can help the ambiguity resolving by using <code>AllowAmbiguousTypes</code>, which basically (check this <a href="https://www.reddit.com/r/haskell/comments/59g49o/iconvtyped_an_experiment_in_api_design_and_type/d99pnhx/">insigthful comment</a> on Reddit for the full explanation. Thanks <code>/u/int_index</code>!)</p>
+<p>The <code>convert</code> function has a bit of an intimidating, so let’s start from the typeclass constraints: what I’m saying here is that for any genering <code>k1</code> and <code>k2</code> I want those to:</p>
+<ul>
+<li><p>Be an instance of <code>KnownSymbol</code> (think about a <code>String</code> at the type level) so I can reify them back at the value level with <code>reifyEncoding</code> (which is basically just <code>symbolVal</code> under the hood).</p></li>
+<li><p>The type-level function <code>ValidEncoding</code> must yield <code>True</code>. Simply put, this will only be possibly with the <code>Symbol</code>s I have defined an instance for in my closed type family. This is what will prevent you from passing an input a non-existing or mispelled encoding.</p></li>
+</ul>
+<p>The input <code>ByteString</code> is well, just a <code>ByteString</code> in disguise. Remember <code>Enc</code>? That’s basically it, with the only twist of carrying these 2 extra types around, which I’m also saying they are of <em>type</em> <code>Symbol</code>, and this is where I need <code>TypeInType</code>, as <code>Symbol</code> would normally be a <code>Kind</code>.</p>
+<p>This is the gist of it! But why am I able to invoke the <code>convert</code> function like this?</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert <span class="op">@</span><span class="st">&quot;UTF-8&quot;</span> <span class="op">@</span><span class="st">&quot;LATIN1&quot;</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>Here is <code>TypeApplications</code> in action! What we are doing is giving an hint to the compiler about which types are <code>k1</code> and <code>k2</code>, as the only <em>real</em> input is the input <code>Enc k1 k2</code>. Other way to see this, is that we are saying “Hey GHC, <code>Enc</code> carries the utterly generic &amp; ambiguous <code>k1</code> and <code>k2</code>, I’m telling you explicitly what those 2 are”.</p>
+<p>That’s pretty much it, really!</p>
+<h3 id="usability-the-unknown">Usability: the unknown</h3>
+<p>Something I still have no clue is how practical to use this library will be, mostly because those encodings don’t exist at the value level. But not only that, is also very likely you have some existing code which is doing any kind of manipulation with the <code>EncodingName</code>, like comparing them, reading them from disk, from user input, etc. After all, they are only <code>String</code>s. I suspect doing the equivalent with this library will be clunky, although I hope <code>TypeInType</code> can help in this regard.</p>
+<h3 id="you-said-api-design">You said API design?</h3>
+<p>The current API is the result of multiple iterations. Initially I was going to use a much simpler approach and simply have my TH code generate plain types so that our API could look like:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>convert <span class="dt">UTF8</span> <span class="dt">LATIN1</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>This was jolly good for the simplest encodings, but I quickly run into limitations in the allowed characters to be used for a type/type constructor. For example, <code>-</code> is not allowed, so I could have the choice of mangling <code>UTF-8</code> into <code>UTF_8</code>, which would have been OK. But what about <code>ISO_646.IRV:1991</code>? I quickly realised this approach had 2 problems:</p>
+<ul>
+<li>It would require the user to “lookup” the mangled name of Haddock as I couldn’t come up with a mnemonic rule for translating encoding into types</li>
+<li>Converting original <code>iconv</code> code would have been a bit painful.</li>
+</ul>
+<p>In my opinion, if you are releasing a library which is meant to simplify user life, you really want to aim for a low entry barrier!</p>
+<h4 id="second-attempt-use-an-ancilliary-e-type">Second attempt: Use an ancilliary <code>E</code> type</h4>
+<p>My second attempt is basically what I ended up releasing as the “GHC 7.x” API version. It does work, but when I first releases the library and I tweeted the link to GitHub, <a href="https://twitter.com/a_cowley/status/790236285847863296">Anthony Cowley</a> gave valuable suggestions on how to improve it, which made me realise that if I was going to use <code>TypeApplications</code> and therefore tap into GHC 8.x anyway, I had access to <code>TypeInType</code> also! That yielded a much nicer API.</p>
+<h4 id="final-attempt-perfection">Final attempt: Perfection?</h4>
+<p>Exploring the solution space brought me in a place where I feel I have come up with an API which strikes me as a good compromise. The only sour taste in my mouth is the use of <code>AllowAmbiguousTypes</code>, which I wasn’t able to avoid.</p>
+<h3 id="support-for-ghc-7.x">Support for GHC 7.x</h3>
+<p>Althought not as slick and elegant as the version which uses <code>TypeInType</code> and <code>TypeApplications</code>, we support older versions of GHC. This is how the API would look like if you try to compile <code>iconv-typed</code> with GHC 7.x:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DataKinds #-}</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Codec.Text.IConv.Typed</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert (<span class="dt">E</span><span class="ot"> ::</span> <span class="dt">E</span> <span class="st">&quot;UTF-8&quot;</span>) (<span class="dt">E</span><span class="ot"> ::</span> <span class="dt">E</span> <span class="st">&quot;LATIN1&quot;</span>) <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<h3 id="unexplored-territory">Unexplored territory</h3>
+<p>As a result of my encoding fetching at compile time, there is something which is subtle and with an impact I cannot anticipate: <strong>If you try to run a program which is using iconv-typed on a machine which doesn’t support a particular encoding, your application won’t compile</strong>.</p>
+<p>Differently put, if you are doomed to produce garbage as part of your encoding process because your underlying iconv library doesn’t support that particular encoding, the library will prevent you from even trying. This could certainly be terrifying or beautiful, depending from the point of view.</p>
+<p>I guess we will have to wait and see!</p>
+<h3 id="notes">Notes</h3>
+<p>[1] Using <code>unsafePerformIO</code> here is not necessary, using <code>runIO</code> in the <code>Q</code> monad would have worked as well, and avoid unsafe operations.</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html';
+  var disqus_title = 'iconv-typed: An experiment in API design and type safety';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Alfredo Di Napoli's Tech Blog</title>
+    <link href="http://www.alfredodinapoli.com/tags/vim.xml" rel="self" />
+    <link href="http://www.alfredodinapoli.com" />
+    <id>http://www.alfredodinapoli.com/tags/vim.xml</id>
+    <author>
+        <name>Alfredo Di Napoli</name>
+        <email>alfredo.dinapoli@gmail.com</email>
+    </author>
+    <updated>2012-10-04T00:00:00Z</updated>
+    <entry>
+    <title>vim-markmultiple released</title>
+    <link href="http://www.alfredodinapoli.com/posts/2012-10-04-vim-markmultiple-released.html" />
+    <id>http://www.alfredodinapoli.com/posts/2012-10-04-vim-markmultiple-released.html</id>
+    <published>2012-10-04T00:00:00Z</published>
+    <updated>2012-10-04T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>I’ve released a simple plugin that does pretty much what this plugin does:</p>
+<p><a href="http://github.com/magnars/mark-multiple.el">mark-multiple.el</a></p>
+<p>Nothing particularly thrilling or something you can’t live without, but I think it’s handy and after all, if Emacs can do that, why Vim can’t? Without further ado, this is the github repository:</p>
+<p><a href="http://github.com/adinapoli/vim-markmultiple">vim-markmultiple</a></p>
+<p>Feedback are welcome.</p>
+<p>Alfredo</p>]]></summary>
+</entry>
+
+</feed>

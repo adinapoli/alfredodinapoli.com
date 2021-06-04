@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Scalaz for the Haskell programmer - Part 1</h1>
+
+<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'scala'." href="../tags/scala.html">scala</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
+<br>
+<p><a href="https://github.com/scalaz/scalaz">scalaz</a> is an awesome library that extends the Scala Core, providing FP goodies that every Haskell programmer loves and needs. Yes, I’m obviously talking about <code>Functors</code>, <code>Monads</code> and other strange beasts from the Category Theory panorama. There is a lot of learning material for scalaz, but I’ve basically discovered that is not easy to organize your thoughts if you are an Haskell programmer, so I’m basically just writing this primarily as a mental note, but I hope it will be useful for others too. The tutorial will be focused on <strong>scalaz 7</strong>, so be wary if you are not planning to switching any time soon. Before we start, I’ve found this little gem that compares, side by side, a lot of features from different programming languages:</p>
+<div data-align="center" data-markdown="1">
+<p><a href="http://hyperpolyglot.org/ml">Hyperpolyglot cheatsheet</a></p>
+</div>
+<h4 id="setting-up-an-sbt-project">Setting up an sbt project</h4>
+<p>If you are lazy and want to start right away, I suggest you use my <a href="https://github.com/adinapoli/scalaz-revolver.g8">giter8 template</a> to have a plain project with scalaz and <a href="https://github.com/spray/sbt-revolver">sbt-revolver</a>. The template also imports for you scalaz in the sbt console, so you can start playing right away.</p>
+<h4 id="monads-and-control.monad-functions">Monads and Control.Monad functions</h4>
+<p>Most tutorials starts with <code>Typeclasses</code>, data structures declaration or other important aspects. Here, I want to start from Haskell’s main draw, <code>Monads</code>. This should be familiar:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">some</span><span class="op">(</span><span class="dv">3</span><span class="op">)</span> <span class="op">&gt;&gt;=</span> <span class="op">(</span>x <span class="op">=&gt;</span> <span class="fu">some</span><span class="op">(</span>x<span class="op">+</span><span class="dv">1</span><span class="op">))</span> <span class="co">//yields some(4)</span></span></code></pre></div>
+<p>Unsurprisingly, it returns <code>some(4)</code>. It this code is not straightforward to you, you won’t find the monad part covedered. This is only a sort of “quick mental mapping” for the Haskell programmer that wants to program in a more functional oriented way in Scala. This code should be familiar too:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">some</span><span class="op">(</span><span class="dv">3</span><span class="op">)</span> <span class="op">&gt;&gt;</span> <span class="fu">some</span><span class="op">(</span><span class="dv">4</span><span class="op">)</span> <span class="co">//yields some(4)</span></span></code></pre></div>
+<p>Remember how <code>(&gt;&gt;)</code> is defined in Haskell:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">(&gt;&gt;) ::</span> (<span class="dt">Monad</span> m) <span class="ot">=&gt;</span> m a <span class="ot">-&gt;</span> m b</span></code></pre></div>
+<h5 id="replicatem">replicateM</h5>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">replicateM ::</span> (<span class="dt">Monad</span> m) <span class="ot">=&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> m a <span class="ot">-&gt;</span> m [a]</span></code></pre></div>
+<p>Has its equivalent in:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">some</span><span class="op">(</span><span class="dv">2</span><span class="op">)</span> replicateM <span class="dv">3</span> <span class="co">// yields some(List(2,2,2))</span></span></code></pre></div>
+<p>As you can notice the syntax is not as terse an in Haskell, due to the nature of the two languages; in Scala, everything is an object, and Haskell behaviors are simulated using <code>traits</code>. This obviously force the programmer to write code that resemble method invocations. When allowed, I always prefer the “dot-free” syntax (like the example above), because give the code a more functional look.</p>
+<h5 id="filterm">filterM</h5>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">filterM ::</span> (<span class="dt">Monad</span> m) <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> m <span class="dt">Bool</span>) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> m [a]</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">List</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span><span class="dv">2</span><span class="op">,</span><span class="dv">3</span><span class="op">)</span> filterM <span class="op">{</span> x <span class="op">=&gt;</span> <span class="fu">some</span><span class="op">(</span>x <span class="op">%</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)}</span> <span class="co">//yields some(List(2))</span></span></code></pre></div>
+<p>It would have been nice to have the Haskell’s equivalent of <code>return</code>, but I wasn’t able to find nothing like that in scalaz. If you are aware of something different, please let me know, I will be happy to update this post.</p>
+<h4 id="functors">Functors</h4>
+<p>Another important tool in the functional programmer belt are functors. They are supported in scalaz too (it’s obvious, because <code>Monads</code> are <code>Functors</code>, so it scalaz supports <code>Monads</code>, why not <code>Functors</code>?). scalaz’s developers have decided to polish a bit the syntax, so you have to call <code>map</code> instead of <code>fmap</code>. You may or may not like this choice:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fmap</span><span class="ot"> ::</span> (<span class="dt">Functor</span> f) <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> f a <span class="ot">-&gt;</span> f b</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">some</span><span class="op">(</span><span class="dv">2</span><span class="op">)</span> <span class="fu">map</span> <span class="op">(</span>x <span class="op">=&gt;</span> x <span class="op">*</span> x<span class="op">)</span> <span class="co">//yields some(4)</span></span></code></pre></div>
+<h4 id="applicative">Applicative</h4>
+<p>In layman’s terms, we can call an <code>Applicative</code> a <code>Functor</code> on steroid. In Haskell, it’s very common to use them to aggregate results of a non-deterministic computation. Take a look to this piece of Haskell code, that can be quite mind-blowing for the apprentice functional programmer:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>(<span class="op">+</span>) <span class="op">&lt;$&gt;</span> [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>] <span class="op">&lt;*&gt;</span> [<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>]</span></code></pre></div>
+<p>This yields all the possible combination of summing the values from the to lists together. In this case we obtain the list <code>[5,6,7,6,7,8,7,8,9]</code>. In Scala, we can obtain the same result with this syntax:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="op">(</span><span class="bu">List</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span><span class="dv">2</span><span class="op">,</span><span class="dv">3</span><span class="op">)</span> <span class="op">|</span>@<span class="op">|</span> <span class="bu">List</span><span class="op">(</span><span class="dv">4</span><span class="op">,</span><span class="dv">5</span><span class="op">,</span><span class="dv">6</span><span class="op">))</span> <span class="op">{</span> _ <span class="op">+</span> _ <span class="op">}</span></span></code></pre></div>
+<p>Where <code>|@|</code> yields an <code>ApplicativeBuilder</code> (I’m not enough proficient with scalaz to speculate about this design choice).</p>
+<h4 id="monoid">Monoid</h4>
+<p>In Haskell, the two most important function every <code>Monoid</code> has are <code>mempty</code> and <code>mappend</code>. In scalaz you have <code>mzero</code> and <code>|+|</code> instead:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mempty</span><span class="ot"> ::</span> (<span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> a</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mappend</span><span class="ot"> ::</span> (<span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mempty</span><span class="ot"> ::</span> [<span class="dt">Int</span>] <span class="co">--returns an empty list</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">1</span>,<span class="dv">2</span>] <span class="ot">`mappend`</span> [<span class="dv">3</span>,<span class="dv">4</span>] <span class="co">-- [1,2,3,4]</span></span></code></pre></div>
+<p>This is roughly the equivalent in Scala:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>mzero<span class="op">[</span><span class="bu">List</span><span class="op">[</span><span class="bu">Int</span><span class="op">]]</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">List</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span><span class="dv">2</span><span class="op">)</span> <span class="op">|+|</span> <span class="bu">List</span><span class="op">(</span><span class="dv">3</span><span class="op">,</span><span class="dv">4</span><span class="op">)</span></span></code></pre></div>
+<p>Well, I have to say that amoung all the scalaz stuff, the <code>Monoid</code> part is what I like less. Why? Because it doesn’t stick with the original Haskell and matchematical definition. Wolfram MathWorld sais that:</p>
+<div class="glance-box">
+<p>A monoid is a set that is closed under an associative binary operation and has an identity element[…]</p>
+</div>
+<p><br></p>
+<p>In layman’s terms, every <code>Monoid</code> is defined respect to an operation. This explain why an <code>Int</code> can’t be a <code>Monoid</code> per se: which operation should we consider? <code>+</code> or <code>*</code>? You can prove this trying to ask Haskell for the “zero value” of an <code>Int</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mempty</span><span class="ot"> ::</span> <span class="dt">Int</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="dt">No</span> <span class="kw">instance</span> for (<span class="dt">Monoid</span> <span class="dt">Int</span>) <span class="op">...</span></span></code></pre></div>
+<p>And the same applies for <code>mappend</code>: how can Haskell know how to append two <code>Int</code>?</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span> <span class="ot">`mappend`</span> <span class="dv">4</span></span></code></pre></div>
+<p>To solve this, we wrap our <code>Int</code>(s) in types that are instances of <code>Monoid</code>, for example <code>Sum</code> and <code>Product</code>:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mempty</span><span class="ot"> ::</span> <span class="dt">Sum</span> <span class="dt">Int</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Sum</span> {getSum <span class="ot">=</span> <span class="dv">0</span>}</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mempty</span><span class="ot"> ::</span> <span class="dt">Product</span> <span class="dt">Int</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="dt">Product</span> {getProduct <span class="ot">=</span> <span class="dv">1</span>}</span></code></pre></div>
+<p>Now, with this formalism, we can <code>mappend</code> our <code>Monoid</code>, because now we have an operation that characterize the <code>Monoid</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Sum</span> <span class="dv">4</span> <span class="ot">`mappend`</span> <span class="dt">Sum</span> <span class="dv">5</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Sum</span> {getSum <span class="ot">=</span> <span class="dv">9</span>}</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Product</span> <span class="dv">4</span> <span class="ot">`mappend`</span> <span class="dt">Product</span> <span class="dv">4</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="dt">Product</span> {getProduct <span class="ot">=</span> <span class="dv">16</span>}</span></code></pre></div>
+<p>Conversely, Scala is not so strict, and allows us to do this:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="dv">9</span> <span class="op">|+|</span> <span class="dv">15</span></span></code></pre></div>
+<p>Which I don’t like very much. (To the expert reader? What am I missing? Maybe is <code>|+|</code> an alias for a <code>Monoid</code> closed on <code>+</code>?)</p>
+<h4 id="pipelines-and-function-composition">Pipelines and function composition</h4>
+<p>This actually isn’t an Haskell features, but for example F# has the nice pipeline operator <code>(|&gt;)</code> to give the code a dataflow structure. You can use the pipeline operator to implement function composition as well:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">floor</span> <span class="op">.</span> <span class="fu">sqrt</span> <span class="op">$</span> <span class="dv">10</span> <span class="co">--equivalent to floor(sqrt(10))</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fl">10.0</span> <span class="op">|&gt;</span> sqrt <span class="op">|&gt;</span> floor <span class="co">//yields 3.0</span></span></code></pre></div>
+<p>As you can see, the computation “flows” into two different ways: in the former example from right to left, in the latter from left to right, but the result is the same. A nice that we got for free here is a bit more of type safety: whilst Haskell accept the above code, Scala refuses to compile due to a type mismatch, if we pass <code>10</code> to the pipeline operator. Nice.</p>
+<h3 id="conclusions">Conclusions</h3>
+<p>This first part was dense, but also useful to get myself acquainted with scalaz. There is still a lot to cover (for example <code>Comonad</code>, <code>Arrow</code> and more), so there is room for a part 2. I think scalaz has a lot of potentials, and I’ll be happy to use in a project if I have the chance. I believe it helps to get rid of the “OO-flavor” Scala inherited from its Java vestiges. Before the farewell, take a look at this two blog post, that I’ve read to gather part of the material from <code>Applicative</code> and <code>Monoid</code>:</p>
+<ul>
+<li><a href="http://www.casualmiracles.com/2012/01/16/a-small-example-of-applicative-functors-with-scalaz/">A Small Example of Applicative Functors with Scalaz</a></li>
+<li><a href="http://voidmainargs.blogspot.it/2012/02/having-fun-with-monoid-in-scalaz-seven.html">Having Fun with Monoid in Scalaz Seven</a></li>
+</ul>
+<p>Happy hacking!</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2012-10-31-scalaz-for-the-haskell-programmer.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2012-10-31-scalaz-for-the-haskell-programmer.html';
+  var disqus_title = 'Scalaz for the Haskell programmer - Part 1';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

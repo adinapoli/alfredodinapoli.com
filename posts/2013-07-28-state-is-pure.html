@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>State is Pure</h1>
+
+<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
+<br>
+<p>Maybe (or maybe not) it happened to you at least once during your Haskell journey to look at functions like this…</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">stackManip ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>stackManip <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  push <span class="dv">8</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  pop</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  pop</span></code></pre></div>
+<p>…and to think: “How can possibly this work?” In this post I’ll desugar the <code>State</code> monad up to a point where all the other monads will go crazy screaming “Oh my God, it’s naked!”. But let’s start from the foundations.</p>
+<h3 id="state-monad-at-the-speed-of-light">State monad at the speed of light</h3>
+<p>The aim of this post is not teaching you how to use the <code>State</code> monad, I assume you are already familiar with it. Let’s first recall:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Monad</span> (<span class="dt">State</span> s) <span class="kw">where</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> x <span class="ot">=</span> <span class="dt">State</span> <span class="op">$</span> \s <span class="ot">-&gt;</span> (x,s)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  m <span class="op">&gt;&gt;=</span> f <span class="ot">=</span> <span class="dt">State</span> <span class="op">$</span> \s <span class="ot">-&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>              <span class="kw">case</span> runState m s <span class="kw">of</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                (x, s') <span class="ot">-&gt;</span> runState (f x) s'</span></code></pre></div>
+<p>This will be useful later on. For demonstration purposed I’m going to use a shameless copy of the stack examples you’ll find in <a href="http://learnyouahaskell.com/for-a-few-monads-more">Learn You a Haskell</a>, because it’s easy to grasp and perfect for our purposes. Let’s define a <code>Stack</code> as a type synonym for a list of <code>Int</code>, plus to stateful computations to push and pop stuff to/from the stack:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Stack</span> <span class="ot">=</span> [<span class="dt">Int</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">push ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">State</span> <span class="dt">Stack</span> ()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>push x <span class="ot">=</span> state <span class="op">$</span> \xs <span class="ot">-&gt;</span> ((), x<span class="op">:</span>xs)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ot">pop ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>pop <span class="ot">=</span> state <span class="op">$</span> \(x<span class="op">:</span>xs) <span class="ot">-&gt;</span> (x, xs)</span></code></pre></div>
+<p>Armed with these two, we can write another stateful computation that modify the stack:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">stackManip ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>stackManip <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  push <span class="dv">8</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  pop</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  pop</span></code></pre></div>
+<p>And finally run the example:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">.</span> <span class="fu">show</span> <span class="op">$</span> runState stackManip [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">9</span>]</span></code></pre></div>
+<p>This works. But how? In other terms, when I was a beginner Haskeller, this was the question I kept repeating to myself “Where is the state (the stack) passed around?” From my personal experience this often confuses newcomers, which might expect every function dealing with the state to take in input the “old” state in order to modify it. In other terms, this is what the newcomer expects:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">push' ::</span> <span class="dt">Stack</span> <span class="ot">-&gt;</span> <span class="dt">State</span> <span class="dt">Stack</span> ()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>push' <span class="ot">=</span> <span class="fu">undefined</span> <span class="co">--not implemented</span></span></code></pre></div>
+<p>And the fact that he sees just a stateful computation instead, without any “access point” for the old state to be passed in, confuses him. I’m going to shed light exactly over this.</p>
+<h3 id="the-example-desugared">The example, desugared</h3>
+<p>Let’s get back to our main for a moment:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">.</span> <span class="fu">show</span> <span class="op">$</span> runState stackManip [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">9</span>]</span></code></pre></div>
+<p>In order to yield a result, we need to evaluate <code>stackManip</code>, so let’s take a look at it, again (<em>repetita iuvant</em>):</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">stackManip ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>stackManip <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  push <span class="dv">8</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  pop</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  pop</span></code></pre></div>
+<p>We can easily rewrite the function without the do block, this way:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">stackManip' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>stackManip' <span class="ot">=</span> push <span class="dv">8</span> <span class="op">&gt;&gt;</span> pop <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span> pop</span></code></pre></div>
+<p>We can now substitute the functions which their actual implementations:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">stackManip'' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>stackManip'' <span class="ot">=</span> (state <span class="op">$</span> \s <span class="ot">-&gt;</span> ((), <span class="dv">8</span><span class="op">:</span>s)) <span class="op">&gt;&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>               (state <span class="op">$</span> \(x<span class="op">:</span>xs) <span class="ot">-&gt;</span> (x,xs)) <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                state <span class="op">$</span> \(x'<span class="op">:</span>xs') <span class="ot">-&gt;</span> (x',xs')</span></code></pre></div>
+<p>Here I’ve already made a simplification: we already know what the new state for <code>push 8</code> will be: exactly the same we had at he beginning plus “8” on the top of the stack.</p>
+<p>Now it’s time to recall how <code>(&gt;&gt;)</code> is defined in Haskell:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">(&gt;&gt;) ::</span> m a <span class="ot">-&gt;</span> m b <span class="ot">-&gt;</span> m b</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">&gt;&gt;</span> m2 <span class="ot">=</span> m1 <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span> m2</span></code></pre></div>
+<p>Which yield the following:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">stackManip''' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>stackManip''' <span class="ot">=</span> ((state <span class="op">$</span> \s <span class="ot">-&gt;</span> ((), <span class="dv">8</span><span class="op">:</span>s)) <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                (state <span class="op">$</span> \(x<span class="op">:</span>xs) <span class="ot">-&gt;</span> (x,xs))) <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                 state <span class="op">$</span> \(x'<span class="op">:</span>xs') <span class="ot">-&gt;</span> (x',xs')</span></code></pre></div>
+<p>If you look carefully, I’ve grouped on purpose the first two stateful computation, to stress the fact we are going to desugar something like this:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>(op1 <span class="op">&gt;&gt;=</span> op2) <span class="op">&gt;&gt;=</span> op3</span></code></pre></div>
+<p>And now the fun begins: we need to desugar even further <code>(&gt;&gt;=)</code>, with the definition I gave you at the beginning of the article:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">stackManip'''' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>stackManip'''' <span class="ot">=</span> (state <span class="op">$</span> \k <span class="ot">-&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> runState m k <span class="kw">of</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    (x, s') <span class="ot">-&gt;</span> runState (f x) s') <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  state <span class="op">$</span> \(x'<span class="op">:</span>xs') <span class="ot">-&gt;</span> (x',xs')</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    m <span class="ot">=</span> state <span class="op">$</span> \s <span class="ot">-&gt;</span> ((), <span class="dv">8</span><span class="op">:</span>s)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    f _ <span class="ot">=</span> state <span class="op">$</span> \(x''<span class="op">:</span>xs'') <span class="ot">-&gt;</span> (x'', xs'')</span></code></pre></div>
+<p>The only thing I’ve done here to enforce readability is to move the two stateful computations we want to bind into two separate expressions, giving them a nomenclature similar to the familiar one (<code>m &gt;&gt;= f</code>). Let’s substitute further, getting rid of the case and of the first <code>runState</code>. I’m going to do two passages at once, but it’s mechanical if you follow the original implementation of <code>(&gt;&gt;=)</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">sm' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>sm' <span class="ot">=</span> (state <span class="op">$</span> \k <span class="ot">-&gt;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>       runState (state <span class="op">$</span> \(x<span class="op">:</span>xs) <span class="ot">-&gt;</span> (x, xs)) (<span class="dv">8</span><span class="op">:</span>k)) <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>       state <span class="op">$</span> \(x''<span class="op">:</span>xs'') <span class="ot">-&gt;</span> (x'', xs'')</span></code></pre></div>
+<p>Let’s simplify a bit the expression in the middle: <code>state</code> and <code>runState</code> and inverse of each other:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">sm'' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>sm'' <span class="ot">=</span> (state <span class="op">$</span> \k <span class="ot">-&gt;</span> (<span class="dv">8</span>,k)) <span class="op">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>        state <span class="op">$</span> \(x<span class="op">:</span>xs) <span class="ot">-&gt;</span> (x,xs)</span></code></pre></div>
+<p>Much leaner! But now, unfortunately we’re going to beef up this once again, to get rid of the second bind. But hang thigh, once we do this we’ll have our final result:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ot">sm''' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>sm''' <span class="ot">=</span> state <span class="op">$</span> \q <span class="ot">-&gt;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">case</span> runState (state <span class="op">$</span> \k <span class="ot">-&gt;</span> (<span class="dv">8</span>,k)) q <span class="kw">of</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>           (x,s') <span class="ot">-&gt;</span> runState (f x) s'</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span> f _ <span class="ot">=</span> state <span class="op">$</span> \(x'<span class="op">:</span>xs') <span class="ot">-&gt;</span> (x',xs')</span></code></pre></div>
+<p>It should not come as a surprise what I’ve done here: I’ve just applied again the definition of <code>(&gt;&gt;=)</code>, and moved the function to bind into a separate expression. It’s not time to simplify everything the way we did before (namely getting rid of the first <code>runState</code> and <code>case</code> expression):</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ot">sm'''' ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>sm'''' <span class="ot">=</span> state <span class="op">$</span> \q <span class="ot">-&gt;</span> runState (state <span class="op">$</span> \(x<span class="op">:</span>xs) <span class="ot">-&gt;</span> (x,xs)) q</span></code></pre></div>
+<p>And finally simplifying that expression we yield our final computation!</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ot">smFinal ::</span> <span class="dt">State</span> <span class="dt">Stack</span> <span class="dt">Int</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>smFinal <span class="ot">=</span> state <span class="op">$</span> \(q<span class="op">:</span>qs) <span class="ot">-&gt;</span> (q,qs)</span></code></pre></div>
+<p>Well, this was somewhat expected, because pushing something and popping twice is equivalent to just pop once from the initial stack! Notice what happened: we started with a handful of “actions”, and we mechanically boiled them down to a single value! It’s now straightforward to see how this can work:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">.</span> <span class="fu">show</span> <span class="op">$</span> runState smFinal [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">9</span>]</span></code></pre></div>
+<p>All we do is to extract a function from our <code>State</code> (with <code>runState</code>) and apply the underlying function to the initial stack. Nothing magical at all!</p>
+<h3 id="do-i-need-to-worry-about-all-this-when-writing-my-programs">Do I need to worry about all this when writing my programs?</h3>
+<p>I would say “hell no”! Is the abstraction which makes Haskell the wonderful language it is, so the compiler already does the “menial” job for you. All you need to do is to write your stateful computations with the idea that whatever you’ll write in a do block will be “sequenced” together and the state will be passed around as “functions applications”.</p>
+<h3 id="conclusions">Conclusions</h3>
+<p>I hope I was able to convey several messages:</p>
+<ul>
+<li><code>State</code> is pure, it’s just function application all over the place, in a CPS fashion.</li>
+<li>You can’t write functions which takes the old state and yield a new stateful computation, because the state is already “trapped” in the stateful computation itself, and eventually all that function applications will boil down to a single function which takes your <strong>initial</strong> state and modify it as the computation proceeds.</li>
+</ul>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2013-07-28-state-is-pure.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2013-07-28-state-is-pure.html';
+  var disqus_title = 'State is Pure';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

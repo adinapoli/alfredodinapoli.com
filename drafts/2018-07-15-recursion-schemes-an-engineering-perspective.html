@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Recursion Schemes, an engineering perspective</h1>
+
+<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
+<br>
+<h2 id="preface">Preface</h2>
+<p>There <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> is <a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> an <a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> abundance <a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> of blog posts on <em>recursion schemes</em> on the internet, and I have posted a bunch of them at the end of this blog post. They are excellent resources, and perhaps more comprehensive than this entire article, which aim is not to go into a deep dissertation of recursion schemes, but rather give an hopefully-approcheable intuition from an engineering perspective, motivating why they are an interesting concept and why you might care.</p>
+<p>I am not a mathematician and some of the parts of this article are pure hand waving. That’s allright, what I want to focus on is the engineering aspect, not the rigorous mathematical terms. For the interested, there are links at the end of the article which points to the proofs &amp; other good things.</p>
+<h2 id="what-they-are-and-what-you-should-care">What they are, and what you should care</h2>
+<p><em>Recursion schemes</em> are a way to separate recursion from the data structure recursion is being applied to, and offers an alternative to high-performant traversals on recursive data structures, as GHC is able to inline away most of the intermediate structures.</p>
+<p>Let’s take as an example our old dear friend, a <code>list</code>, as defined in:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">List</span> a <span class="ot">=</span> <span class="dt">Nil</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>            <span class="op">|</span> <span class="dt">Cons</span> a (<span class="dt">List</span> a)</span></code></pre></div>
+<p>And let’s imagine having a function which converts from our alternative representation to the standard list type:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toList ::</span> <span class="dt">List</span> a <span class="ot">-&gt;</span> [a]</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>toList <span class="dt">Nil</span> <span class="ot">=</span> []</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>toList (<span class="dt">Cons</span> x xs) <span class="ot">=</span> x <span class="op">:</span> toList xs</span></code></pre></div>
+<p>Surely enough, this works:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>toList (<span class="dt">Cons</span> <span class="dv">1</span> (<span class="dt">Cons</span> <span class="dv">2</span> (<span class="dt">Cons</span> <span class="dv">3</span> <span class="dt">Nil</span>)))</span></code></pre></div>
+<p>However, in order to write our <code>toList</code> function we had to explicitly recurse over our data structure. Wouldn’t be nice if we could focus solely on the data being manipulated? Another example: Let’s imagine we want to compute the sum of this list, as in a specialised <em>fold</em>, so to speak:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">listSum ::</span> <span class="dt">Num</span> a <span class="ot">=&gt;</span> <span class="dt">List</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>listSum <span class="dt">Nil</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>listSum (<span class="dt">Cons</span> x xs) <span class="ot">=</span> x <span class="op">+</span> listSum xs</span></code></pre></div>
+<p>And again:</p>
+<pre><code>listSum (Cons 1 (Cons 2 (Cons 3 Nil)))</code></pre>
+<p>As we will see in a minute, we can provide an alternative way where we specify only how to compute the result we are interested in, and the recursion is “invisible”.</p>
+<h2 id="f-algebras-and-fixed-points">F-algebras and fixed points</h2>
+<p>Turns out we can do quite a few cool tricks exploiting what is called an <em>F-algebra</em> and a <em>fixed point</em>. An <em>F-algebra</em> is simply, given an <em>endofunctor</em> <em>F</em>, a <em>morphism</em>:</p>
+<p><span class="math display">$$
+\begin{aligned}
+F a \longrightarrow a
+\end{aligned}
+$$</span></p>
+<p>Simplifying all the category theory naming, in our context this translates into a function (usually called the <em>evaluator</em>) which “squash” a functor <code>F a</code> into its <em>carrier type</em> <code>a</code>):</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Algebra</span> f a <span class="ot">=</span> f a <span class="ot">-&gt;</span> a</span></code></pre></div>
+<p>Our <code>List</code> is indeed a functor (can trivially be made so) and a possible evaluator is our <code>sumList</code> function:</p>
+<pre><code>myAlgebra :: Algebra List Int
+myAlgebra = listSum</code></pre>
+<p>But what does this buy us? Apparently nothing, but here is where it starts to become cool. It turns out F-algebras forms a <em>category</em> and that is possible to come up with the following diagram (<strong>handwaving alert number 1!</strong>):</p>
+<p><span class="math display">$$
+\Large F a \xrightarrow{\enspace fmap_m \quad} F b \newline
+\qquad \downarrow{\small evalA} \qquad \qquad \Large \downarrow{\small evalB} \newline
+a \xrightarrow{\quad \quad m \quad \quad} b \newline
+$$</span></p>
+<p>Where <code>m</code> is an evaluator which can map from <code>a</code> to <code>b</code>, <code>evalA</code> the evaluator for the algebra <code>F a -&gt; a</code> and <code>evalB</code> the evaluator for the algebra <code>F b -&gt; b</code>.</p>
+<h2 id="a-digression-on-fixed-points">A digression on fixed points</h2>
+<p>Fixed points can be thought as the “center of a cyclone”, something that remains the same even if the rest around is moving. Less vaguely, it conceptually models the fact that for some categories of endofunctors, applying such endofunctor to a value it won’t change the overall result. It’s a bit like what happens when one hit the <code>cos</code> button on a calculator. After a while the result won’t change anymore, and that’s the fixed point for that function <a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>. We can write this in Haskell as:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">Fix</span> f <span class="ot">=</span> <span class="dt">In</span> {<span class="ot"> unFix ::</span> f (<span class="dt">Fix</span> f) }</span></code></pre></div>
+<p>It turns out that there is a mathematical proof that shows that we can rewrite the following into:</p>
+<p><span class="math display">$$
+\Large f (Fix f) \xrightarrow{fmap_m} F b \newline
+\quad \enspace \downarrow{\small In} \qquad\enspace \Large \downarrow{\small evalB} \newline
+Fix f \xrightarrow{\qquad \quad m \quad \medspace} b \newline
+$$</span></p>
+<p>And thanks to what’s known as the Lambek’s theorem, there is an isomorphism between <code>f (Fix f)</code> and <code>Fix f</code>, allowing us to reverse the arrow, yielding:</p>
+<p><span class="math display">$$
+\Large f (Fix f) \xrightarrow{fmap_m} F b \newline
+\quad \enspace \uparrow{\small unFix} \qquad\enspace \Large \downarrow{\small evalB} \newline
+Fix f \xrightarrow{\qquad \quad m \quad \medspace} b \newline
+$$</span></p>
+<p>Here comes the cool part: if you look at this diagram, it’s saying that if we don’t know <code>m</code>, we can “land” in the same place starting from <code>Fix f</code> just by following the arrows which goes from our <code>Fix f</code> up to <code>b</code>. If we rename things a little bit, we end up with the definition of what is called a <em>catamorphism</em>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">cata ::</span> <span class="dt">Functor</span> f <span class="ot">=&gt;</span> (f a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> <span class="dt">Fix</span> f <span class="ot">-&gt;</span> a</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>cata alg <span class="ot">=</span> alg <span class="op">.</span> (<span class="fu">fmap</span> (cata alg)) <span class="op">.</span> unFix</span></code></pre></div>
+<p>This should give you your first “a-ha” moment: we have found a way to encode recursion outside our algebra, so that we can compute things on our algebra in a generic way. Let’s try this out. Let’s recall:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">myAlgebra ::</span> <span class="dt">Algebra</span> <span class="dt">List</span> <span class="dt">Int</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>myAlgebra <span class="ot">=</span> listSum</span></code></pre></div>
+<p>In order to be able to use this in a generic way, we need to “factor out” the recursion out of our data type. In order terms, we need a new type parameter and to get rid of the recursive call to <code>List a</code> in <code>Cons</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ListF</span> e recur <span class="ot">=</span> <span class="dt">NilF</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                   <span class="op">|</span> <span class="dt">ConsF</span> e recur</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Functor</span> (<span class="dt">ListF</span> e) <span class="kw">where</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fmap</span> _ <span class="dt">NilF</span> <span class="ot">=</span> <span class="dt">NilF</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fmap</span> f (<span class="dt">ConsF</span> x cc) <span class="ot">=</span> <span class="dt">ConsF</span> x (f cc)</span></code></pre></div>
+<p>And let’s now write this in terms of <code>cata</code>:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fixedList ::</span> <span class="dt">Fix</span> (<span class="dt">ListF</span> <span class="dt">Int</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>fixedList <span class="ot">=</span> <span class="dt">In</span> (<span class="dt">ConsF</span> <span class="dv">1</span> (<span class="dt">In</span> (<span class="dt">ConsF</span> <span class="dv">2</span> (<span class="dt">In</span> (<span class="dt">ConsF</span> <span class="dv">3</span> (<span class="dt">In</span> <span class="dt">NilF</span>))))))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ot">listSumF ::</span> <span class="dt">Algebra</span> (<span class="dt">ListF</span> <span class="dt">Int</span>) <span class="dt">Int</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>listSumF <span class="dt">NilF</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>listSumF (<span class="dt">ConsF</span> x n) <span class="ot">=</span> n <span class="op">+</span> x</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="ot">toListF ::</span> <span class="dt">Algebra</span> (<span class="dt">ListF</span> <span class="dt">Int</span>) [<span class="dt">Int</span>]</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>toListF <span class="dt">NilF</span> <span class="ot">=</span> []</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>toListF (<span class="dt">ConsF</span> x n) <span class="ot">=</span> x <span class="op">:</span> n</span></code></pre></div>
+<pre><code>cata listSumF fixedList</code></pre>
+<p>And similarly for our <code>toList</code> implementation:</p>
+<pre><code>cata toListF fixedList</code></pre>
+<h2 id="exploring-duality">Exploring duality</h2>
+<p>Duality is a recurring (no pun intended!) concept in category theory, and is no mystery that is possible to obtain interesting results by merely “flipping the arrows”, so to speak. If we do so, we get what is known as a <em>coalgebra</em>:</p>
+<p><span class="math display"><em>a</em> −  &gt; <em>F</em><em>a</em></span></p>
+<p>which can be seen as a way to “lift” a value <code>a</code> into the endofunctor <code>F</code>. In Haskell terms:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Coalgebra</span> f a <span class="ot">=</span> a <span class="ot">-&gt;</span> f a</span></code></pre></div>
+<p>Unsurprisingly, if we flip the arrows in the diagram above, we obtain:</p>
+<p><span class="math display">$$
+\Large f (Fix f) \xleftarrow{fmap_m} F b \newline
+\quad \enspace \downarrow{\small In} \qquad\enspace \Large \uparrow{\small coalg} \newline
+Fix f \xleftarrow{\qquad \quad m \quad \medspace} b \newline
+$$</span></p>
+<p>Which means we can construct values embellished by <code>Fix</code> by simply apply our coalgebra and then following the arrows. This leads to the definition of <code>m</code>, more commonly known as an <code>anamorphism</code>:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ot">ana ::</span> <span class="dt">Functor</span> f <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> f a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Fix</span> f</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ana coalg <span class="ot">=</span> <span class="dt">In</span> <span class="op">.</span> <span class="fu">fmap</span> (ana coalg) <span class="op">.</span> coalg</span></code></pre></div>
+<p>What can we use <code>ana</code> for? Unsurprisingly, to build what we called <code>fixedList</code>:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ot">mkList ::</span> <span class="dt">Coalgebra</span> (<span class="dt">ListF</span> <span class="dt">Int</span>) [<span class="dt">Int</span>]</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>mkList []     <span class="ot">=</span> <span class="dt">NilF</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>mkList (x<span class="op">:</span>xs) <span class="ot">=</span> <span class="dt">ConsF</span> x xs</span></code></pre></div>
+<p>and we can indeed verify the two are equivalent:</p>
+<pre><code>cata toListF (ana mkList [1,2,3])</code></pre>
+<h2 id="putting-everything-together-hylomorphisms">Putting everything together: hylomorphisms</h2>
+<p>It turns out the pattern of constructing something (via <code>ana</code>) and then folding it via <code>cata</code> is common enough that there is a handy combinator we can use to perform the two operations in a gulp, and is commonly known as an <code>hylomorphism</code>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- type Algebra f a = a -&gt; f a</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- type Coalgebra f b = f b -&gt; b</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="ot">hylo ::</span> <span class="dt">Functor</span> f <span class="ot">=&gt;</span> (f b <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> f a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>hylo alg coalg <span class="ot">=</span> cata alg <span class="op">.</span> ana coalg</span></code></pre></div>
+<h2 id="computing-the-balance-within-a-block">Computing the balance within a block</h2>
+<p>TODO: We can create blocks by supplying a coalgebra and then collaps it to compute the balance of all transactions in a block.</p>
+<h2 id="references-where-to-go-from-here">References &amp; where to go from here</h2>
+<p>[1] Patrick Thomson - “Introduction to Recursion Schemes” https://blog.sumtypeofway.com/an-introduction-to-recursion-schemes/ [2] Florian Hofmann - “Don’t fear the cat-amorphism (nor the hylomorphism)” http://fho.f12n.de/posts/2014-05-07-dont-fear-the-cat.html [3] John Wiegley - “A Win for Recursion Schemes” http://newartisans.com/2018/04/win-for-recursion-schemes/ [4] Bartosz Milewski - “F-Algebras” https://bartoszmilewski.com/2017/02/28/f-algebras/ [5] Matt Parsons - “Grokking Fix” http://www.parsonsmatt.org/2016/10/26/grokking_fix.html</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>1<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>2<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>3<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>4<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5" role="doc-endnote"><p>5<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/drafts/2018-07-15-recursion-schemes-an-engineering-perspective.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/drafts/2018-07-15-recursion-schemes-an-engineering-perspective.html';
+  var disqus_title = 'Recursion Schemes, an engineering perspective';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      <link rel="stylesheet" href="../css/katex.min.css">
+<script type="text/javascript" src="../js/katex.min.js"></script>
+<script src="../js/auto-render.min.js"></script>
+<script src="../js/runkatex.js"></script>
+    
+
+  </body>
+</html>

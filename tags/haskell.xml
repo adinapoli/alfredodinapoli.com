@@ -1,0 +1,991 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Alfredo Di Napoli's Tech Blog</title>
+    <link href="http://www.alfredodinapoli.com/tags/haskell.xml" rel="self" />
+    <link href="http://www.alfredodinapoli.com" />
+    <id>http://www.alfredodinapoli.com/tags/haskell.xml</id>
+    <author>
+        <name>Alfredo Di Napoli</name>
+        <email>alfredo.dinapoli@gmail.com</email>
+    </author>
+    <updated>2017-05-06T00:00:00Z</updated>
+    <entry>
+    <title>About MonadBaseControl</title>
+    <link href="http://www.alfredodinapoli.com/posts/2017-05-06-about-monadcontrolio.html" />
+    <id>http://www.alfredodinapoli.com/posts/2017-05-06-about-monadcontrolio.html</id>
+    <published>2017-05-06T00:00:00Z</published>
+    <updated>2017-05-06T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>This is a literate Haskell post. You can play with the examples in ghci, in a stack playground, calling:</p>
+<pre><code>stack ghci --package transformers --package transformers-base --package monad-control --package distributed-process --package distributed-process-monad-control</code></pre>
+<p>Let’s start with some imports:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE RankNTypes #-}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE MultiParamTypeClasses #-}</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeSynonymInstances #-}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE FlexibleInstances #-}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeFamilies #-}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Base</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.State</span> <span class="kw">hiding</span> (<span class="dt">StateT</span>, runStateT, execStateT, evalStateT, get)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.Control</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.State.Strict</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Distributed.Process</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Distributed.Process.MonadBaseControl</span></span></code></pre></div>
+<p>Consider this monad:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Ctx</span> <span class="ot">=</span> <span class="dt">Ctx</span> () <span class="co">-- some kind of env, not important.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">RemotePure</span> m a <span class="ot">=</span> <span class="dt">RemotePure</span> {<span class="ot"> runRemote ::</span> <span class="dt">StateT</span> <span class="dt">Ctx</span> m a }</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                         <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadState</span> <span class="dt">Ctx</span>, <span class="dt">MonadIO</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">RemoteM</span> <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="dt">Process</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBase</span> <span class="dt">IO</span> (<span class="dt">RemotePure</span> <span class="dt">Process</span>) <span class="kw">where</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  liftBase <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> liftBase</span></code></pre></div>
+<p>You now would like to write an instance for <a href="https://hackage.haskell.org/package/monad-control-1.0.0.5/docs/Control-Monad-Trans-Control.html#t:MonadBaseControl">MonadBaseControl</a>.</p>
+<p>This is the definition of <code>MonadBaseControl</code> and <code>RunInBase</code> (at the time of writing, April 2017):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">MonadBase</span> b m <span class="ot">=&gt;</span> <span class="dt">MonadBaseControl</span> b m <span class="op">|</span> m <span class="ot">-&gt;</span> b <span class="kw">where</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> <span class="dt">StM</span> m<span class="ot"> a ::</span> <span class="op">*</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    liftBaseWith ::</span> (<span class="dt">RunInBase</span> m b <span class="ot">-&gt;</span> b a) <span class="ot">-&gt;</span> m a</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    restoreM ::</span> <span class="dt">StM</span> m a <span class="ot">-&gt;</span> m a</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">RunInBase</span> m b <span class="ot">=</span> <span class="kw">forall</span> a<span class="op">.</span> m a <span class="ot">-&gt;</span> b (<span class="dt">StM</span> m a)</span></code></pre></div>
+<p>A legitimate question is: how can I write the correct right hand side for <code>StM</code>? As you might know, when the <code>type</code> keyword is being used in a type class definition we are not dealing with a <em>type synonym</em> but with a <em>type family</em>. A <em>type family</em> is essentially a function with operates on <em>types</em>, not <em>values</em>, like “normal” functions. But how can I pick the correct RHS? How would I know? There are two approaches: one seems to be the most popular, but it requires the use of <code>UndecidableInstances</code>, the other was found in this small nugget of <a href="http://stackoverflow.com/a/33558631/479553">wisdom</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> over at Stack Overflow.</p>
+<p>The first one is this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBaseControl</span> <span class="dt">IO</span> <span class="dt">RemoteM</span> <span class="kw">where</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">StM</span> <span class="dt">RemoteM</span> a <span class="ot">=</span> <span class="dt">StM</span> (<span class="dt">StateT</span> <span class="dt">Ctx</span> <span class="dt">Process</span>) a</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  liftBaseWith f <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">$</span> liftBaseWith <span class="op">$</span> \q <span class="ot">-&gt;</span> f (q <span class="op">.</span> runRemote)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  restoreM <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> restoreM</span></code></pre></div>
+<p>Why this works? Also, it might not be immediately clear why <code>StM</code> appears on the right hand side. You might ask yourself “Did he just pull out the type StM out of thin air and reused it?”. It’s allright, I have been there myself. Haskell notation is so dense sometimes it’s easy to get lost. The key insigth is this: <strong>StM is NOT a type, is a type-level FUNCTION!</strong> Here, all we are doing is calling <code>StM</code> on the RHS, effectively offloading computing the result and hoping that somebody already defined in the stack the final solution. So we are effectively applying <code>StM</code> to <code>(StateT Ctx Process) a</code> as an argument. And this is exactly <em>why</em> GHC asks us to enable <code>UndecidableInstances</code>. It cannot guarantee, without compiling the program, that GHC will terminate. Effectively (if I recall correctly what Andres Loh once told us in an Haskell course in London), as scary as the name might sound, <code>UndecidableInstances</code> simply tells us “hey, it’s probably going to be fine, but there is a chance the typechecking might not terminate”. This is (very loosely speaking) because the RHS doesn’t “reduce” as it has the same number of terms of the LHS, so GHC gets suspicious.</p>
+<p>The other approach is to simply ask GHC for the result of the type family. How? Let’s fire up <code>ghci</code>, and let’s type this:</p>
+<pre><code>ghci&gt; :set -XRankNTypes
+ghci&gt; import Control.Monad.Trans.Control
+ghci&gt; :kind! forall a. StM RemoteM a
+forall a. StM RemoteM a :: *
+= (a, Ctx)</code></pre>
+<p>Wow, can you believe how easy it was? It’s equally easy to convince ourselves why this result makes sense: this is nothing more of the result of applying <code>Stm</code> to <code>StateT Ctx Process</code>. Let’s find out:</p>
+<pre><code>ghci&gt; import Control.Monad.Trans.State.Strict
+ghci&gt; import Control.Distributed.Process
+ghci&gt; :kind! forall a. StM (StateT Ctx Process) a
+forall a. StM (StateT Ctx Process) a :: *
+= (a, Ctx)</code></pre>
+<p>And the best part is that now we don’t need <code>UndecidableInstances</code>, and we are much more confident we are computing <code>StM</code> the right way. Our definition becomes:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBaseControl</span> <span class="dt">IO</span> <span class="dt">RemoteM</span> <span class="kw">where</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">StM</span> <span class="dt">RemoteM</span> a <span class="ot">=</span> (a, <span class="dt">Ctx</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  liftBaseWith f <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">$</span> liftBaseWith <span class="op">$</span> \q <span class="ot">-&gt;</span> f (q <span class="op">.</span> runRemote)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  restoreM <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> restoreM</span></code></pre></div>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Thanks, Daniel Wagner!<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>]]></summary>
+</entry>
+<entry>
+    <title>The simplest Haskell Priority Queue implementation I know of</title>
+    <link href="http://www.alfredodinapoli.com/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html" />
+    <id>http://www.alfredodinapoli.com/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html</id>
+    <published>2017-04-07T00:00:00Z</published>
+    <updated>2017-04-07T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>Nothing about what I’m going to say is novel or particularly mind-blowing, but yet useful, especially on programming competitions websites like HackerRank. This implementation is shamelessly stolen from <a href="http://www.cambridge.org/it/academic/subjects/computer-science/programming-languages-and-applied-logic/purely-functional-data-structures?format=PB&amp;isbn=9780521663502#RLHQsBjwMXbXyUFW.97">Okasaki’s book</a>.</p>
+<p>A <a href="http://algs4.cs.princeton.edu/24pq/">Priority Queue</a> can be easily implemented in an imperative setting but is not totally obvious how that could efficiently translate into a functional language, especially in a pure language like Haskell.</p>
+<p>See <a href="http://typeocaml.com/2015/03/12/heap-leftist-tree/">this blog post</a> for another excellent implementation, but in OCaml (always based on Okasaki).</p>
+<p>This is a Literate Haskell post. Let’s begin with the usual importing fandango:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">PriorityQueue</span> <span class="kw">where</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.List</span> <span class="kw">hiding</span> (insert)</span></code></pre></div>
+<p>“Leftist heaps always keeps the left branches of all roots being the longer and in worst case, they are as long as the right branches. In other word, all right branches of all roots are shortest. In order to maintain this property, <strong>each node has a rank, which indidates the length of the path between the node and the right most leaf.</strong>” – <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Rank</span> <span class="ot">=</span> <span class="dt">Int</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Heap</span> a <span class="ot">=</span> <span class="dt">Tip</span> <span class="op">|</span> <span class="dt">Node</span> <span class="ot">{-# UNPACK #-}</span> <span class="op">!</span><span class="dt">Rank</span> a (<span class="dt">Heap</span> a) (<span class="dt">Heap</span> a) <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- Rank: the length of the path between the node and the right most leaf.</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>rank <span class="dt">Tip</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>rank (<span class="dt">Node</span> r _ _ _) <span class="ot">=</span> r</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fromList ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fromList [] <span class="ot">=</span> <span class="dt">Tip</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fromList (x<span class="op">:</span>xs) <span class="ot">=</span> foldl&#39; (\hp val <span class="ot">-&gt;</span> insert val hp) (singleton x) xs</span></code></pre></div>
+<p><code>makeHeap</code> is straightforward: we compare the two ranks, and we preserve the leftist property by setting as the rank the min of the two, and storing as the right child the smallest (aka with smallest rank) child.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">makeHeap ::</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>makeHeap x a b <span class="ot">=</span> <span class="kw">if</span> rank a <span class="op">&gt;=</span> rank b <span class="kw">then</span> <span class="dt">Node</span> (rank b <span class="op">+</span> <span class="dv">1</span>) x a b</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">else</span> <span class="dt">Node</span> (rank a <span class="op">+</span> <span class="dv">1</span>) x b a</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ot">empty ::</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>empty <span class="ot">=</span> <span class="dt">Tip</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ot">singleton ::</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>singleton x <span class="ot">=</span> <span class="dt">Node</span> <span class="dv">1</span> x <span class="dt">Tip</span> <span class="dt">Tip</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ot">insert ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>insert x h <span class="ot">=</span> merge (singleton x) h</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Merge two heaps together, preserving the leftist property via `makeHeap`.</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- Runs in O(log n).</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">-- &quot;The key insight behind leftist heaps is that two heaps can be merged by</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">-- merging their right spines as you would merge two sorted lists, and then</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co">-- swapping the children of nodes along this path as necessary to restore</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">-- the leftist property.&quot; -- Okasaki</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="ot">merge ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>merge l <span class="dt">Tip</span> <span class="ot">=</span> l</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>merge <span class="dt">Tip</span> r <span class="ot">=</span> r</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>merge h1<span class="op">@</span>(<span class="dt">Node</span> _ x l1 r1) h2<span class="op">@</span>(<span class="dt">Node</span> _ y l2 r2) <span class="ot">=</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> x <span class="op">&lt;=</span> y <span class="kw">then</span> makeHeap x l1 (merge r1 h2)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>            <span class="kw">else</span> makeHeap y l2 (merge h1 r2)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co">-- | O(1).</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="ot">peekMin ::</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>peekMin <span class="dt">Tip</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>peekMin (<span class="dt">Node</span> _ x _ _) <span class="ot">=</span> <span class="dt">Just</span> x</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="co">-- | O(1), but evaluating the second element of the tuple has same complexity</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="co">-- of `merge`.</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="ot">extractMin ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, <span class="dt">Heap</span> a)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>extractMin <span class="dt">Tip</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>extractMin (<span class="dt">Node</span> _ x a b) <span class="ot">=</span> <span class="dt">Just</span> (x, merge a b)</span></code></pre></div>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>http://typeocaml.com/2015/03/12/heap-leftist-tree/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>]]></summary>
+</entry>
+<entry>
+    <title>Deploying Haskell on AWS Lambda</title>
+    <link href="http://www.alfredodinapoli.com/posts/2017-03-16-deploying-haskell-on-aws-lambda.html" />
+    <id>http://www.alfredodinapoli.com/posts/2017-03-16-deploying-haskell-on-aws-lambda.html</id>
+    <published>2017-03-16T00:00:00Z</published>
+    <updated>2017-03-16T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>Originally published in IRIS Connect’s <a href="http://engineers.irisconnect.net/posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Engineering blog</a>.</p>
+<h2 id="background">Background</h2>
+<p>At work I was put on a new project involving a low-volume application where a customer would upload some CSV files inside an <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html">S3</a> bucket, and this event would trigger some sort of server-side computation, to parse and validate the CSV files and produce some output. As soon as I looked at the requirements, <a href="https://aws.amazon.com/lambda/">AWS Lamba</a> came to mind, especially because we didn’t want to maintain a server infrastructure due to the nature of the project. What tipped the scale was the fact AWS supports Lambda as one of the <a href="https://aws.amazon.com/blogs/aws/s3-event-notification/">notification mediums</a> to respond to an S3 event; upon seeing that my mind was set!</p>
+<p>In a nutshell, this is the flow of the app:</p>
+<div class="figure text-center">
+<img src="https://media.amazonwebservices.com/blog/2014/s3_notification_flow_2.png" alt="Image courtesy of Amazon">
+<p class="caption">
+Image courtesy of Amazon
+</p>
+</div>
+<p><br></p>
+<p>AWS Lambda is capable of running any binary, as long as it’s statically linked and compiled for x86 Linux, but at the same time it doesn’t offer first-class support for Haskell, but it’s possible to spawn an external process via the Node.js API. So the trick is to:</p>
+<ul>
+<li>Use Docker to generate a Linux executable</li>
+<li>Create a JS Shim to spawn a process calling our executable</li>
+<li>Bundle everything into a zip file (including 3rd party dependencies)</li>
+<li>Upload to AWS Lambda</li>
+<li>Watch out for any pitfalls</li>
+</ul>
+<p>Needless to say that we need the Docker step because we are working on an OSX machine, whilst targeting Linux. Cross-compiling GHC for Linux is a bit of a pain, so it’s definitely way quicker to use Docker.</p>
+<h3 id="optional-step-reduce-the-size-of-the-output-binary">(Optional step) Reduce the size of the output binary</h3>
+<p>When I was working remotely from my parent’s house in Rome, I did have at my disposal only a humble domestic DSL connection, and definitely every byte mattered when it came to transfer data from my laptop into S3. This is why I’ve got into the habit of compressing my executables with <a href="https://upx.github.io/">UPX</a>. The rest of the post takes that into the account, but note how such compression step is not required to deploy on AWS Lambda.</p>
+<h2 id="use-docker-to-generate-a-linux-executable">Use Docker to generate a Linux executable</h2>
+<p>We can use a script from the process <a href="http://www.alfredodinapoli.com/posts/2015-11-03-how-i-deploy-haskell-code.html">outlined</a> in my personal blog. It basically creates a new Docker Image called “ghc-linux-6.5-builder” using <code>Build.plan</code> as the Docker file. <code>Build.plan</code> itself is quite simple:</p>
+<pre class="shell"><code>FROM fpco/stack-build:lts-6.5
+
+ADD .  /usr/lib/haskell
+WORKDIR /usr/lib/haskell
+USER root
+# Pass SSH_KEY as argument.
+ARG SSH_KEY
+
+# Specify a specific private key.
+RUN echo &quot;    IdentityFile /root/.ssh/id_rsa&quot; &gt;&gt; /etc/ssh/ssh_config
+
+# Skip host verification for GitHub
+RUN echo &quot;Host github.com\n\tStrictHostKeyChecking no\n&quot; &gt;&gt; /etc/ssh/ssh_config
+
+# Create SSH_KEY inside container.
+RUN echo &quot;$SSH_KEY&quot; &gt;&gt; /root/.ssh/id_rsa
+
+# Give private key correct permissions.
+RUN chmod 0600 /root/.ssh/id_rsa
+# Give private key correct permissions.
+RUN chmod 0600 /root/.ssh/id_rsa
+
+CMD [&quot;stack&quot;]</code></pre>
+<p>We are starting from the <code>lts-6.5</code> Docker image FPComplete is providing us (which already includes all the system libraries that all the LTS 6.5 deps will need to link against) plus adding our own <code>.ssh/id_rsa</code> to make sure we can clone stuff from GitHub (this passage is optional and should only be required if we clone stuff from private repositories). Note that we are using a somewhat outdated LTS revision as with newer ones using GHC 8 I was getting an error whilst installing GHC (seemed a problem related to the toolchain), which unfortunately I didn’t have time to investigate further. Once everything has built correctly, we can simply alias <code>stack-linux</code> to be an invocation of the <code>stack</code> command via this newly built Docker image:</p>
+<pre class="shell"><code>
+#!/usr/bin/env bash
+
+eval $(docker-machine env)
+
+docker run --rm \
+       -v $PWD/linux-dist:/root/.local \
+       -v $PWD/.stack-work:/usr/lib/haskell/.stack-work \
+       -v $HOME/.stack:/root/.stack \
+       ghc-linux-6.5-builder:latest stack --allow-different-user $@</code></pre>
+<p>You can see we are targeting an OSX machine, due to the call to <code>docker-machine</code>. Mapping host directories like <code>$HOME/.stack</code> will also ensure we will be caching packages built from one invocation to the other, making the process much quicker overall. So, to summarise, when we call <code>build_linux</code> what really happens is that we are first creating the new Docker image (or updating it), and finally calling <code>stack-linux install</code> as we would normally do on our local machine, but the cool thing here is that the build is going to happen on the <em>Docker container</em> and due to the fact we mounted the output of the install to <code>linux-dist</code> on our local machine, at the end of the process we will have a nice Linux binary ready to be deployed on AWS Lambda!</p>
+<p>Here is how <code>build_linux.sh</code> is structured:</p>
+<pre class="shell"><code>#!/usr/bin/env bash
+
+eval $(docker-machine env)
+
+docker build --build-arg SSH_KEY=&quot;$(cat ~/.ssh/id_rsa)&quot; -t ghc-linux-6.5-builder -f Build.plan .
+
+./bin/stack-linux install
+upx linux-dist/bin/ma-csv-proc</code></pre>
+<p>After everything ran successfully, we have our final executable ready to be deployed:</p>
+<pre class="shell"><code>☁  mathematica-csv-processor [issue-4] du -h linux-dist/bin/ma-csv-proc
+2.6M    linux-dist/bin/ma-csv-proc</code></pre>
+<p>So <code>2.6MB</code> is not bad at all for a full Haskell app which deserialise JSON from the network and parse CSV files!</p>
+<h2 id="create-a-js-shim-the-main-handler">Create a JS Shim (the Main Handler)</h2>
+<p>In order for AWS Lambda to run our code, we need an entrypoint, which we cannot write in Haskell as AWS Lambda doesn’t have first-class support for it. What we can do, though, is to create one using JavaScript and Node, and use the <a href="https://nodejs.org/api/child_process.html">Node.js process API</a> to spawn our executable:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> spawn <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;child_process&#39;</span>)<span class="op">.</span><span class="at">spawn</span><span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>exports<span class="op">.</span><span class="at">handler</span> <span class="op">=</span> <span class="kw">function</span>(<span class="bu">event</span><span class="op">,</span> context) {</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">process</span><span class="op">.</span><span class="at">env</span>[<span class="st">&#39;PATH&#39;</span>] <span class="op">=</span> <span class="bu">process</span><span class="op">.</span><span class="at">env</span>[<span class="st">&#39;PATH&#39;</span>] <span class="op">+</span> <span class="st">&#39;:&#39;</span> <span class="op">+</span> <span class="bu">process</span><span class="op">.</span><span class="at">env</span>[<span class="st">&#39;LAMBDA_TASK_ROOT&#39;</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">process</span><span class="op">.</span><span class="at">env</span>[<span class="st">&#39;LD_LIBRARY_PATH&#39;</span>] <span class="op">=</span> <span class="bu">process</span><span class="op">.</span><span class="at">env</span>[<span class="st">&#39;LAMBDA_TASK_ROOT&#39;</span>]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> main <span class="op">=</span> <span class="fu">spawn</span>(<span class="st">&#39;./ma-csv-proc&#39;</span><span class="op">,</span> { <span class="dt">stdio</span><span class="op">:</span> [<span class="st">&#39;pipe&#39;</span><span class="op">,</span> <span class="st">&#39;pipe&#39;</span><span class="op">,</span> <span class="bu">process</span><span class="op">.</span><span class="at">stderr</span>] })<span class="op">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    main<span class="op">.</span><span class="at">stdout</span><span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;data&#39;</span><span class="op">,</span> <span class="kw">function</span>(data) {</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(data<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">done</span>(<span class="kw">null</span><span class="op">,</span> data<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    main<span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;close&#39;</span><span class="op">,</span> <span class="kw">function</span>(code) {</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;child process pipes closed with code &#39;</span><span class="op">+</span> code)<span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">done</span>(<span class="kw">null</span><span class="op">,</span> code)<span class="op">;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    main<span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;exit&#39;</span><span class="op">,</span> <span class="kw">function</span>(code){</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&#39;exit: &#39;</span> <span class="op">+</span> code)<span class="op">;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">done</span>(<span class="kw">null</span><span class="op">,</span> code)<span class="op">;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    main<span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;error&#39;</span><span class="op">,</span> <span class="kw">function</span>(err) {</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&#39;error: &#39;</span> <span class="op">+</span> err)<span class="op">;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">done</span>(<span class="kw">null</span><span class="op">,</span> err)<span class="op">;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    main<span class="op">.</span><span class="at">stdin</span><span class="op">.</span><span class="fu">write</span>(<span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>({</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;event&#39;</span><span class="op">:</span> <span class="bu">event</span><span class="op">,</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;context&#39;</span><span class="op">:</span> context</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    }) <span class="op">+</span> <span class="st">&#39;</span><span class="sc">\n</span><span class="st">&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Note something important: we are passing the <code>event</code> and the <code>context</code> that AWS sends us as a JSON into the stdin of our Haskell app. This ensure we can deserialise it on the Haskell side and grab the event AWS sent us, so we can react to it:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TemplateHaskell #-}</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE ScopedTypeVariables #-}</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Aeson</span> <span class="kw">as</span> <span class="dt">JSON</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">RawInput</span> <span class="ot">=</span> <span class="dt">RawInput</span> {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="ot">    event   ::</span> <span class="dt">JSON.Value</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> context ::</span> <span class="dt">JSON.Value</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  } <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>deriveFromJSON defaultOptions &#39;<span class="dt">&#39;RawInput</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Result</span> <span class="ot">=</span> <span class="dt">Either</span> <span class="dt">MathematicaException</span> ()</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  raw <span class="ot">&lt;-</span> T.hGetLine stdin</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> JSON.eitherDecode (toS raw) <span class="kw">of</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Left</span> e                 <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">putStrLn</span> <span class="st">&quot;Error reading Lambda input.&quot;</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">putStrLn</span> <span class="op">$</span> <span class="st">&quot;Input was &quot;</span> <span class="op">&lt;&gt;</span> toS raw</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">putStrLn</span> <span class="op">$</span> <span class="st">&quot;Error was &quot;</span> <span class="op">&lt;&gt;</span> e</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>      exitFailure</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> (<span class="ot">ri ::</span> <span class="dt">RawInput</span>) <span class="ot">-&gt;</span> <span class="co">-- Do stuff</span></span></code></pre></div>
+<h2 id="bundle-everything-into-a-zip-file-including-3rd-party-deps">Bundle everything into a zip file (including 3rd party deps)</h2>
+<p>Lambdas are running (as you would expect) in a sandboxed environment, so it comes as no surprise they don’t have all the executables you might need during your program’s execution. But not all is lost, as it’s entirely possible to ship them as part of the final .zip we’ll deploy. The only 2 constraints is that they should be self-contained (statically linked or otherwise) and built for Linux x86. Believe it or not Lambda doesn’t come with the excellent <a href="https://aws.amazon.com/cli/">aws-cli</a>, installed by default, so I had to package it (running it is not a problem as AWS Lambda uses IAM roles so permissioning is taken care of automatically). There is <a href="https://alestic.com/2016/11/aws-lambda-awscli/">an excellent post</a> about bundling <code>aws-cli</code> for AWS Lambda so I will simply redirect there for completeness.</p>
+<p>Once we have everything we need, we can simply run a simple script to bundle everything up:</p>
+<pre class="shell"><code>#!/usr/bin/env bash
+
+mkdir -p deploy/aws-lambda/artifacts
+rm -rf deploy/aws-lambda/artifacts/*
+cd deploy/aws-lambda
+zip -r -j artifacts/mathematica-csv-processor.zip Main.js aws ../../linux-dist/bin/ma-csv-proc
+
+# Add aws stuff
+zip -ur artifacts/mathematica-csv-processor.zip aws-cli
+cd ../..</code></pre>
+<p>It’s very important to run the first command with <code>-j</code> which will “squash” relative paths and will ensure the binary and the JS entrypoint will be at the top level of the zip file, which is required by AWS Lambda in order to access our code correctly. Now the fun part, deploying!</p>
+<h2 id="upload-to-aws-lambda">Upload to AWS Lambda</h2>
+<p>Uploading to AWS Lambda is quite simple. All is needed is for the user to create a new Lambda and then upload the zip file, either from S3 or from a web form:</p>
+<p><img src="https://cloud.githubusercontent.com/assets/442035/23542521/f168633a-ffed-11e6-9c05-123f36f01e6d.png" /></p>
+<h2 id="pitfalls">Pitfalls</h2>
+<p>After deploying a new revision of the app, I was presented with a quite laconic error in the CloudWatch logs:</p>
+<pre class="shell"><code>c_poll: Permission Denied</code></pre>
+<p>There seems to be <a href="https://github.com/commercialhaskell/stack/issues/2194">a few</a> <a href="https://github.com/begriffs/postgrest/issues/566">issues</a> mentioning it explicitly, and none of them explaining what’s going on. It seems to be <a href="https://ghc.haskell.org/trac/ghc/ticket/8089?cversion=0&amp;cnum_hist=2">a GHC bug</a>, but I’m not 100% sure (as that trac ticket claims is fixed). What’s sure is that <code>c_poll</code> is coming from GHC. Luckily for me, in order to “fix” the problem, it was sufficient to simply allocate more memory for my lambda, or increase the timeout for the program execution. With 256/512 MB I was able to comfortably running my code under 10 seconds.</p>
+<h2 id="credits">Credits</h2>
+<p>More of the information I present here are not novel; I have shamelessly stolen ideas and concepts from these two excellent resources:</p>
+<ul>
+<li><a href="https://github.com/abailly/aws-lambda-haskell">https://github.com/abailly/aws-lambda-haskell</a></li>
+<li><a href="https://www.agileand.me/haskell-aws-lambda/">https://www.agileand.me/haskell-aws-lambda/</a></li>
+</ul>]]></summary>
+</entry>
+<entry>
+    <title>iconv-typed: An experiment in API design and type safety</title>
+    <link href="http://www.alfredodinapoli.com/posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html" />
+    <id>http://www.alfredodinapoli.com/posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html</id>
+    <published>2016-10-23T00:00:00Z</published>
+    <updated>2016-10-23T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<pre><code>Summary: I&#39;m releasing a type safe version of the iconv library, discussing my
+API design choices and asking for feedback from the community.</code></pre>
+<hr/>
+<p>I’m slowly making progress in an Haskell <a href="https://github.com/adinapoli/piece-table">piece table</a> library which could be used as a high performant data structure for text manipulation. The typical use case there would be writing a text editor in Haskell, something I had in the back of my mind doing (for fun) for a while.</p>
+<p>So far the assumption I have made whilst developing it is that user text would be encoded/decoded as <code>UTF-8</code>, but in the real world, though, this is simply not true! That’s where <a href="http://kunststube.net/encoding/">encoding</a> comes into play. I won’t get into too much detail about the <code>piece table</code> library (is not that interesting in its current shape!), but this should set the scene on why I needed text encoding in the first place.</p>
+<p>In Haskell we have a couple of choices when dealing with text encoding: we can use some <a href="http://hackage.haskell.org/package/text-1.2.2.1/docs/Data-Text-Encoding.html">functions</a> provided directly by the <code>text</code> library, use the <a href="http://hackage.haskell.org/package/encoding">encoding</a> library or use Duncan Coutt’s <a href="http://hackage.haskell.org/package/iconv-0.4.1.3/docs/Codec-Text-IConv.html">iconv</a> library. I really like <code>iconv</code> because it has such a simple API and it doesn’t assume anything on the input: the latter is given as a “blob of binary data” and it’s up to me to decide how to interpret it.</p>
+<p>Despite its simplicity, I always thought the library also had great potential for things to go wrong: first of all, an <code>EncodingName</code> is simply a <code>String</code>, which the programmer can mispell and spend hours debugging why is program in producing garbage. Secondly, it requires the manual step of retrieving the list of available encodings from the system, typically piggybacking on the underlying C/GNU library. This is why today I’m releasing <a href="https://github.com/adinapoli/iconv-typed">iconv-typed</a> mainly to gather feedback from the community. It’s such a simply abstraction over <code>iconv</code> I’m surprised nobody thought about something similar, but maybe that’s because it’s so simple people have wrote it in their own projects without releasing it, or simply because maybe it has shortcomings I haven’t anticipated!</p>
+<h2 id="a-taste-of-the-api">A taste of the API</h2>
+<p>APIwise, the library should feel familiar with the original <code>iconv</code>. Compare this short example using the <code>iconv</code> library:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DataKinds #-}</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Codec.Text.IConv</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert <span class="st">&quot;UTF-8&quot;</span> <span class="st">&quot;LATIN1&quot;</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>With the equivalent in <code>iconv-typed</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeApplications #-}</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DataKinds #-}</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Codec.Text.IConv.Typed</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert <span class="op">@</span><span class="st">&quot;UTF-8&quot;</span> <span class="op">@</span><span class="st">&quot;LATIN1&quot;</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>As you can see it’s almost identical except for the fact we are using <code>TypeApplication</code>’s <code>@</code> operator. If we mispelled by accident <code>UTF-8</code>, we would get a type error. Profit! But how does it work?</p>
+<h2 id="type-families-to-the-rescue">Type families to the rescue!</h2>
+<p>Conceptually, it’s very simple: it fetches all the available encodings in a platform-dependent way (mainly invoking <code>iconv -l</code> under the hood), and then generates a closed <a href="https://wiki.haskell.org/GHC/Type_families">type family</a> via <a href="https://wiki.haskell.org/Template_Haskell">template Haskell</a> to basically constrain the <code>Symbol</code> universe only to ones matching a valid encoding. A code snippet will demostrate this much better! We first commit the biggest sin in the whole Haskell universe and we get the encodings via <code>unsafePerformIO</code> [1] (it requires the <code>Shelly</code> library):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">getAvailableEncodings ::</span> [<span class="dt">EncodingName</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>getAvailableEncodings <span class="ot">=</span> unsafePerformIO <span class="op">$</span> shelly <span class="op">$</span> silently <span class="op">$</span> escaping <span class="dt">False</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span> T.unpack <span class="op">.</span> <span class="fu">mconcat</span> <span class="op">.</span> <span class="fu">map</span> T.words <span class="op">.</span> T.lines <span class="op">.</span> T.strip <span class="op">&lt;$&gt;</span> run <span class="st">&quot;iconv&quot;</span> [<span class="st">&quot;-l&quot;</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# NOINLINE getAvailableEncodings #-}</span></span></code></pre></div>
+<p>… and then we generate the type family where each instance would look like this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">ValidEncoding</span> (<span class="ot">k ::</span> <span class="dt">Symbol</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ValidEncoding</span> <span class="st">&quot;RETRIEVED_ENCODING_1&quot;</span> <span class="ot">=</span> <span class="dt">&#39;True</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ValidEncoding</span> <span class="st">&quot;RETRIEVED_ENCODING_2&quot;</span> <span class="ot">=</span> <span class="dt">&#39;True</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span></code></pre></div>
+<p>Note two things: we are using a <em>closed</em> type family to avoid “monkey patching” of our encodings (something which could happen if we chose a typeclass as an abstraction mechanism, as someone could have defined an orphan instance) and we “plug” directly each retrieved encoding as a string literal. So far so good! The “magic” between the minimal API lies in this few lines of code:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Enc</span> k1 k2 <span class="ot">=</span> <span class="dt">ByteString</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">--------------------------------------------------------------------------------</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ot">convert ::</span> <span class="kw">forall</span> k1 k2<span class="op">.</span> ( <span class="dt">KnownSymbol</span> k1</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            , <span class="dt">KnownSymbol</span> k2</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            , <span class="dt">ValidEncoding</span> k1 <span class="op">~</span> <span class="dt">&#39;True</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            , <span class="dt">ValidEncoding</span> k2 <span class="op">~</span> <span class="dt">&#39;True</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>         <span class="ot">=&gt;</span> <span class="dt">Enc</span> (<span class="ot">k1 ::</span> <span class="dt">Symbol</span>) (<span class="ot">k2 ::</span> <span class="dt">Symbol</span>) <span class="co">-- ^ Input text</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>         <span class="ot">-&gt;</span> <span class="dt">ByteString</span> <span class="co">-- ^ Output text</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>convert input <span class="ot">=</span> I.convert (reifyEncoding (<span class="dt">E</span> <span class="op">@</span>k1)) (reifyEncoding (<span class="dt">E</span> <span class="op">@</span>k2)) input</span></code></pre></div>
+<p>First of all, we define a type synonym called <code>Enc</code> with 2 phantom types, which will be “filled” by our encodings. This unfortunately generate ambiguity and GHC reports this at compile time. We can help the ambiguity resolving by using <code>AllowAmbiguousTypes</code>, which basically (check this <a href="https://www.reddit.com/r/haskell/comments/59g49o/iconvtyped_an_experiment_in_api_design_and_type/d99pnhx/">insigthful comment</a> on Reddit for the full explanation. Thanks <code>/u/int_index</code>!)</p>
+<p>The <code>convert</code> function has a bit of an intimidating, so let’s start from the typeclass constraints: what I’m saying here is that for any genering <code>k1</code> and <code>k2</code> I want those to:</p>
+<ul>
+<li><p>Be an instance of <code>KnownSymbol</code> (think about a <code>String</code> at the type level) so I can reify them back at the value level with <code>reifyEncoding</code> (which is basically just <code>symbolVal</code> under the hood).</p></li>
+<li><p>The type-level function <code>ValidEncoding</code> must yield <code>True</code>. Simply put, this will only be possibly with the <code>Symbol</code>s I have defined an instance for in my closed type family. This is what will prevent you from passing an input a non-existing or mispelled encoding.</p></li>
+</ul>
+<p>The input <code>ByteString</code> is well, just a <code>ByteString</code> in disguise. Remember <code>Enc</code>? That’s basically it, with the only twist of carrying these 2 extra types around, which I’m also saying they are of <em>type</em> <code>Symbol</code>, and this is where I need <code>TypeInType</code>, as <code>Symbol</code> would normally be a <code>Kind</code>.</p>
+<p>This is the gist of it! But why am I able to invoke the <code>convert</code> function like this?</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert <span class="op">@</span><span class="st">&quot;UTF-8&quot;</span> <span class="op">@</span><span class="st">&quot;LATIN1&quot;</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>Here is <code>TypeApplications</code> in action! What we are doing is giving an hint to the compiler about which types are <code>k1</code> and <code>k2</code>, as the only <em>real</em> input is the input <code>Enc k1 k2</code>. Other way to see this, is that we are saying “Hey GHC, <code>Enc</code> carries the utterly generic &amp; ambiguous <code>k1</code> and <code>k2</code>, I’m telling you explicitly what those 2 are”.</p>
+<p>That’s pretty much it, really!</p>
+<h2 id="usability-the-unknown">Usability: the unknown</h2>
+<p>Something I still have no clue is how practical to use this library will be, mostly because those encodings don’t exist at the value level. But not only that, is also very likely you have some existing code which is doing any kind of manipulation with the <code>EncodingName</code>, like comparing them, reading them from disk, from user input, etc. After all, they are only <code>String</code>s. I suspect doing the equivalent with this library will be clunky, although I hope <code>TypeInType</code> can help in this regard.</p>
+<h2 id="you-said-api-design">You said API design?</h2>
+<p>The current API is the result of multiple iterations. Initially I was going to use a much simpler approach and simply have my TH code generate plain types so that our API could look like:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>convert <span class="dt">UTF8</span> <span class="dt">LATIN1</span> <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<p>This was jolly good for the simplest encodings, but I quickly run into limitations in the allowed characters to be used for a type/type constructor. For example, <code>-</code> is not allowed, so I could have the choice of mangling <code>UTF-8</code> into <code>UTF_8</code>, which would have been OK. But what about <code>ISO_646.IRV:1991</code>? I quickly realised this approach had 2 problems:</p>
+<ul>
+<li>It would require the user to “lookup” the mangled name of Haddock as I couldn’t come up with a mnemonic rule for translating encoding into types</li>
+<li>Converting original <code>iconv</code> code would have been a bit painful.</li>
+</ul>
+<p>In my opinion, if you are releasing a library which is meant to simplify user life, you really want to aim for a low entry barrier!</p>
+<h3 id="second-attempt-use-an-ancilliary-e-type">Second attempt: Use an ancilliary <code>E</code> type</h3>
+<p>My second attempt is basically what I ended up releasing as the “GHC 7.x” API version. It does work, but when I first releases the library and I tweeted the link to GitHub, <a href="https://twitter.com/a_cowley/status/790236285847863296">Anthony Cowley</a> gave valuable suggestions on how to improve it, which made me realise that if I was going to use <code>TypeApplications</code> and therefore tap into GHC 8.x anyway, I had access to <code>TypeInType</code> also! That yielded a much nicer API.</p>
+<h3 id="final-attempt-perfection">Final attempt: Perfection?</h3>
+<p>Exploring the solution space brought me in a place where I feel I have come up with an API which strikes me as a good compromise. The only sour taste in my mouth is the use of <code>AllowAmbiguousTypes</code>, which I wasn’t able to avoid.</p>
+<h2 id="support-for-ghc-7.x">Support for GHC 7.x</h2>
+<p>Althought not as slick and elegant as the version which uses <code>TypeInType</code> and <code>TypeApplications</code>, we support older versions of GHC. This is how the API would look like if you try to compile <code>iconv-typed</code> with GHC 7.x:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DataKinds #-}</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Codec.Text.IConv.Typed</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> convert (<span class="dt">E</span><span class="ot"> ::</span> <span class="dt">E</span> <span class="st">&quot;UTF-8&quot;</span>) (<span class="dt">E</span><span class="ot"> ::</span> <span class="dt">E</span> <span class="st">&quot;LATIN1&quot;</span>) <span class="st">&quot;hello&quot;</span></span></code></pre></div>
+<h2 id="unexplored-territory">Unexplored territory</h2>
+<p>As a result of my encoding fetching at compile time, there is something which is subtle and with an impact I cannot anticipate: <strong>If you try to run a program which is using iconv-typed on a machine which doesn’t support a particular encoding, your application won’t compile</strong>.</p>
+<p>Differently put, if you are doomed to produce garbage as part of your encoding process because your underlying iconv library doesn’t support that particular encoding, the library will prevent you from even trying. This could certainly be terrifying or beautiful, depending from the point of view.</p>
+<p>I guess we will have to wait and see!</p>
+<h2 id="notes">Notes</h2>
+<p>[1] Using <code>unsafePerformIO</code> here is not necessary, using <code>runIO</code> in the <code>Q</code> monad would have worked as well, and avoid unsafe operations.</p>]]></summary>
+</entry>
+<entry>
+    <title>Paginators are Mealy Machines in disguise</title>
+    <link href="http://www.alfredodinapoli.com/posts/2016-09-10-paginators-are-mealy-machines-in-disguise.html" />
+    <id>http://www.alfredodinapoli.com/posts/2016-09-10-paginators-are-mealy-machines-in-disguise.html</id>
+    <published>2016-09-10T00:00:00Z</published>
+    <updated>2016-09-10T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h1 id="paginators-are-mealy-machines-in-disguise">Paginators are Mealy Machines in disguise</h1>
+<pre><code>Summary: At work I needed to stream some data out from a service which returned data in paginated chunks.
+Using a very simple data type based on Mealy Machines worked surprisingly well.</code></pre>
+<p>One of the aspect I enjoy most of programming is when you have the chance of applying something you have learned in the real world. A couple of weeks ago I needed to create a tool to “garbage collect” old <a href="https://aws.amazon.com/ecr/">ECR</a> images. Very simply put, <em>ECR</em> stands for <em>EC2 Container Registry</em> and is no more, no less, a private Docker Registry you can use as part of the impressive AWS (<em>Amazon Web Service</em>) toolkit.</p>
+<p><em>ECR</em> works by having a set of <em>repositories</em>, and for each of them you can upload up to 500 Docker images. If you exceed this limit, you will have either to delete some images to create free space, or contact the Amazon customer service to dump the upper limit up. My team uses <code>ECR</code> to store the images associated to the Haskell micro services we deploy using <a href="https://aws.amazon.com/documentation/elastic-beanstalk/">Elastic Beanstalk</a>, and each time we do a deploy, we create and upload a new versioned image for each micro service, so it comes as no surprise that space in the repositories is going to finish sooner or later. So the problem is simple: “I have some images stored in the cloud and I need to delete them”.</p>
+<p>Now, we could have used the quite impressive <a href="http://hackage.haskell.org/package/amazonka-ecr">amazonka-ecr</a> to solve our problem, but historically we have been using the <a href="https://aws.amazon.com/cli/">aws-cli</a> even before Amazonka was around, and sometimes is just super easy to slurp the output of a cli application and to decode that from JSON. Short story short, this is why we didn’t piggyback on this excellent third-party library, but that’s a bit of an OT. What’s important is that to solve our problem, we only need two commands from the <code>aws-cli</code>: <a href="http://docs.aws.amazon.com/cli/latest/reference/ecr/list-images.html">list-images</a> to retrieve all our images, and <a href="http://docs.aws.amazon.com/cli/latest/reference/ecr/batch-delete-image.html">batch-delete-image</a> to delete the ones which meet our criteria (in our case that would be deleting anything older than 2 months).</p>
+<p><code>list-image</code> doesn’t return the whole set of images, as this would be a beefy JSON! What it does instead, is to return a JSON packet with a <code>Token</code> identifying if we have more data to fetch. This is a standard <code>pagination</code> technique: other strategies would be, for example, to return the current page and the total number of pages, so that the user can advance forward or backward. We can easily model an <code>ECRImage</code> as a simple data type by following the specification on the <code>list-image</code> page:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- Useful import to use in the rest of the post</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Aeson</span> <span class="kw">as</span> <span class="dt">JSON</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.Aeson.TH</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.Functor.Identity</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.List</span> <span class="kw">as</span> <span class="dt">List</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.String.Conv</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Shelly</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ECRImage</span> <span class="ot">=</span> <span class="dt">ECRImage</span> {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="ot">    imageDigest ::</span> <span class="dt">T.Text</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> imageTag    ::</span> <span class="dt">Maybe</span> <span class="dt">T.Text</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  } <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>deriveFromJSON defaultOptions { omitNothingFields <span class="ot">=</span> <span class="dt">True</span> } &#39;<span class="dt">&#39;ECRImage</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">NextToken</span> <span class="ot">=</span> <span class="dt">T.Text</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ECRListImages</span> <span class="ot">=</span> <span class="dt">ECRListImages</span> {</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="ot">    nextToken ::</span> <span class="dt">Maybe</span> <span class="dt">NextToken</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> imageIds  ::</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>deriveFromJSON defaultOptions { omitNothingFields <span class="ot">=</span> <span class="dt">True</span> } &#39;<span class="dt">&#39;ECRListImages</span></span></code></pre></div>
+<p>The <code>ECRListImages</code> is an umbrella type we define to parse the raw JSON that AWS gives us, which will include the token <em>AND</em> the data fetched so far. When I approached this problem, I knew two things for sure:</p>
+<ul>
+<li>I didn’t want to fetch the whole dataset into memory, but rather processing it in chunks</li>
+<li>The problem itself was screaming “streaming!”</li>
+</ul>
+<p>Although I could have simply written a recursive function which would fetch the current data and the token, process it, and recur in case we still had data to fetch, that stroke me as a poor solution. Not bacause it was <em>intrinsically</em> bad, but only because it felt a bit ad-hoc and didn’t compose very well. What if I wanted to step through the data “one chunk” at the time? What if I wanted to filter each chunk according to a predicate and retain only a subset of it? Sure, I could extend my function which a predicate to filter on, but that felt even more ad-hoc. So I took a step backward and wondered if I could come up with a super tiny abstraction to “step” through the data whilst retaining code reuse and composition. After some failing attempt, I came up with this small data structure, which I’m calling here <code>ForwardPaginator</code> to stress the fact we cannot iterate backward (yet), which is something I didn’t need to support anyway:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ForwardPaginator</span> m i o <span class="ot">=</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">PaginatorLeaf</span> o</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">PaginatorFetch</span> (<span class="dt">Maybe</span> i <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> i, o, <span class="dt">ForwardPaginator</span> m i o))</span></code></pre></div>
+<p>A <code>ForwardPaginator</code> effectively models a tree of computations; we can have a <em>leaf</em>, meaning we have just started our machine and are at step zero, or a <em>fetch</em> step that, given an input <code>i</code> will produce a triple <code>(newInput, output, paginator)</code>, doing (or not) some monadic effect in the process (thus the <code>m</code> wrapping). Due to the fact we could have exhausted our input, we encapsulate this possibility in a <code>Maybe</code>, which explains the presence of those <code>Maybe i</code>. We can even define what seems to be a legal <code>Functor</code> instance for it:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Functor</span> m <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">ForwardPaginator</span> m i) <span class="kw">where</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmap</span> f (<span class="dt">PaginatorLeaf</span>  a) <span class="ot">=</span> <span class="dt">PaginatorLeaf</span> (f a)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmap</span> f (<span class="dt">PaginatorFetch</span> g) <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \nextToken <span class="ot">-&gt;</span> (\(x,y,z) <span class="ot">-&gt;</span> (x, f y, <span class="fu">fmap</span> f z)) <span class="op">&lt;$&gt;</span> g nextToken</span></code></pre></div>
+<p>(Note to the reader: I have the intuition we should be able to define a <code>Contravariant</code> instance for our <code>ForwardPaginator</code>, but I’m not 100% sure as <code>i</code> appears both in positive and negative position. A <code>Profunctor</code> even? Please comment below or on Reddit if you think this is possible, I simply haven’t tried yet.)</p>
+<p>If you squint hard, you will recognise that what we have in the <code>PaginatorFetch</code> step is essentially <code>Mealy</code> machine! This is not very surprising; <a href="http://neilmitchell.blogspot.it/2013/12/progress-reporting-in-shake.html">Neil Mitchell used it in Shake</a> only to discover his data structure was indeed a Mealy machine and his definition was almost verbatim to the one included in the <a href="http://hackage.haskell.org/package/machines-0.6.1/docs/Data-Machine-Mealy.html">machine package</a>. What I find cool is that both me and Neil went through the same creative process; we modeled our solution using an abstraction we later found out be something already present in literature! I find both depressing and invigorating to discover that your clever idea is something someone thought about a long time before you! Oh well, at least that gave me the confidence I was on the right track. Incidentally, <a href="https://ocharles.org.uk/blog/posts/2013-08-01-getting-started-with-netwire-and-sdl.html">Ollie blogged</a> in 2013 about FRP and Netwire, and guess what his <code>Auto</code> type looks like ;)</p>
+<p>The reader might be thinking by now “Ok, but what can you do with this?” A Mealy machine is something very simple at its heart, and copying its definition from Wikipedia <em>“…is a finite-state machine whose output values are determined both by its current state and the current inputs.[…]”</em>. Simply put, we can use the current state and the current input(s) to decide where to go next (which could be advance the machine or stop altogether). To be completely honest with you, whilst writing this blog post, I was on the fence about considering what’s inside a <code>PaginatorFetch</code> a Mealy or a Moore machine, as it resemble a bit of both, but I <em>eventually settle on the former, as effectively it’s the input (the “token”) which determines if we can step further or not</em>.</p>
+<p>Armed with our <code>ForwardPaginator</code>, let’s generalise it to our domain problem:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">NextToken</span> <span class="ot">=</span> <span class="dt">T.Text</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Repository</span> <span class="ot">=</span> <span class="dt">T.Text</span> <span class="co">-- Will use this later</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">ECRPaginator</span> m a <span class="ot">=</span> <span class="dt">ForwardPaginator</span> m <span class="dt">NextToken</span> a</span></code></pre></div>
+<p>Now, let’s get the elephant out of the room and let me give you the (rather) uninteresting definition of our ECR paginator. I personally think that the semantic of the data structure and the operations we can perform of it are much more interesting, but I wanted to post a “real world” paginator just to prove this stuff can also pay the bills ;)</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">ecrListImagesPaginated ::</span> <span class="dt">Repository</span> <span class="ot">-&gt;</span> <span class="dt">ECRPaginator</span> <span class="dt">Sh</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ecrListImagesPaginated repo <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \_ <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  initialState <span class="ot">&lt;-</span> run <span class="st">&quot;aws&quot;</span> cmd</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> JSON.eitherDecode (toS initialState) <span class="kw">of</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Left</span> ex <span class="ot">-&gt;</span> yieldZero ex</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> (<span class="dt">ECRListImages</span> <span class="dt">Nothing</span> items) <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Nothing</span>, items, <span class="dt">PaginatorLeaf</span> <span class="fu">mempty</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> (<span class="dt">ECRListImages</span> mbToken items) <span class="ot">-&gt;</span> <span class="fu">return</span> (mbToken, items, fetch)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    yieldZero ex <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      echo <span class="st">&quot;aws ecr list-images failed to decode to valid JSON. Error was: &quot;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      echo (toS <span class="op">.</span> <span class="fu">show</span> <span class="op">$</span> ex)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span> (<span class="dt">Nothing</span>, <span class="fu">mempty</span>, <span class="dt">PaginatorLeaf</span> <span class="fu">mempty</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    cmd <span class="ot">=</span> [ <span class="st">&quot;ecr&quot;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;list-images&quot;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;--region&quot;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;eu-west-1&quot;</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>          , <span class="st">&quot;--repository-name&quot;</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>          , repo</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>          ]</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="ot">    fetch ::</span> <span class="dt">ECRPaginator</span> <span class="dt">Sh</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    fetch <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \token <span class="ot">-&gt;</span> <span class="kw">case</span> token <span class="kw">of</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Nothing</span>, <span class="fu">mempty</span>, <span class="dt">PaginatorLeaf</span> <span class="fu">mempty</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> t  <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        rawJson <span class="ot">&lt;-</span> run <span class="st">&quot;aws&quot;</span> cmd</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">case</span> JSON.eitherDecode (toS rawJson) <span class="kw">of</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Left</span> ex <span class="ot">-&gt;</span> yieldZero ex</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Right</span> (<span class="dt">ECRListImages</span> mbToken items) <span class="ot">-&gt;</span> <span class="fu">return</span> (mbToken, items, fetch)</span></code></pre></div>
+<p>The caveat here is that we need to repeat the call to <code>aws ecr</code> twice as we need to call it at least once to acquire a valid token, so that externally we will be able to pass <code>Nothing</code> to our paginator to start it. I have chosen <code>Sh</code> as my monad of choice (from the <a href="http://hackage.haskell.org/package/shelly">shelly</a> package), so that I can run <code>bash</code> commands easily.</p>
+<p>Now the fun begins! What we can do with this paginator and more generally with a <code>ForwardPaginator</code>?</p>
+<p>The first operation we can think of is effectively “stepping” the paginator, and implementing this function is not very hard:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">next ::</span> <span class="dt">Monad</span> m</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>     <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>     <span class="co">-- ^ The initial input state to use.</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> i, a, <span class="dt">ForwardPaginator</span> m i a)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>next (<span class="dt">PaginatorLeaf</span> i) _ <span class="ot">=</span> <span class="fu">return</span> (<span class="dt">Nothing</span>, i, <span class="dt">PaginatorLeaf</span> i)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>next (<span class="dt">PaginatorFetch</span> cont) tkn <span class="ot">=</span> cont tkn</span></code></pre></div>
+<p>Note how this function is completely generic in terms of <code>m</code>, <code>i</code> and <code>a</code>, apart from the <code>Monad</code> constraint, which means I can “step” arbitrary paginators – talk about code reuse! Another thing we might want is to be evil and fold all the data returned from the paginator into a giant collection. Not hard as well:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">foldPaginator ::</span> (<span class="dt">Monad</span> m, <span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> m a</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>foldPaginator (<span class="dt">PaginatorLeaf</span> items) _ acc <span class="ot">=</span> <span class="fu">return</span> (items <span class="ot">`mappend`</span> acc)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>foldPaginator (<span class="dt">PaginatorFetch</span> cont) tkn acc <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  (t&#39;, acc&#39;, res) <span class="ot">&lt;-</span> cont tkn</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> res <span class="kw">of</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    leaf<span class="op">@</span>(<span class="dt">PaginatorLeaf</span> _) <span class="ot">-&gt;</span> foldPaginator leaf <span class="dt">Nothing</span> acc</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    nextFetch              <span class="ot">-&gt;</span> foldPaginator nextFetch t&#39; acc&#39;</span></code></pre></div>
+<p>Again, the only constrain is that our accumulator must be a <code>Monoid</code>, so that we can effectively concatenate all the results together. This would also effectively allow us to return <em>all</em> the <code>ECRImage</code>(s) at once, but beware that this would load them into memory – not recommended for your production services!</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">ecrListImages ::</span> <span class="dt">Repository</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> [<span class="dt">ECRImage</span>]</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ecrListImages repo <span class="ot">=</span> shelly <span class="op">$</span> foldPaginator (ecrListImagesPaginated repo) <span class="dt">Nothing</span> <span class="fu">mempty</span></span></code></pre></div>
+<p>Something nice we can do with a <code>ForwardPaginator</code> is being able to find a particular element matching a predicate, short-circuiting our paginator as soon as we find a match, in order to avoid work and more generally expensive calls to external services:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">findPaginator ::</span> <span class="dt">Monad</span> m</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>              <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i [a]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>              <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>              <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Bool</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>              <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> a)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>findPaginator (<span class="dt">PaginatorLeaf</span> v) _ prd <span class="ot">=</span> <span class="fu">return</span> <span class="op">$</span> List.find prd v</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>findPaginator (<span class="dt">PaginatorFetch</span> cont) tkn prd <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  (t&#39;,items,cont&#39;) <span class="ot">&lt;-</span> cont tkn</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">case</span> List.find prd items <span class="kw">of</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Just</span> i  <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">Just</span> i</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Nothing</span> <span class="ot">-&gt;</span> findPaginator cont&#39; t&#39; prd</span></code></pre></div>
+<h2 id="pure-or-impure-pick-your-monad">Pure or impure? Pick your monad!</h2>
+<p>To wrap up this blog post, I also wanted to show you how we are not bounded to use a “impure” monad for our <code>ForwardPaginator</code>: we could use something like <code>Identity</code>, <code>State</code>, <code>Reader</code> and so on and so forth. As an example, we will create a <code>ForwardPaginator</code> which can be built out of a pure function (full disclosure: <code>fib</code>, the classic, hehe) and everything will be pure to please the Haskell gods. Let’s start by defining both our pure function and the associated paginator:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fib ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fib <span class="dv">0</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fib <span class="dv">1</span> <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>fib n <span class="ot">=</span> fib (n <span class="op">-</span> <span class="dv">1</span>) <span class="op">+</span> fib (n <span class="op">-</span> <span class="dv">2</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="ot">fibPaginator ::</span> <span class="dt">ForwardPaginator</span> <span class="dt">Identity</span> <span class="dt">Int</span> <span class="dt">Integer</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>fibPaginator <span class="ot">=</span> <span class="dt">PaginatorFetch</span> <span class="op">$</span> \continue <span class="ot">-&gt;</span> <span class="kw">case</span> continue <span class="kw">of</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Just</span> <span class="dv">1</span>, fib <span class="dv">0</span>, fibPaginator)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Just</span> i  <span class="ot">-&gt;</span> <span class="fu">return</span> (<span class="dt">Just</span> <span class="op">$</span> i <span class="op">+</span> <span class="dv">1</span>, fib i, fibPaginator)</span></code></pre></div>
+<p>The slight twist is that in case we have no initial input, we return the base case of the recursion, otherwise we iterate in an infinite fashion, exactly like the original <code>fib</code> function. Now we can easily step the paginator using <code>next</code> to get one result at time, or create a convenient <code>take</code> function to get values out our infinite stream:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">takePaginator ::</span> (<span class="dt">Monad</span> m) <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> m [a]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>takePaginator (<span class="dt">PaginatorLeaf</span> v) _ _ <span class="ot">=</span> <span class="fu">return</span> [v]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>takePaginator (<span class="dt">PaginatorFetch</span> cont) tkn n</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> n <span class="op">&lt;=</span> <span class="dv">0</span> <span class="ot">=</span> <span class="fu">return</span> []</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    (newToken, o, newPaginator) <span class="ot">&lt;-</span> cont tkn</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    (o <span class="op">:</span>) <span class="op">&lt;$&gt;</span> takePaginator newPaginator newToken (n <span class="op">-</span> <span class="dv">1</span>)</span></code></pre></div>
+<p>Using it is simple enough:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runIdentity <span class="op">$</span> takePaginator fibPaginator <span class="dt">Nothing</span> <span class="dv">10</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">8</span>,<span class="dv">13</span>,<span class="dv">21</span>,<span class="dv">34</span>]</span></code></pre></div>
+<p>As a bonus, as <code>ForwardPaginator</code> is a functor, we can easily map a function on the output values as we stream them:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runIdentity <span class="op">$</span> takePaginator ((<span class="op">*</span><span class="dv">2</span>) <span class="op">&lt;$&gt;</span> fibPaginator) <span class="dt">Nothing</span> <span class="dv">10</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">0</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>,<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">26</span>,<span class="dv">42</span>,<span class="dv">68</span>]</span></code></pre></div>
+<h2 id="stepping-backwards">Stepping backwards</h2>
+<p>A bit of a pet peeve the reader migth have with this paginator is that is lacks the ability to step backward, and that would certainly be a valid concern. I still think though that adding the ability to iterate backward should be possible provided that we create a function <code>back</code> which bound the paginator monad to be a <code>MonadState (Maybe i)</code>, so that we can store the previous token and go backward and forward as we please. Something like this, for example:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">prev ::</span> <span class="dt">MonadState</span> (<span class="dt">Maybe</span> i) m</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>     <span class="ot">=&gt;</span> <span class="dt">ForwardPaginator</span> m i a</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> <span class="dt">Maybe</span> i</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>     <span class="co">-- ^ The initial input state to use.</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> m (<span class="dt">Maybe</span> i, <span class="dt">Maybe</span> a, <span class="dt">ForwardPaginator</span> m i a)</span></code></pre></div>
+<p>I think we need to yield a <code>Maybe a</code> as output in case we want to step backward but we are already at the first “page”: in that case, we should yield no result. Maybe, if the readers are interested, I could explore this possibility in a subsequent blog post, which should effectively give us a <code>Paginator</code> worth its name, to be used in each scenario which requires bidirectional pagination.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>The ideas presented here are very simple but at the same time quite effective; They allowed me to solve my original problem in a nice compact way. Using <code>findPaginator</code> and the <code>Functor</code> instance I was able to first stop as soon as the current result set contained values I was interested in, and I was able to “zoom” only on pieces of the <code>ECRImage</code> data structure to extract things like the <code>ImageDigest</code>. So, next time you need to implement some form of pagination, remember you have the arsenal of Mealy and Moore Machines at your disposal: it’s not surprising they are called <em>stream transducers</em>!</p>]]></summary>
+</entry>
+<entry>
+    <title>How I deploy Haskell Code</title>
+    <link href="http://www.alfredodinapoli.com/posts/2015-11-03-how-i-deploy-haskell-code.html" />
+    <id>http://www.alfredodinapoli.com/posts/2015-11-03-how-i-deploy-haskell-code.html</id>
+    <published>2015-11-03T00:00:00Z</published>
+    <updated>2015-11-03T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h1 id="how-i-deploy-haskell-code">How I deploy Haskell Code</h1>
+<pre><code>Summary: I have recently switched to build my apps using an intermediate
+Docker container and then simply drop the executable on the target machine.
+This has worked remarkably well.</code></pre>
+<p>Deploying Haskell code seems to be a pretty hot topic nowadays. Chatting with people at the Haskell Exchange last October made clear everyone has his own approach to put Haskell code into production. At work an approach I used and worked decently was to use <a href="http://www.ansible.com">Ansible</a> to build my project to an EC2 <code>development</code> machine, then dump an AMI (Amazon Machine Image) and reuse it across different environments. This had the advantage of making provisioning and rollback easy (at the end of the day you only need deploy a new AMI via the AWS’ EC2 API), but has the big snag of being quite slow if your development machine is a <code>tiny</code> instance or similar (which is typically the case for such kind of environments), as you need to perform a <code>cabal/stack</code> install remotely on the server.</p>
+<p>Since switching to <a href="https://github.com/commercialhaskell/stack">stack</a> as my project builder/manager I have adopted a different approach which uses a mixture of old and new Unix tools and - although quite simple - it’s effective. It’s important to notice that this might not work for you if you want a technique which works on <strong>ALL</strong> the different Linux distros; this technique exploits FPComplete’s <code>stack-build</code> Docker image, which is based, to the best of my knowledge, on Ubuntu/Debian. Said that, I have been able to produce executables which worked on CentOS7 out of the box.</p>
+<p>I should also add that the following techniques might be completely moot on Linux environments, where you <strong>should</strong> be using stack’s builtin <code>docker</code> feature to build your binaries. But being on Mac OS X, and considering the quirks of <code>boot2docker</code>, I was forced to find another solution. This is what I do these days:</p>
+<ul>
+<li><p>I use a <code>Dockerfile</code> for the build phase, called <code>Build.plan</code></p></li>
+<li><p>I use <code>Build.plan</code> to provision a <code>stack-linux</code> executable which will act as my local <code>stack</code> but will target the Linux environment</p></li>
+<li><p>I use <code>stack-linux</code> to install my project, mounting my local <code>$HOME/.stack</code> and <code>$PWD/.stack-work</code> in the container in order to cache builds and produce valid Unix executables.</p></li>
+<li><p>I use <code>upx</code> to compress the output executables to the bare minimum</p></li>
+<li><p>I upload the binaries &amp; the files listed in the <code>data-files</code> section of my <code>cabal</code> manifest on S3 in a folder called <code>myproject:version</code> (you can use any persistent key-value store)</p></li>
+<li><p>I use <code>aws s3 sync</code> (you can use <code>rsync</code> if not targeting the AWS platform) to update my development machine with the newly provided binaries &amp; config files</p></li>
+<li><p>I crack on with the rest of the deployment (<strong>NOTE</strong>: I still need to dump an AMI as the image needs to be used in a cluster, so YMMV)</p></li>
+</ul>
+<p>Let’s break down the points in more detail.</p>
+<h3 id="create-stack-linux">Create stack-linux</h3>
+<p>The <code>Build.plan</code> looks like this:</p>
+<pre><code>FROM fpco/stack-build:lts-3.10
+
+ADD .  /var/www/myproject
+WORKDIR /var/www/myproject
+
+CMD [&quot;stack&quot;]</code></pre>
+<p>I usually tend to invoke <code>docker</code> to tag this image to be my “builder”, like so:</p>
+<pre><code>docker build -t myproject-builder -f Build.plan .</code></pre>
+<p>Now “creating” <code>stack-linux</code> is as easy as writing the following bash script:</p>
+<pre><code>#!/usr/bin/env bash
+
+# You might not need the following.
+$({ boot2docker shellinit; } 2&gt;/dev/null)
+
+docker run --rm \
+       -v $HOME/path/to/my/project/myproject-dist:/root/.local \
+       -v $HOME/path/to/my/project/.stack-work:/var/www/myproject/.stack-work \
+       -v $HOME/.stack:/root/.stack \
+       myproject-builder:latest stack $@</code></pre>
+<p>The advantage here is that we are still writing in the host filesystem, but <code>stack</code> correctly installs the libraries in a separate folder:</p>
+<pre><code>➜  ~  ls /Users/adinapoli/work/myproject/.stack-work/install
+x86_64-linux    x86_64-osx</code></pre>
+<h3 id="buildinginstalling-the-project">Building/installing the project</h3>
+<p>At this point we are ready to call:</p>
+<pre><code>stack-linux install</code></pre>
+<p>And let it run for a while, depending on how many dependencies your projects has. At the end, you should have some linux binaries in the <code>myproject-dist</code> folder (have a look at the bash script we created for <code>stack-linux</code>). The good news is that future builds will read from your local <code>.stack-work</code> and will be much faster.</p>
+<h3 id="compressing-with-upx">Compressing with UPX</h3>
+<p>If all went well we should have a bunch of linux binaries in your <code>myproject-dist</code> which are already usable on their own. I decided to go a step further (I work remotely and I live in an area with sub-par internet connection) and compress the executables, to minimise the upload time towards S3. <code>upx</code> is a great tool that “just works”: Use it on your linux binaries and watch the size shrink down! For my work project, which is a medium Haskell app composed of roughly 13K lines of code I was able to get the final size down to <code>~9MB</code>. Not bad!</p>
+<h3 id="uploading-binaries-data-files">Uploading binaries &amp; data files</h3>
+<p>Finally we can tie the knot and upload on S3. I tend to use the <a href="http://hackage.haskell.org/package/shelly">shelly</a> library as my go-to tool for this kind of glue code:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">release ::</span> <span class="dt">T.Text</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>release vr <span class="ot">=</span> shelly <span class="op">$</span> escaping <span class="dt">False</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- If we are trying to release a version older than the current MyProject,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- we need to checkout the relevant tag.</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  currentVersion <span class="ot">&lt;-</span> liftIO extractCabalVersion</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  when (currentVersion <span class="op">&gt;=</span> vr) <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    echo <span class="st">&quot; * Older MyProject version required, checking out relevant git tag...&quot;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    run_ <span class="st">&quot;git&quot;</span> [<span class="st">&quot;checkout&quot;</span>, vr]</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> deployDir <span class="ot">=</span> <span class="st">&quot;/var/www/myproject&quot;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  run_ <span class="st">&quot;./build.sh&quot;</span> [] <span class="co">-- build.sh just calls docker build as I have showed you.</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- Find project specific files and upload them as well.</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  (_, shareDir) <span class="ot">&lt;-</span> T.breakOn <span class="st">&quot;.&quot;</span> <span class="op">.</span> T.init <span class="op">&lt;$&gt;</span> run <span class="st">&quot;scripts/stack-linux&quot;</span> [<span class="st">&quot;path&quot;</span>, <span class="st">&quot;--local-install-root&quot;</span>]</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  dataFiles <span class="ot">&lt;-</span> findDataFiles shareDir</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  echo <span class="st">&quot; * Compressing executable(s)...&quot;</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> myExes <span class="ot">=</span> [<span class="st">&quot;myexe1&quot;</span>, <span class="st">&quot;myexe2&quot;</span>] <span class="co">-- list here all the binaries you want to upload</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  forM_ myExes <span class="op">$</span> \exe <span class="ot">-&gt;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    run_ <span class="st">&quot;upx&quot;</span> [<span class="st">&quot;myproject-dist/bin/&quot;</span> <span class="op">&lt;&gt;</span> exe]</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  echo <span class="st">&quot; * Transferring compressed files to S3...&quot;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> releaseS3Prefix <span class="ot">=</span> <span class="st">&quot;s3://my-s3-bucket/&quot;</span> <span class="op">&lt;&gt;</span> vr</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  run_ <span class="st">&quot;aws&quot;</span> [<span class="st">&quot;s3&quot;</span>, <span class="st">&quot;sync&quot;</span>, dataFiles, releaseS3Prefix <span class="op">&lt;&gt;</span> deployDir <span class="op">&lt;&gt;</span> <span class="st">&quot;/&quot;</span> <span class="op">&lt;&gt;</span> dataFiles]</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  forM_ myExes <span class="op">$</span> \exe <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    run_ <span class="st">&quot;aws&quot;</span> [<span class="st">&quot;s3&quot;</span>, <span class="st">&quot;cp&quot;</span>, <span class="st">&quot;myproject-dist/bin/&quot;</span> <span class="op">&lt;&gt;</span> exe, releaseS3Prefix <span class="op">&lt;&gt;</span> <span class="st">&quot;/usr/bin/&quot;</span>]</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  echo <span class="st">&quot; * Done!&quot;</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    findDataFiles shareDir <span class="ot">=</span> T.init <span class="op">&lt;$&gt;</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>      run <span class="st">&quot;ls&quot;</span> [<span class="st">&quot;-d&quot;</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>               , shareDir <span class="op">&lt;&gt;</span> <span class="st">&quot;share/*/*&quot;</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>               , <span class="st">&quot;|&quot;</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>               , <span class="st">&quot;grep&quot;</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>               , <span class="st">&quot;myproject-&quot;</span> <span class="op">&lt;&gt;</span> vr]</span></code></pre></div>
+<p>We essentially did the steps I already explained, with this twist:</p>
+<ul>
+<li>We searched within <code>.stack-work</code> to find any file listed in the <code>data-files</code> section of the cabal manifest and we copied them over on S3. This is because, in my specific case, I had configuration files my exe needed to run. Again, YMMV!</li>
+</ul>
+<p>At this point your binaries (and config files) are on S3, properly versioned (I have used my project version here). Now rolling back it’s just a matter of transferring a couple of files over!</p>
+<p>For completeness, this is an excerpt of a section of my Ansible scripts, which copies the files as we discussed:</p>
+<pre><code>- name: Install MyProject
+  remote_user: service-runner
+  sudo: no
+  shell: aws s3 sync s3://my-s3-bucket/{{myproject_version}}/usr/bin/ /usr/local/bin/ &amp;&amp;
+         aws s3 sync s3://my-s3-bucket/{{myproject_version}}/var/www/myproject/ /var/www/project/</code></pre>
+<p>Easy!</p>
+<h3 id="caveats-and-elephants-in-the-room">Caveats and Elephants in the room</h3>
+<ul>
+<li><p>As said, this technique is by no means universal; chances are it might not suit you for various reasons.</p></li>
+<li><p>It doesn’t aim to provide static executables; as you know <a href="https://ro-che.info/articles/2015-10-26-static-linking-ghc">this is possible</a> (and not difficult at all) up to a point.</p></li>
+<li><p>You <em>might</em> (memory here does not help me) need to install whichever C library your executable depends upon. For example at least one of my projects depends from <code>libpq</code>, so I had to <code>yum install</code> that on my target machine. You don’t need to worry about that when building though, thanks to the fact that <code>stack-build</code> provides you with all you need out of the box (did I mention how great is this?)</p></li>
+</ul>
+<h3 id="conclusions">Conclusions</h3>
+<p>In this ocean full of DSLs, orchestrators and whatnot, I find this method simple and with these benefits:</p>
+<ul>
+<li>Easy versioning &amp; rollbacks</li>
+<li>Small executables (You could potentially store them as binary blobs on a K-V store like Redis)</li>
+<li>Native binaries, which entails:
+<ul>
+<li>No container overhead (even if minimal)</li>
+<li>Stability (on CentOS7 my experience with Docker was not the best, but this is for another post)</li>
+<li>No need for a private registry</li>
+</ul></li>
+<li>Cached builds (I pay the compilation time only on what’s really changed)</li>
+</ul>]]></summary>
+</entry>
+<entry>
+    <title>Releasing the threads-supervisor library</title>
+    <link href="http://www.alfredodinapoli.com/posts/2015-02-13-releasing_the_threads_supervisor_library.html" />
+    <id>http://www.alfredodinapoli.com/posts/2015-02-13-releasing_the_threads_supervisor_library.html</id>
+    <published>2015-02-13T00:00:00Z</published>
+    <updated>2015-02-13T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h1 id="releasing-the-threads-supervisor-library">Releasing the threads-supervisor library</h1>
+<p>I’m happy to announce the first release of <a href="https://github.com/adinapoli/threads-supervisor">threads-supervisor</a>, a small library I have extracted from some code I wrote at work (thanks to Iris Connect for allowing me to release it). The library itself does only one thing: it allows you to fork an IO computation in a supervised fashion, restarting it in case of failure. In a sense, the library it’s similar in spirit to Erlang’s OTP approach to process supervision and supervision trees. At the moment, we support only one restart strategy, Erlang’s <code>OneForOne</code>, which basically means “please always restart this thread”. Of course, threads-supervisor is not as feature complete as the OTP counterpart, nor it aims to be.</p>
+<h1 id="why-not-use-distributed-process-immortal-async-slave-threads-yet-another-library">Why not use <code>distributed-process</code>, <code>immortal</code>, <code>async</code>, <code>slave-threads</code>, <code>yet-another-library</code>?</h1>
+<p>The aim of this small paragraph is not to convince you that my library the best in town (it’s not!), but more to justify my thought process behind deciding to write it. When I looked at <code>distributed-process</code>, it was clear that it was offering exactly this kind of supervision and much, much more. The problem is the library is certainly geared towards Cloud Haskell and the idea of the distributed closures, therefore if you want to use it, you have to buy the full package. What I wanted, instead, was a simple library, with minimal dependencies, which could be used as a replacement of <code>forkIO</code>, with minimal fuss.</p>
+<p><code>immortal</code> is a very nice library indeed, but I also wanted built-in event logging with opt-in subscription, as well as the possibility of compose my supervisors into a nice supervision tree.</p>
+<p>The same sort of reasoning can be generalised; the available library in the ecosystem where close enough to what I wanted but not <strong>exactly</strong> what I wanted. Therefore, I decided it was just simpler to whip up my small abstraction on top of the concurrency primitives.</p>
+<h1 id="using-the-library">Using the library</h1>
+<p>Extensive documentation can be found reading the <a href="http://hackage.haskell.org/package/threads-supervisor-1.0.1.0/docs/Control-Concurrent-Supervisor-Tutorial.html">tutorial</a>, but I’m going to report here the relevant passages.</p>
+<p>Use <code>threads-supervisor</code> if you want the “poor-man’s Erlang supervisors”. <code>threads-supervisor</code> is an IO-based library with minimal dependencies which does only one thing: It provides you a ‘Supervisor’ entity you can use to monitor your forked computations. If one of the managed threads dies, you can decide if and how to restart it. This gives you:</p>
+<ul>
+<li>Protection against silent exceptions which might terminate your workers.</li>
+<li>A simple but powerful way of structure your program into a supervision tree, where the leaves are the worker threads, and the nodes can be other supervisors being monitored.</li>
+<li>A disaster recovery mechanism.</li>
+</ul>
+<p>Who worked with Haskell’s concurrency primitives will be surely familiar with the <code>forkIO</code> function, which allow us to fork an IO computation in a separate green thread. <code>forkIO</code> is great, but is also very low level, and has a couple of subtleties, as you can read from this passage in the documentation:</p>
+<pre><code>The newly created thread has an exception handler that discards the exceptions
+`BlockedIndefinitelyOnMVar`,`BlockedIndefinitelyOnSTM`, and `ThreadKilled`,
+and passes all other exceptions to the uncaught exception handler.</code></pre>
+<p>To mitigate this, we have a couple of libraries available, for example <a href="http://hackage.haskell.org/package/async">async</a> and <a href="http://hackage.haskell.org/package/slave-thread">slave-threads</a>.</p>
+<p>But what about if I do not want to take explicit action, but instead specifying upfront how to react to disaster, and leave the library work out the details? This is what this library aims to do.</p>
+<p>In this example, let’s create four different threads:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job1 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>job1 <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">5000000</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fail</span> <span class="st">&quot;Dead&quot;</span></span></code></pre></div>
+<p>This job will die after five seconds.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job2 ::</span> <span class="dt">ThreadId</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>job2 tid <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">3000000</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  killThread tid</span></code></pre></div>
+<p>With this other job instead, we wait three seconds, and then kill a target thread, generating an asynchronous exception.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job3 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>job3 <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  threadDelay <span class="dv">5000000</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">error</span> <span class="st">&quot;Oh boy, I&#39;m good as dead&quot;</span></span></code></pre></div>
+<p>This guy is very similar to the first one, except for the fact <code>error</code> is used instead of <code>fail</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">job4 ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>job4 <span class="ot">=</span> threadDelay <span class="dv">7000000</span></span></code></pre></div>
+<p><code>job4</code> is what we wish for all our real-world functions: smooth sailing. These jobs represent a significant pool of our everyday computations in the IO monad.</p>
+<h2 id="creating-a-supervisorspec">Creating a SupervisorSpec</h2>
+<p>A ‘SupervisorSpec’ simply holds the state of our supervision, and can be safely shared between supervisors. Under the hood, both the <code>SupervisorSpec</code> and the <code>Supervisor</code> share the same structure; in fact, they are just type synonyms:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">SupervisorSpec</span> <span class="ot">=</span> <span class="dt">Supervisor_</span> <span class="dt">Uninitialised</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Supervisor</span> <span class="ot">=</span> <span class="dt">Supervisor_</span> <span class="dt">Initialised</span></span></code></pre></div>
+<p>The important difference though, is that the <code>SupervisorSpec</code> does not imply the creation of an asynchronous thread, which the latter does. To keep separated the initialisation of the data structure from the logic of supervising, we use GADTs and type synonyms to force you create a spec first. Creating a spec it just a matter of calling <code>newSupervisorSpec</code>.</p>
+<h2 id="creating-a-supervisor">Creating a Supervisor</h2>
+<p>Creating a ‘Supervisor’ from a ‘SupervisionSpec’, is as simple as calling <code>newSupervisor</code>. Immediately after doing so, a new thread will be started, monitoring any subsequent IO actions submitted to it.</p>
+<h2 id="supervising-some-threads">Supervising some threads</h2>
+<p>Let’s wrap everything together into a full blown example:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> bracketOnError (<span class="kw">do</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  supSpec <span class="ot">&lt;-</span> newSupervisorSpec</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  sup1 <span class="ot">&lt;-</span> newSupervisor supSpec</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  sup2 <span class="ot">&lt;-</span> newSupervisor supSpec</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  sup1 <span class="ot">`monitor`</span> sup2</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup2 <span class="dt">OneForOne</span> job3</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  j1 <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> job1</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> (job2 j1)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkSupervised sup1 <span class="dt">OneForOne</span> job4</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  _ <span class="ot">&lt;-</span> forkIO (go (eventStream sup1))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> sup1) shutdownSupervisor (\_ <span class="ot">-&gt;</span> threadDelay <span class="dv">10000000000</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>   go eS <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>     newE <span class="ot">&lt;-</span> atomically <span class="op">$</span> readTBQueue eS</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>     <span class="fu">print</span> newE</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>     go eS</span></code></pre></div>
+<p>What we have done was spawning our supervisors out from a spec, and using our swiss knife <code>forkSupervised</code> to spawn four supervised IO computations. As you can see, if we partially apply <code>forkSupervised</code>, its type resemble <code>forkIO</code>’s one; this is by design, as we want to keep this API as IO-friendly as possible.</p>
+<p>In the very same example, we also create another supervisor (from the same spec, but you can create a separate one as well) and we ask the first supervisor to monitor the second one.</p>
+<p>Each <code>Supervisor</code> gives you access the its internal event stream, retrievable, under the form of a <code>TBQueue</code>, by calling <code>eventStream</code>.</p>
+<p>If you run this program, hopefully you should see on stdout something like this:</p>
+<pre><code>ChildBorn ThreadId 62 2015-02-13 11:51:15.293882 UTC
+ChildBorn ThreadId 63 2015-02-13 11:51:15.293897 UTC
+ChildBorn ThreadId 64 2015-02-13 11:51:15.293904 UTC
+ChildDied ThreadId 61 (MonitoredSupervision ThreadId 61) 2015-02-13 11:51:15.293941 UTC
+ChildBorn ThreadId 65 2015-02-13 11:51:15.294014 UTC
+ChildFinished ThreadId 64 2015-02-13 11:51:18.294797 UTC
+ChildDied ThreadId 63 thread killed 2015-02-13 11:51:18.294909 UTC
+ChildDied ThreadId 62 Oh boy, I&#39;m good as dead 2015-02-13 11:51:20.294861 UTC
+ChildRestarted ThreadId 62 ThreadId 68 OneForOne 2015-02-13 11:51:20.294861 UTC
+ChildFinished ThreadId 65 2015-02-13 11:51:22.296089 UTC
+ChildDied ThreadId 68 Oh boy, I&#39;m good as dead 2015-02-13 11:51:25.296189 UTC
+ChildRestarted ThreadId 68 ThreadId 69 OneForOne 2015-02-13 11:51:25.296189 UTC
+ChildDied ThreadId 69 Oh boy, I&#39;m good as dead 2015-02-13 11:51:30.297464 UTC
+ChildRestarted ThreadId 69 ThreadId 70 OneForOne 2015-02-13 11:51:30.297464 UTC
+ChildDied ThreadId 70 Oh boy, I&#39;m good as dead 2015-02-13 11:51:35.298123 UTC
+ChildRestarted ThreadId 70 ThreadId 71 OneForOne 2015-02-13 11:51:35.298123 UTC</code></pre>
+<h1 id="conclusions">Conclusions</h1>
+<p>I hope that you are now convinced that this library can be of some use to you! It’s on Hackage, play with it!</p>
+<p>Alfredo</p>]]></summary>
+</entry>
+<entry>
+    <title>Announcing "snaplet-purescript"</title>
+    <link href="http://www.alfredodinapoli.com/posts/2015-01-25-announcing_snaplet_purescript.html" />
+    <id>http://www.alfredodinapoli.com/posts/2015-01-25-announcing_snaplet_purescript.html</id>
+    <published>2015-01-25T00:00:00Z</published>
+    <updated>2015-01-25T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>Today I’m open sourcing and releasing for public consumption <a href="https://github.com/adinapoli/snaplet-purescript">snaplet-purescript</a>, a simple snaplet which brings automatic recompilation of <a href="http://www.purescript.org/">PureScript</a> projects into your Snap application.</p>
+<p>It was heavily inspired to <a href="https://github.com/faylang/snaplet-fay">snaplet-fay</a>, so some credits to Adam Bergmark and Chris Done are due!</p>
+<p>The Github project ships with an example app to help get you started.</p>
+<p>As always, feedback, bug reports and PRs are welcome!</p>
+<p>Alfredo</p>]]></summary>
+</entry>
+<entry>
+    <title>Announcing (and releasing) the rncryptor-hs library</title>
+    <link href="http://www.alfredodinapoli.com/posts/2014-12-12-annoucing-the-rncryptor-hs-library.html" />
+    <id>http://www.alfredodinapoli.com/posts/2014-12-12-annoucing-the-rncryptor-hs-library.html</id>
+    <published>2014-12-12T00:00:00Z</published>
+    <updated>2014-12-12T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h2 id="announcing-and-releasing-the-rncryptor-hs-library">Announcing (and releasing) the rncryptor-hs library</h2>
+<p>Today I’m releasing the very supercalifragilistic first version of the <a href="https://github.com/adinapoli/rncryptor-hs">rncryptor-hs</a> library. This library is a reasonably fast implementation of the <a href="https://github.com/RNCryptor">RNCryptor</a> encrypted file format by <a href="http://robnapier.net/">Rob Napier</a>. It comes in two flavour:</p>
+<ol type="1">
+<li>A “oneshot” function which will decrypt the input bytes retaining all the content in memory</li>
+<li>A streaming interface (using <a href="http://hackage.haskell.org/package/io-streams">io-streams</a>) for efficient decryption</li>
+</ol>
+<p>The state of the library is largely <strong>incomplete</strong>, as was hacked in the previous two days and a half to respond to a real world case scenario I had at work. Currently what’s implemented is only the decryption, there are basically no unit tests (or QuickCheck properties), but the quickest way for a library to grow is with people contributing to it, this is why I’m announcing it at a so-early stage.</p>
+<h2 id="why-should-i-care">Why should I care?</h2>
+<p>This library seems to be very widespread in the mobile world (especially on the ObjC side of it), thus if you are developing for iOS and need to encrypt stuff, there is a high chance you gonna stumble upon it. But when it comes to the server side of things, if you are using Haskell on your backend, you (were) out of luck. You could either use C++ and expose a C API and call it from your Haskell code, or use something like Python. There is actually a <a href="https://github.com/RNCryptor/RNCryptor-python">Python implementation</a>, but it reads the entire content to decrypt in memory, a luxury I could’t afford!</p>
+<p>At work, we record, transcode and upload on S3 lots of videos, which are our most important resource. In doing so, we want to protect such media when we transfer them over the network, namely from our in-house iOS application towards Amazon’s S3. We then notify our transcoder server (written in Haskell) to go and fetch this encrypted video, decrypt it and upload it into another folder for the real transcoding to begin. So what I needed was a very simple streaming CLI program to take encrypted bytes from stdin, decrypt them, and send them over to stdout. Using my library this is actually quite a piece of cake:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Crypto.RNCryptor.V3</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">System.IO.Streams</span> <span class="kw">as</span> <span class="dt">S</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Environment</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString.Char8</span> <span class="kw">as</span> <span class="dt">B</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  args <span class="ot">&lt;-</span> getArgs</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> args <span class="kw">of</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        key<span class="op">:</span>_ <span class="ot">-&gt;</span> decryptStream (B.pack key) S.stdin S.stdout</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            _ <span class="ot">-&gt;</span> <span class="fu">putStrLn</span> <span class="st">&quot;usage: decrypter &lt;key&gt;&quot;</span></span></code></pre></div>
+<p>The flexibility <code>io-streams</code> give us means you are not limited to stdin/stdout, as you can build <code>InputStream</code> and <code>OutputStream</code> also from file <code>Handle</code>, raw <code>ByteString</code> and much more.</p>
+<p>Combined with Amazon’s <a href="https://github.com/aws/aws-cli">aws-cli</a> tools, which provides streaming copy from and to S3, I can now download a file from S3, decrypt it and send it back in one pass, efficiently:</p>
+<pre><code>aws s3 cp s3://my-bucket/stream - | decrypter mysecretkey | aws s3 cp - s3://my-bucket/new-stream</code></pre>
+<p>Easy!</p>
+<h2 id="whats-left-to-do">What’s left to do</h2>
+<p>A lot of things actually! On top of my minds:</p>
+<ul>
+<li>HMAC validation</li>
+<li>Testing!</li>
+<li>Encryption</li>
+<li>Make it independent from any streaming libraries, so that you can plug your own (conduit, pipes, you name it)</li>
+</ul>
+<p>PR are highly encouraged! XMas is coming, so is your spare time, please consider improving the Haskell library ecosystem ;)</p>
+<p>The library is available on <a href="http://hackage.haskell.org/package/rncryptor">Hackage</a>, grab it while it’s hot!</p>
+<h1 id="acknowledgements">Acknowledgements</h1>
+<p>A big thank you to Rob Napier for kindly replying to my email with lots of useful insights which allowed me to fix a bug in my decryption routine.</p>
+<p>Alfredo</p>]]></summary>
+</entry>
+<entry>
+    <title>Fun with Dependent Types in Haskell</title>
+    <link href="http://www.alfredodinapoli.com/posts/2014-10-13-fun-with-dependent-types-in-haskell.html" />
+    <id>http://www.alfredodinapoli.com/posts/2014-10-13-fun-with-dependent-types-in-haskell.html</id>
+    <published>2014-10-13T00:00:00Z</published>
+    <updated>2014-10-13T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>Inspired by recent <a href="https://skillsmatter.com/skillscasts/5356-oliver-charles">Oliver Charles’ talk</a> at the Haskell Xchange (which was a blast, btw), I felt compelled in trying to fiddle around with type families and dependent types in Haskell to fix the concepts in my long term memory. Even though those weren’t new to me, and Ollie’s talk was very accessible and nicely delivered, I wanted to brainstorm a bit to see what I could get out of it. First of all I read the <a href="http://www.cis.upenn.edu/~eir/papers/2012/singletons/paper.pdf">suggested paper</a>, which was a really nice refresher on the topic (and much more!). <strong>This is a literate Haskell post. Feel free to load it inside GHCi</strong>. First a bit of throat-clearing:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE GADTs #-}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeOperators #-}</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE UndecidableInstances #-}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE ScopedTypeVariables #-}</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeFamilies #-}</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DataKinds #-}</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE GADTs #-}</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span></code></pre></div>
+<p>In this post we’ll index our datatypes by lifted naturals instead of lifted Peano number, so we leverage the handy <code>GHC.TypeLits</code> module:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">GHC.TypeLits</span></span></code></pre></div>
+<p>Let’s first start with something simple: In case you need a quick reminder, a <code>type family</code> is essentially a function <em>at the type level</em>. Let’s write the <code>SillyId</code> type family: it will take a type and will return the type itself:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">SillyID</span><span class="ot"> k1 ::</span> <span class="op">*</span></span></code></pre></div>
+<p>Here we are using an <em>open type family</em>, as we can see from the following instances:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">instance</span> <span class="dt">SillyID</span> <span class="dt">Bool</span> <span class="ot">=</span> <span class="dt">Bool</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">instance</span> <span class="dt">SillyID</span> <span class="dt">Int</span> <span class="ot">=</span> <span class="dt">Int</span></span></code></pre></div>
+<p>In a nutshell we are mapping these two types to themselves. Think as a sort of <code>id</code>, but at the type level. We can “use” a type family in a function signature to transform types:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">sillyBool ::</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">SillyID</span> <span class="dt">Bool</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sillyBool <span class="dt">True</span> <span class="ot">=</span> <span class="dt">False</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>sillyBool <span class="dt">False</span> <span class="ot">=</span> <span class="dt">True</span></span></code></pre></div>
+<p>So far this should be very basic and boring stuff. Let’s move over.</p>
+<h1 id="type-safe-byte-chunks">Type safe byte chunks</h1>
+<p>To motivate this blog post, let’s imagine your boss asked you to write a program to handle chunks of raw bytes. As every good Haskeller you like types and would like to write your program in a way that the invariant are specified in the types. Your first thought is to model a chunk as a vector, and almost unconsciously you write something like this:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Chunk</span><span class="ot"> ::</span> <span class="dt">Nat</span> <span class="ot">-&gt;</span> <span class="op">*</span> <span class="ot">-&gt;</span> <span class="op">*</span> <span class="kw">where</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">CNil</span><span class="ot"> ::</span> <span class="dt">Chunk</span> <span class="dv">0</span> a</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">  (:*:) ::</span> a <span class="ot">-&gt;</span> <span class="dt">Chunk</span> n a <span class="ot">-&gt;</span> <span class="dt">Chunk</span> (n <span class="op">+</span> <span class="dv">1</span>) a</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">infixr</span> <span class="dv">5</span> <span class="op">:*:</span></span></code></pre></div>
+<p>The <code>TypeLits</code> module we imported promotes every natural into a type, allowing us to write this extremely nice vector. It also promotes some operations for naturals as well, so that we can simply express the increment in size of our <code>:*:</code> operator as <code>Chunk (n + 1) a</code>. This doesn’t give us much more than standard vectors though: we could still write, for example, the following:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">unsafeHead ::</span> <span class="dt">Chunk</span> n a <span class="ot">-&gt;</span> a</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>unsafeHead <span class="dt">CNil</span> <span class="ot">=</span> <span class="fu">error</span> <span class="st">&quot;Ops!&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>unsafeHead (x <span class="op">:*:</span> _) <span class="ot">=</span> x</span></code></pre></div>
+<p>Uhm, this is not Haskell-y! Let’s fix this first. What we need is a way to force the compiler to reject a function like this which is applied to an empty <code>Chunk</code>. There are tons of ways to solve this, so we’ll pick just one solution for didactic purposes. Let’s first write another type family, but these time a <em>closed</em> one: this has the nice advantage to give us the control in a way that we cannot add more cases externally (as orphans):</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">NonZero</span> (<span class="ot">n ::</span> <span class="dt">Nat</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NonZero</span> x <span class="ot">=</span> _</span></code></pre></div>
+<p>What we can write inside the <em>hole</em>? This will certainly work:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">NonZero</span> (<span class="ot">n ::</span> <span class="dt">Nat</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NonZero</span> <span class="dv">0</span> <span class="ot">=</span> <span class="dt">False</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NonZero</span> x <span class="ot">=</span> <span class="dt">True</span></span></code></pre></div>
+<p>If you are not familiar with type families this is a type-level function which is expecting a <code>Nat</code> and will return a <code>Bool</code>: what we see there, though, are not types but <strong>kinds</strong> (remember: everything is lifted one level up). This is why we return <code>True</code> or <code>False</code>, which are two promoted values into the type level (this is what the <code>DataKinds</code> extension is for). If you want to visually enforce the value/type separation, you can prepend each promoted datatype with a <code>'</code>, which can be omitted when there is no ambiguity. To write the version of <code>NonZero</code> we’ll use, let’s start from the intuition: we would like to <em>compare</em> the input <code>Nat</code> with <code>0</code>, to assess whether they are equal or different (being naturals we do not have to worry about negative numbers). It turns out that <code>GHC.TypeLits</code> already have exactly what we need:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">CmpSymbol</span> m<span class="ot"> n ::</span> <span class="dt">Ordering</span></span></code></pre></div>
+<p>Unfortunately this yields an <code>Ordering</code>, but what we want is a <code>Bool</code>, so we need a type level function from <code>Ordering -&gt; Bool</code>. Let’s try this:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">EqualTo</span> (<span class="ot">n ::</span> <span class="dt">Ordering</span>) (<span class="ot">m ::</span> <span class="dt">Ordering</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EqualTo</span> <span class="dt">GT</span> <span class="dt">GT</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EqualTo</span> <span class="dt">LT</span> <span class="dt">LT</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EqualTo</span> <span class="dt">EQ</span> <span class="dt">EQ</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EqualTo</span> x y <span class="ot">=</span> <span class="dt">False</span></span></code></pre></div>
+<p>Nice. Armed with this, we can write our <code>NonZero</code> type family:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">NonZero</span> (<span class="ot">n ::</span> <span class="dt">Nat</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NonZero</span> x <span class="ot">=</span> <span class="dt">EqualTo</span> (<span class="dt">CmpNat</span> <span class="dv">0</span> x) <span class="dt">LT</span></span></code></pre></div>
+<p>And finally write a <code>safeHead</code>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ot">safeHead ::</span> <span class="dt">NonZero</span> n <span class="op">~</span> <span class="dt">True</span> <span class="ot">=&gt;</span> <span class="dt">Chunk</span> n <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>safeHead (x <span class="op">:*:</span> _) <span class="ot">=</span> x</span></code></pre></div>
+<p>The novelty here is just that we used type level equality to basically say: "Please GHC, I want this function to be called only on types where the constrain <code>NonZero ~ True</code> holds. You can think of <code>~</code> as an equal sign. To give you the intuition the type level function needs to yield <code>True</code> at compile type for this function to typecheck.</p>
+<p>This will compile:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">safe1 ::</span> <span class="dt">Chunk</span> <span class="dv">1</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>safe1 <span class="ot">=</span> safeHead</span></code></pre></div>
+<p>But this won’t:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">unsafe1 ::</span> <span class="dt">Chunk</span> <span class="dv">0</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>unsafe1 <span class="ot">=</span> safeHead</span></code></pre></div>
+<p>Ok, this was a lot of work for a simple total function, but it paved the way for more interesting stuff!</p>
+<h1 id="more-interesting-stuff">More interesting stuff</h1>
+<p>Your boss looks at your code and says “Ok, but this stuff can be done in Idris or Agda in few lines of code. Not impressed.”, so you go back to your desk and keep coding. The new requirement is to write a function which operates on byte chunks. So we want to write a function where only chunks which are <em>multiple of 8</em> are allowed to typecheck. In a non-dependently typed world, a Java programmer would write:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">static</span> MultipleOf8 <span class="op">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> Int <span class="fu">multOf8</span><span class="op">(</span>Chunk<span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> chunk<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">!(</span><span class="fu">multOf</span><span class="op">(</span><span class="dv">8</span><span class="op">,</span> chunk<span class="op">.</span><span class="fu">length</span><span class="op">())</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> <span class="fu">NotMultipleOf8Exception</span><span class="op">(</span>chunk<span class="op">)</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// do stuff</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> chunk<span class="op">.</span><span class="fu">head</span><span class="op">();</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>As Haskellers, we might try to do better than the imperative version and wrap the possibly-failing computation in a monad:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Positive multiple of, classic Haskell inductive function</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ot">posMultOf ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>posMultOf _ <span class="dv">0</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>posMultOf x y <span class="ot">=</span> <span class="kw">if</span> y <span class="op">&lt;</span> <span class="dv">0</span> <span class="kw">then</span> <span class="dt">False</span> <span class="kw">else</span> posMultOf x (y <span class="op">-</span> x)</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ot">chunkLen ::</span> <span class="dt">Chunk</span> n a <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>chunkLen <span class="dt">CNil</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>chunkLen (_ <span class="op">:*:</span> xs) <span class="ot">=</span> <span class="dv">1</span> <span class="op">+</span> chunkLen xs</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ot">multOf8Mb ::</span> <span class="dt">Chunk</span> n <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>multOf8Mb <span class="dt">CNil</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>multOf8Mb c<span class="op">@</span>(x <span class="op">:*:</span> _) <span class="ot">=</span> <span class="kw">case</span> posMultOf <span class="dv">8</span> (chunkLen c) <span class="kw">of</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">True</span> <span class="ot">-&gt;</span> <span class="dt">Just</span> x</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">False</span> <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span></code></pre></div>
+<p>We could certainly use <code>NonZero</code> to avoid the <code>CNil</code> equation, but this is not very satisfying anyway: wouldn’t be nice to enforce the invariant of “must be multiple of 8” into the type system? What we really want is a “type level posMultOf” function, something which will yield a type-level <code>Bool</code>. Let’s look again at the definition:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ot">posMultOf ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>posMultOf _ <span class="dv">0</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>posMultOf x y <span class="ot">=</span> <span class="kw">if</span> y <span class="op">&lt;</span> <span class="dv">0</span> <span class="kw">then</span> <span class="dt">False</span> <span class="kw">else</span> posMultOf x (y <span class="op">-</span> x)</span></code></pre></div>
+<p>First equation is easy. Second equation has a couple of pain points: * We need to do arithmetic (i.e. <code>y - x</code>) * We need to do conditional branching * We need comparison (i.e. y &lt; 0)</p>
+<p>Luckily we can address the first point thanks, once again, to <code>TypeLits</code>, which gives us, out of the box, exactly this. But now we need a <em>type level if function</em>. Can we write it? It is surprising easy to do so!</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">If</span> (<span class="fu">pred</span><span class="ot"> ::</span> <span class="dt">Bool</span>) (<span class="ot">thenB ::</span> <span class="dt">Bool</span>) (<span class="ot">elseB ::</span> <span class="dt">Bool</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">If</span> <span class="dt">True</span> t r <span class="ot">=</span> t</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">If</span> <span class="dt">False</span> t r <span class="ot">=</span> r</span></code></pre></div>
+<p>Nice! What about the last one? We need <code>y &lt; 0</code> but all we can do at the moment is say <code>y is non negative</code>, but here we need <code>y is negative</code>. Did you guess already? We need a type-level <code>not</code> function!</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">Not</span> (<span class="ot">b ::</span> <span class="dt">Bool</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Not</span> <span class="dt">&#39;True</span> <span class="ot">=</span> <span class="dt">&#39;False</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Not</span> <span class="dt">&#39;False</span> <span class="ot">=</span> <span class="dt">&#39;True</span></span></code></pre></div>
+<p>And finally we can express <code>PosMultOf</code>:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">PosMultOf</span> (<span class="ot">n ::</span> <span class="dt">Nat</span>) (<span class="ot">m ::</span> <span class="dt">Nat</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">PosMultOf</span> x <span class="dv">0</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">PosMultOf</span> x y <span class="ot">=</span> <span class="dt">If</span> (<span class="dt">Not</span> (<span class="dt">NonZero</span> y)) <span class="dt">False</span> (<span class="dt">PosMultOf</span> x (y <span class="op">-</span> x))</span></code></pre></div>
+<p>Which I find remarkable: Look at how similar is to the value-level one!</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ot">posMultOf ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>posMultOf _ <span class="dv">0</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>posMultOf x y <span class="ot">=</span> <span class="kw">if</span> y <span class="op">&lt;</span> <span class="dv">0</span> <span class="kw">then</span> <span class="dt">False</span> <span class="kw">else</span> posMultOf x (y <span class="op">-</span> x)</span></code></pre></div>
+<p>Armed with this, we can now write:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ot">multOf8 ::</span> (<span class="dt">NonZero</span> n <span class="op">~</span> <span class="dt">True</span>, <span class="dt">PosMultOf</span> <span class="dv">8</span> n <span class="op">~</span> <span class="dt">True</span>) <span class="ot">=&gt;</span> <span class="dt">Chunk</span> n <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>multOf8 (x <span class="op">:*:</span> _) <span class="ot">=</span> x</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ot">correct ::</span> <span class="dt">Chunk</span> <span class="dv">8</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>correct <span class="ot">=</span> multOf8</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ot">correct&#39;&#39; ::</span> <span class="dt">Chunk</span> <span class="dv">16</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>correct&#39;&#39; <span class="ot">=</span> multOf8</span></code></pre></div>
+<p>As expected, these won’t typecheck:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ot">emptyChunk ::</span> <span class="dt">Chunk</span> <span class="dv">0</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>emptyChunk <span class="ot">=</span> multOf8</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="ot">bogus ::</span> <span class="dt">Chunk</span> <span class="dv">7</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>bogus <span class="ot">=</span> multOf8</span></code></pre></div>
+<p>Nice!</p>
+<h1 id="conclusions">Conclusions</h1>
+<p>Harnessing dependently types techniques in Haskell is easy (not as easy as Idris or Agda though), fun, and yield code with stronger safety guarantees. Mastering type families takes a while, but is definitely worthwhile!</p>
+<h1 id="acknowledgements">Acknowledgements</h1>
+<ul>
+<li>Oliver Charles for the nice talk</li>
+<li>Richard A. Eisenberg and Stephanie Weirich for the nice paper</li>
+<li>You, the reader, for reading it till the end.</li>
+</ul>]]></summary>
+</entry>
+
+</feed>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Alfredo Di Napoli's Tech Blog</title>
+    <link href="http://www.alfredodinapoli.com/tags/programming.xml" rel="self" />
+    <link href="http://www.alfredodinapoli.com" />
+    <id>http://www.alfredodinapoli.com/tags/programming.xml</id>
+    <author>
+        <name>Alfredo Di Napoli</name>
+        <email>alfredo.dinapoli@gmail.com</email>
+    </author>
+    <updated>2014-12-17T00:00:00Z</updated>
+    <entry>
+    <title>Convince me to use Rust</title>
+    <link href="http://www.alfredodinapoli.com/posts/2014-12-17-convince-me-to-use-rust.html" />
+    <id>http://www.alfredodinapoli.com/posts/2014-12-17-convince-me-to-use-rust.html</id>
+    <published>2014-12-17T00:00:00Z</published>
+    <updated>2014-12-17T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<h2 id="convince-me-to-use-rust">Convince me to use Rust</h2>
+<p><strong>TL;TR I really like Rust, but I feel overwhelmed by its syntax and complexity, so I hope the Rust community will sell me the language, convincing me to learn it.</strong></p>
+<p>As we approach the new year, it seems quite natural to follow this <a href="http://matt.might.net/articles/programmers-resolutions/">list</a> of things I should aim to do in 2015. One of them is learning a new language, which I feel it’s quite an important one. After having a love-hate relationship with high and low level languages, I’m not in that period of my life where I would like to learn a new system language. I’ve done a bit of C/C++ back in university days, so I know what lies in store, even considering the latest available standards (i.e. c11, C++11, C++14 and so on). I would like to learn something <em>different</em>, and I went back and forth in deciding whether I should learn Go or Rust (I know, potentially I should learn both). The real question is: Which of the two?</p>
+<h2 id="about-me">About me</h2>
+<p>First of all, let me say I’m a <a href="http://www.alfredodinapoli.com/oss.html">Haskell hacker</a>. Not only am I a OSS contributor, but I’m lucky enough to get paid to code in Haskell during my everyday job. So I am a firm believer that a strong type system and a strong compiler really matters in delivering robust software. So, in a sense, it seems that the natural continuation in my skills development would be to learn Rust, which gets a <strong>lot</strong> of things right (but I’m sure you didn’t need me to discover this): immutability by default, a sophisticated borrow checker, ADTs, pattern matching, (limited form of) monads and even HKT (only emulated for now, hopefully fully supported in Rust 1.0).</p>
+<h2 id="so-what">So what?</h2>
+<p>So what? You might be thinking, which would be a perfectly reasonable feeling. If you feel Rust is the “next big thing”, you should learn it as your next system language, right? That’s true, but I want to play the devil’s advocate here, and I really hope the Rust community will jump on me and completely sell me the language, so I will happily hack in it during 2015 (together with Haskell, of course!).</p>
+<h2 id="zen">Zen</h2>
+<p>If you are not familiar with the <a href="http://www.amazon.com/Complete-Idiots-Guide-Living-Edition/dp/159257243X">Zen</a> philosophy, I will definitely suggest you to dig more into it. Zen can be a lot of things, a religion, a way of living, and a way of coding, too. What I really appreciate of the Zen culture is that things like “beauty” and “simplicity” are something which should be researched in everything we do (also “perfection”, but that sounds more like utopia!). Leaving apart <a href="https://www.python.org/dev/peps/pep-0020/">other kind of Zen manifesto</a>, I’m a strong believer that beauty in code leads to simplicity, which leads to beauty, which leads to simplicity, which..</p>
+<p>Let’s take Haskell, for example. Don’t you find this is utterly beautiful?</p>
+<pre><code>fmap :: (Functor f) =&gt; (a -&gt; b) -&gt; f a -&gt; f b</code></pre>
+<p>If you are unfamiliar with Haskell it doesn’t matter, all you need to know is that this is the function signature for the <code>fmap</code> function, which can be specialised for lists, to name one data structure. What I like here is that:</p>
+<ul>
+<li>It’s simple, with a minimal syntax</li>
+<li>It’s completely generic, where <code>a</code>, <code>b</code> and <code>f</code> are completely parametric</li>
+<li>I can see upfront the “contract” of this function: <code>f</code> must be a <a href="http://en.wikipedia.org/wiki/Functor">functor</a></li>
+</ul>
+<p>Something which puts me off from learning Rust is the “eye bleeding” (perhaps I’m a bit exaggerating here!) I have when I look at certain snippets of Rust code. I feel overwhelmed by the variety of operators you can use to denote your variables, the macro applications, the trait implementations and much more. These are just two examples I copied opening two random Rust projects on Github:</p>
+<pre><code>/// An abstraction to receive `NetworkStream`s.
+pub trait NetworkAcceptor&lt;S: NetworkStream&gt;: Acceptor&lt;S&gt; + Clone + Send {
+    /// Closes the Acceptor, so no more incoming connections will be handled.
+    fn close(&amp;mut self) -&gt; IoResult&lt;()&gt;;
+}
+
+/// An abstraction over streams that a Server can utilize.
+pub trait NetworkStream: Stream + Any + StreamClone + Send {
+    /// Get the remote address of the underlying connection.
+    fn peer_name(&amp;mut self) -&gt; IoResult&lt;SocketAddr&gt;;
+}
+
+#[doc(hidden)]
+pub trait StreamClone {
+    fn clone_box(&amp;self) -&gt; Box&lt;NetworkStream + Send&gt;;
+}
+
+impl&lt;T: NetworkStream + Send + Clone&gt; StreamClone for T {
+    #[inline]
+    fn clone_box(&amp;self) -&gt; Box&lt;NetworkStream + Send&gt; {
+        box self.clone()
+    }
+}</code></pre>
+<pre><code>impl&lt;&#39;c&gt; Cursor&lt;&#39;c&gt; {
+    /// Create a new cursor instance
+    pub fn new(line: &amp;&#39;c mut Line, offset: uint) -&gt; Cursor&lt;&#39;c&gt; {
+        let mut cursor = Cursor {
+            offset: offset,
+            line: line,
+        };
+
+        // check that the current offset is longer than the length of the line
+        let offset = cursor.get_offset();
+        let line_length = cursor.get_line().len();
+        if offset &gt; line_length {
+            cursor.set_offset(line_length);
+        }
+        cursor
+    }
+}</code></pre>
+<p>This is obviously very much subjective, but I find Rust code <strong>very</strong> dense; someone could say the same of Haskell, I suppose, so I’m not sure how much my point stands. But when I look at Rust, I basically see C++ in disguise (angular brackets everywhere, very dense and complicated). Having programmed in C++ before, I was really hoping, in a sense, to get a breath of fresh air.</p>
+<p>On the contrary, <strong>Go</strong> seems to be exactly the opposite: I basically call it “C with concurrency”. But it has a strange allure, probably deriving from its simplicity: <strong>I like simple things</strong>. On the other hand, it goes against my outlook on software development, as is not very “safe”, as far as the compiler and the type checker is concerned. But the visual overhead is much less.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>If you make it till here, you guess this is <strong>not</strong> a flame post. It’s just my personal ruminations in what makes me feel reluctant in spending my time learning Rust. I really hope people will help me see through the syntax and appreciate the true sprit of the language.</p>]]></summary>
+</entry>
+<entry>
+    <title>Disengage and live better</title>
+    <link href="http://www.alfredodinapoli.com/posts/2013-01-18-disengage-and-live-better.html" />
+    <id>http://www.alfredodinapoli.com/posts/2013-01-18-disengage-and-live-better.html</id>
+    <published>2013-01-18T00:00:00Z</published>
+    <updated>2013-01-18T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>I’m reading a book called <a href="http://www.amazon.com/Power-Full-Engagement-Managing-Performance/dp/0743226755">The power of full engagement</a>, which basically states that is important to alternate periods of great focus (engagement) with period of relax (disengaging). This theory is supported from several concrete example involving tennis athletes or professional, where the best results where obtained building up stress (pushing ourself out the “comfort” zone) and then refilling our energy reserves simply “disconnecting” from the work or from whatever causes us stress.</p>
+<p>As a developer, I experience the same constant sense of duty which may be familiar to any other professional: sometimes is very hard to have your mind free of thoughts and is not uncommon that I find myself dwelling on work stuff also in the evening. So I’m trying, as I progress in assimilating all the principles of the book, to disengage in the evening, simply doing something I like (watching Masterchef, programming, reading blogs, learning stuff, etc). But I’ve encountered and extra complication I’ve promptly addressed.</p>
+<h3 id="the-blue-dot-mobing">The “blue dot” mobing</h3>
+Do you recognize this?
+<div data-align="center" data-markdown="1">
+<p><img src="/img/2013/blue_dot.png"/></p>
+</div>
+<p>This could be the nightmare of every programmer! I invented the term “blue dot mobing” to describe a high status of stress deriving to constantly see the dot turning from gray to blue. Where I work, we use Github massively to develop all our software. This often implies that our customers have read access to our repository: this is great because we can provide them with constant feedback, but the other side of the coins is that often they fire up issues/question/bugs at every time during the day, hampering my effort to disengage. Why? Well, I enjoy learning new technology or fiddling with OSS in my spare time, and the last thing I want to see in the Github homepage is the news feed remembering me that Monday morning I will have to deal with some project issues! The problem for me lies in the fact that I subconsciously go to <code>https://github.com</code> and that I usually refresh the page clicking on the small Github logo in the top-left corner of the page. What does this imply? Well, that I see the news feed again, and again, and again! I’ve tried to filter news feed (also with browser’s plugins) but every solution was quite limited. What to do then?</p>
+<h3 id="url-redirecting-to-the-rescue">URL redirecting to the rescue</h3>
+<p>The solution is as simple as useful. Since Github uses <code>https</code> by default, we can’t simply hardcode the redirect inside <code>etc/hosts</code>. I’ve discovered this useful plugin googling around: is called <a href="https://chrome.google.com/webstore/detail/redirector/lacckjdlmkdhcacjdodpjokfobckjclh">Redirector</a> and it can be daunting if you don’t play around with it a bit. The idea is to be redirected to a new URL everytime we hit <code>https://github.com</code>: yes, but which URL? For me, the solution was to point to my <a href="https://github.com/adinapoli">dashboard</a>: this way, I can still see the blue dot (but I can mark all notification as read and solve the problem), but no more news feed bringing me back to my duties! Configuring Redirector can be tricky, but this revealed to work:</p>
+<pre class="shell"><code>Match (RegExp): ^https://github\.com/$
+Substitution (RegExp): .*
+Replacement: https://github.com/adinapoli/</code></pre>
+<p>Done! Now (remember to enable Redirector clicking to the appropriate button, you’ll see a blue icon in the far left corner of the URL bar) everytime we’ll hit Github we’ll be forwarded to the dashboard. Now I have my peace of mind.</p>
+<p>Happy disengaging, <br> Alfredo</p>]]></summary>
+</entry>
+<entry>
+    <title>I love to be a windows repairer</title>
+    <link href="http://www.alfredodinapoli.com/posts/2012-10-24-i-love-to-be-a-windows-repairer.html" />
+    <id>http://www.alfredodinapoli.com/posts/2012-10-24-i-love-to-be-a-windows-repairer.html</id>
+    <published>2012-10-24T00:00:00Z</published>
+    <updated>2012-10-24T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>This is something I was thinking about yesterday night, trying to get asleep. Some of my colleagues are very argumentative about the role a computer scientist must have: someone thinks that only who builds abstractions (call him architect or whatever) is the only person worth respect in a company. Others, like me, thinks that any programming role could be something extremely interesting and compelling if you see it on a different perspective.</p>
+<h3 id="the-windows-repairer">The windows repairer</h3>
+<p>I don’t know if someone come up with this definition, but I could easily define myself a “windows repairer” or a “windows fixer”, if you prefer. The “broken window” paradigm was popularized by Andy Hunt and Dave Thomas in their masterpiece <a href="http://pragprog.com/book/tpp/the-pragmatic-programmer">The pragmatic programmer</a>. In one of the first tip of the book they introduce the <em>broken window principle</em>: sometimes, all you need to make your software rot is a broken window, intended as a single messy point where you introduce an hack, code duplication or a not-optimal design choice. The <em>“broken window”</em> is dangerous because it rapidly becomes a code quality metric. You start saying “Yea, after all I already used that hack there, so I’m gonna use it too..”, and pretty soon you got a building with <em>two</em> broken windows, and the overall code quality degrades. Conversely, if you have a clean code, you are more reticent about introducing and hack or a poor programming choice. You <em>feel</em> the quality and you are proud of the “perfect temple” you have created.</p>
+<h3 id="the-real-world">The real world</h3>
+<p>Most of the time, though, you can’t program that way. The real world is full of broken windows. Reasons are multiple: short deadlines, throw away code, inaccuracy and so on so forth. You sometimes are put on a legacy project and they say to you “We have this huge amount of spaghetti code, and we want brand new features on top of that”. Here programmers are split in a half: One half just hate to maintain and improve legacy code, other half just love it. I don’t know if I really “love” to maintain spaghetti code, but I think that sometime fix is better than create.</p>
+<h3 id="the-false-misconception">The false misconception</h3>
+<p>There is this false misconception that brings programmer to prefer evergreen project. Sure, you must be creative to design a new architecture, but I think that the same level of creativity can be achieved modifying legacy code. How? Let’s take as motto what uncle Bob says in his authoritative book <em>Clean Code</em>: he says that <strong>we should always leave the camp cleaner than when we have found that</strong>. What does it mean? That we should put all our effort in improving the quality of the code we write and maintain.</p>
+<h3 id="work-as-a-surgeon">Work as a surgeon</h3>
+<p>A surgeon operates on a patient, sometimes working and reversing a very bad situation. He <em>cures</em> the patient, not just throw away his work. He cares in what he does, because he knows that a human life is at stake. As a surgeon, we must care about our craft, even if craft is something we have inherited. We can start developing adequate code coverage to be confident we won’t break anything already coded, and then we can start operating. We can begin simplifying messy functions, extracting other functions/methods and testing everything as we proceed. It can become fun and addictive: how we can further simplify this code? What lovely one-liner can we use? If we love functional programming, we can replace our messy <code>for</code> with <code>map</code> or using <code>filter</code> elegantly to restrict our result. If we operate in the Java World, for example, we can use the <em>Guava</em> libraries to prevent us from the dreadful <code>NullPointerException</code>. Conversely, if we just think “this code sucks, I’m not gonna to maintain it, I’m gonna write my layer on top of that” sooner or later you we’ll be caught up into the “broken window paranoia”. Since the code quality is low and most of your design choices were biased by that crappy code, you’ll start to see your code with the same nasty glance you look at the legacy code. You don’t feel this system like <em>your craft</em>, so you are not too motivated in make that beautiful. Conversely, if you spent a certain amount of time improving the existing code base, not only you’ll end up with a more robust system (which is always an advantage) but you’ll begin feeling proud of what you have done: “Look at this code”, you’ll say - “it was crap three months ago and now is fully of best practices!”. You will begin considering that code <em>a your craft</em>, and you’ll be more cautious when you’ll modify it. You will be more motivated in keeping as clean and as beautiful as you can.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>Sometimes work with existing code sucks, but you have to put up with it. You have two ways to approach the problem: the “wrong” way, when you want to hide the legacy code and the “right” (at least for me) way to do that. <em>Embrace the existing code</em>, turn something ugly into something beautiful. Be a savvy artisan and like a sculptor painstakingly improve your creation.</p>
+<p>In other terms, <strong>fix your windows</strong>.</p>]]></summary>
+</entry>
+
+</feed>

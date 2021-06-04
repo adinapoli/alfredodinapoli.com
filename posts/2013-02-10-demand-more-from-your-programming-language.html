@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Demand more from your programming language</h1>
+
+<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'scala'." href="../tags/scala.html">scala</a>.</p>
+<br>
+<p>First of all, this is not a post about “Your language is better than yours”. No. So no flame war incoming. This is simply a post about some simple concept in Haskell that sometimes we (at least I) forgot because I give them away as “granted”, but that can be extremely useful for the newcomer. This post is shameless rumination of part of the excellent talk Doug Beardsley gave at NYC Haskell meetup.</p>
+<h4 id="we-live-in-an-imperfect-world">We live in an imperfect world</h4>
+<p>As the great programmer he was, Edsger Dijkstra once said <em>“If debugging is the process of removing software bugs, then programming must be the process of putting them in”</em>. This may sound hilarious at first, but I believe is incredibly true! We are humans, and we will always made mistakes; because we are not focused enough, because we are tired or bored for a particular task, because we are distracted by a funny joke of a colleague in the middle of a coding session, or “put your favourite reason here”. The point is, that is difficult sometimes to get things right, so we want the machines (namely our computer!) do double check for us, getting rid of some obnoxious bug we could be not aware of or just missed in our programming frenzy.</p>
+<h4 id="the-dynamic-languages">The dynamic languages</h4>
+<p>Dynamic languages have tons of excellent features (they are pragmatic, allow rapid prototyping etc etc) and I still love hacking with Python with a have a simple script to code or I want to do something programmatically (e.g. parse a text file, manipulate it, show some stuff, rinse and repeat), but they most of the times lacks a sophisticated type system to help us catch bugs. Granted, they <em>do</em> have sophisticated mechanism under the hood to do type inference, but this is not the point I want to make. Take this excerpt of python code, I had in production for a while:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Transaction:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, <span class="bu">id</span>):</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>   <span class="va">self</span>._id <span class="op">=</span> <span class="bu">id</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  [...]</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> warn_user_about_unprocessed_transaction(transaction):</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  send_email(transaction.<span class="bu">id</span>)</span></code></pre></div>
+<p>Now, what happened is that, unsurprisingly enough, this code is risky. I won’t insult your intelligence with another dissertation about type safety, but too often I ended up doing something stupid like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>[...]</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>transaction <span class="op">=</span> myobj.<span class="bu">id</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>warn_user_about_unprocessed_transaction(transaction)</span></code></pre></div>
+<p>Granted, this is stupid code, but when you fiddle with an ORM and IDs is easy to confuse the object id from its whole representation. The scariest thing is that this thing will fail only when I will hit that code for the first time! Again, there are some excellent static analysis tools over there, but they sometimes does not work too well. The point here is that we are kinda walking on a mine field; we don’t have type signature (Python3 makes them optional, which is a good thing!) and worst of all we tend to not trust our code anymore, because we have to put a lot of extra effort in ensuring we are passing the correct type to every function!</p>
+<h4 id="strongly-typed-languages-at-rescue">Strongly typed languages at rescue</h4>
+<p>Now, suppose we were writing the same in Java/C/C++ or whatever programming strongly typed programming language. Here the compiler gives us an invaluable help in catching stupids bugs like the one just shown. The classic objection (which I subscribe!) is that they are far too verbose and the type system sometimes really clutters your code (think about Java’s checked exception and your monolithic function signatures!). But whether hardware and technology evolves, the <em>way</em> we build software seems to have reached a plateau. How come we are using the same technology and imperative techniques of more than 30 years ago? Can we do better? Well, we functional programming zealots think we can.</p>
+<h4 id="functional-programming-and-purity">Functional programming and purity</h4>
+<p>Sometimes we forget that functional programming focuses on two different aspects:</p>
+<ul>
+<li><p>Purity</p></li>
+<li><p>Type safety</p></li>
+</ul>
+<p>While the second is something we can achieve also with the imperative languages, types are a totally different kettle of fish in the FP land. The type system is <strong>a tool</strong> to explore the design space of a new piece of software. When we replace interfaces with functions, we see a sort of “pipe system” emerging, when we focus not on <strong>how</strong> do something (think about recipe, do step A, then step B, etc) but <strong>which transformations</strong> are required to produce the desired result. By “pipe system” here I mean a system composed by pipes and junctions which connect two pipes together. Our pipe is a function, the junction is the type signature. We can only attach a pipe to another one only if the junction shape matches. If we weren’t doing so, our pipe would leak! Is not difficult to see where this analogy bring us. The <em>leaking</em> is the concept of state! Being <em>sure</em> that our pipe won’t do anything “stupid” with our input data make us more confident about the outcome, while the type system take care of us that, even before putting the water inside the pipe (namely the “runtime computation flow”). Is like if a plumber would come and check for us the entire pipework, saying “Ah! Here the is a leak, you are using two pipes with different junctions!”. If our plumber says “Ok, it’s safe to go”, we can open the tap and let the water go through our system, without worrying that the pipework will break suddenly, making the entire water go lost. Now, bear in mind one fundamental thing: I’m not saying anything about the result, I’m not telling you that acting this way will save us from all the bugs, this is simply impossible, I’m just saying that this will save you from having a leaking pipe, that’s all!</p>
+<p>Now we compared the type system and the compiler to a plumber which ensure our pipe don’t leak; but pipes can leaks for different reasons! Imagine that we have our pipe perfectly sealed, with all the junctions perfectly aligned. If you think about this, this is something we could achieve also in an imperative language and, being provocative, also in Scala! After all, Scala has an excellent type system, so we would expect that program in Scala should never leak, right? Well, unfortunately is not the case. Scala programs <em>may leak</em> but not of a “junction” leaking. Here’s where purity comes into play.</p>
+<h3 id="being-pure-with-haskell">Being pure with Haskell</h3>
+<p>Now, imagine this scenario. Your pipework, along the way, has something unexpected. The pipes goes inside another premise we don’t have the control over our pipework anymore. While inside the premise, another plumber decide to modify our pipe, insert a special water cleaner and then “re-inject” the water inside the old pipe system. Wait, we have side effect! How is that possible? We have type safety, the world should be a better place to live, shouldn’t it? Well, type safety helps, but purity is the big winner here. Being pure means <strong>clearly separates</strong> what is pure from what is not, or, to say it in another way, separate <strong>the context</strong> from the data. Not going inside the details, because this is something I don’t to turn this stream of thoughts in a tutorial, but this is pretty much the essence of <strong>monads</strong>. Monads are like a special “case” we put around our pipes: have you seen electrical cables? They have different colors based on what their function is; a ground cable will have a different color from the main one. That’s it: electrical cable have different color to put them in <strong>different context</strong>. We will do the same with our pipes; we’ll wrap them with a special case, every case with a special color and with special rules; “naked” pipes cannot be touched for their entire lifetime. This means that the “plumber worldwide association” agrees that they will never touch a naked pipe: the only plumber entitled to do it is the one who originally build the pipework. Then they could agree that pipes with a red case can be modified but with a special constrain; the can <em>never</em> lose the original case and color. In a nutshell, once we wrap our pipe inside a red case, we <strong>cannot</strong> turn them into a green pipe or a naked one, we can’t lose the information about the pipe being a red one!</p>
+<h3 id="how-the-hell-this-is-relevant">How the hell this is relevant?</h3>
+<p>If you keep up with my example, you have pretty much understood what a monad is about. So let’s turn this inside sexy Haskell code and you’ll have your “a-ha!” moment, I promise. Let’s start with this code:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ot">square ::</span> <span class="dt">Double</span> <span class="ot">-&gt;</span> <span class="dt">Double</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>square x <span class="ot">=</span> x <span class="op">*</span> x</span></code></pre></div>
+<p>Ladies and gentlemen, the <strong>naked</strong> pipe. See the clutter-free signature? We are saying that we have no context around us, this function is <strong>pure</strong>. We are <strong>guaranteed</strong> that this function will <strong>never</strong> talk to the outside world. It’s just pure, plain water flowing inside our pipe. Now let me show you this overly-verbose example, just for teaching purposes:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ot">getName ::</span> <span class="dt">IO</span> <span class="dt">String</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>getName <span class="ot">=</span> <span class="fu">getLine</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    name <span class="ot">&lt;-</span> getName</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span> <span class="op">$</span> <span class="st">&quot;Hello &quot;</span> <span class="op">++</span> name</span></code></pre></div>
+<p>This get your name from the stdin and greets you. Oh! See that fancy <code>IO String</code>? Is the red pipe! Without getting too deep inside the details (tons of tutorials out there explaining all you need to do about monads) we put a special “red case”, called <code>IO</code> around our naked pipe. Now we know, simply looking at this function that <code>getName</code> is a function of a special breed, it can talk to the outside world! It could talk to the DB, getting involved in weird thread contentions or fire up a missile to destroy the world. But the point is that, just like the “plumber worldwide association” agreed, you can’t remove this “case” from your function. It’s just like a sort of masonic motto:</p>
+<div class="glance-box" data-markdown="1">
+<p>“What happens in the IO monad, stays in the IO monad!”</p>
+</div>
+<p><br></p>
+<p>In other terms, we can’t “escape” from the IO monad, now to use this function we have only two choices:</p>
+<ul>
+<li><p>Use this in isolation, but we can’t coerce an <code>IO String</code> back to a <code>String</code></p></li>
+<li><p>Use this only together with other red pipes! (like we did calling it from <code>main</code>)</p></li>
+</ul>
+<p>See the wonderful pattern which is emerging? Now we have safety a type level, namely our junctions, but context-safety thanks to different “case”! So now we have a nice pipe, with all the junctions perfectly fitting and colored of a shine red all way down. Much better.</p>
+<p>Compare this with, for example, Scala:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">square</span><span class="op">(</span>n1<span class="op">:</span> Double<span class="op">,</span> n2<span class="op">:</span> Double<span class="op">):</span> Double <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutateTheWorld</span><span class="op">();</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sendMissileToMars</span><span class="op">();</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  n1 <span class="op">*</span> n2</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>In Scala, and in every other programming languages without monads (and its derivatives) we can only ensure our pipe won’t leak, not that our pipe won’t be modified.</p>
+<p>That’s <strong>one</strong> of the power of monads. This is one of the power of Haskell.</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2013-02-10-demand-more-from-your-programming-language.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2013-02-10-demand-more-from-your-programming-language.html';
+  var disqus_title = 'Demand more from your programming language';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>About MonadBaseControl</h1>
+
+<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>.</p>
+<br>
+<p>This is a literate Haskell post. You can play with the examples in ghci, in a stack playground, calling:</p>
+<pre><code>stack ghci --package transformers --package transformers-base --package monad-control --package distributed-process --package distributed-process-monad-control</code></pre>
+<p>Let’s start with some imports:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE RankNTypes #-}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE MultiParamTypeClasses #-}</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeSynonymInstances #-}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE FlexibleInstances #-}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeFamilies #-}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Base</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.State</span> <span class="kw">hiding</span> (<span class="dt">StateT</span>, runStateT, execStateT, evalStateT, get)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.Control</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.State.Strict</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Distributed.Process</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Distributed.Process.MonadBaseControl</span></span></code></pre></div>
+<p>Consider this monad:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Ctx</span> <span class="ot">=</span> <span class="dt">Ctx</span> () <span class="co">-- some kind of env, not important.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">RemotePure</span> m a <span class="ot">=</span> <span class="dt">RemotePure</span> {<span class="ot"> runRemote ::</span> <span class="dt">StateT</span> <span class="dt">Ctx</span> m a }</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                         <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadState</span> <span class="dt">Ctx</span>, <span class="dt">MonadIO</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">RemoteM</span> <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="dt">Process</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBase</span> <span class="dt">IO</span> (<span class="dt">RemotePure</span> <span class="dt">Process</span>) <span class="kw">where</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  liftBase <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> liftBase</span></code></pre></div>
+<p>You now would like to write an instance for <a href="https://hackage.haskell.org/package/monad-control-1.0.0.5/docs/Control-Monad-Trans-Control.html#t:MonadBaseControl">MonadBaseControl</a>.</p>
+<p>This is the definition of <code>MonadBaseControl</code> and <code>RunInBase</code> (at the time of writing, April 2017):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">MonadBase</span> b m <span class="ot">=&gt;</span> <span class="dt">MonadBaseControl</span> b m <span class="op">|</span> m <span class="ot">-&gt;</span> b <span class="kw">where</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> <span class="dt">StM</span> m<span class="ot"> a ::</span> <span class="op">*</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    liftBaseWith ::</span> (<span class="dt">RunInBase</span> m b <span class="ot">-&gt;</span> b a) <span class="ot">-&gt;</span> m a</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    restoreM ::</span> <span class="dt">StM</span> m a <span class="ot">-&gt;</span> m a</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">RunInBase</span> m b <span class="ot">=</span> <span class="kw">forall</span> a<span class="op">.</span> m a <span class="ot">-&gt;</span> b (<span class="dt">StM</span> m a)</span></code></pre></div>
+<p>A legitimate question is: how can I write the correct right hand side for <code>StM</code>? As you might know, when the <code>type</code> keyword is being used in a type class definition we are not dealing with a <em>type synonym</em> but with a <em>type family</em>. A <em>type family</em> is essentially a function with operates on <em>types</em>, not <em>values</em>, like “normal” functions. But how can I pick the correct RHS? How would I know? There are two approaches: one seems to be the most popular, but it requires the use of <code>UndecidableInstances</code>, the other was found in this small nugget of <a href="http://stackoverflow.com/a/33558631/479553">wisdom</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> over at Stack Overflow.</p>
+<p>The first one is this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBaseControl</span> <span class="dt">IO</span> <span class="dt">RemoteM</span> <span class="kw">where</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">StM</span> <span class="dt">RemoteM</span> a <span class="ot">=</span> <span class="dt">StM</span> (<span class="dt">StateT</span> <span class="dt">Ctx</span> <span class="dt">Process</span>) a</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  liftBaseWith f <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">$</span> liftBaseWith <span class="op">$</span> \q <span class="ot">-&gt;</span> f (q <span class="op">.</span> runRemote)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  restoreM <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> restoreM</span></code></pre></div>
+<p>Why this works? Also, it might not be immediately clear why <code>StM</code> appears on the right hand side. You might ask yourself “Did he just pull out the type StM out of thin air and reused it?”. It’s allright, I have been there myself. Haskell notation is so dense sometimes it’s easy to get lost. The key insigth is this: <strong>StM is NOT a type, is a type-level FUNCTION!</strong> Here, all we are doing is calling <code>StM</code> on the RHS, effectively offloading computing the result and hoping that somebody already defined in the stack the final solution. So we are effectively applying <code>StM</code> to <code>(StateT Ctx Process) a</code> as an argument. And this is exactly <em>why</em> GHC asks us to enable <code>UndecidableInstances</code>. It cannot guarantee, without compiling the program, that GHC will terminate. Effectively (if I recall correctly what Andres Loh once told us in an Haskell course in London), as scary as the name might sound, <code>UndecidableInstances</code> simply tells us “hey, it’s probably going to be fine, but there is a chance the typechecking might not terminate”. This is (very loosely speaking) because the RHS doesn’t “reduce” as it has the same number of terms of the LHS, so GHC gets suspicious.</p>
+<p>The other approach is to simply ask GHC for the result of the type family. How? Let’s fire up <code>ghci</code>, and let’s type this:</p>
+<pre><code>ghci&gt; :set -XRankNTypes
+ghci&gt; import Control.Monad.Trans.Control
+ghci&gt; :kind! forall a. StM RemoteM a
+forall a. StM RemoteM a :: *
+= (a, Ctx)</code></pre>
+<p>Wow, can you believe how easy it was? It’s equally easy to convince ourselves why this result makes sense: this is nothing more of the result of applying <code>Stm</code> to <code>StateT Ctx Process</code>. Let’s find out:</p>
+<pre><code>ghci&gt; import Control.Monad.Trans.State.Strict
+ghci&gt; import Control.Distributed.Process
+ghci&gt; :kind! forall a. StM (StateT Ctx Process) a
+forall a. StM (StateT Ctx Process) a :: *
+= (a, Ctx)</code></pre>
+<p>And the best part is that now we don’t need <code>UndecidableInstances</code>, and we are much more confident we are computing <code>StM</code> the right way. Our definition becomes:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBaseControl</span> <span class="dt">IO</span> <span class="dt">RemoteM</span> <span class="kw">where</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">StM</span> <span class="dt">RemoteM</span> a <span class="ot">=</span> (a, <span class="dt">Ctx</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  liftBaseWith f <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">$</span> liftBaseWith <span class="op">$</span> \q <span class="ot">-&gt;</span> f (q <span class="op">.</span> runRemote)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  restoreM <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> restoreM</span></code></pre></div>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Thanks, Daniel Wagner!<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2017-05-06-about-monadcontrolio.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2017-05-06-about-monadcontrolio.html';
+  var disqus_title = 'About MonadBaseControl';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>

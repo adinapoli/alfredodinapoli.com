@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
+    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
+    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
+    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
+    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
+    <meta content="General" name="RATING" />
+    <meta content="all,index,follow" name="ROBOTS" />
+    <meta content="15 days" name="REVISIT-AFTER" />
+    <meta content="Public" name="document-type" />
+    <meta content="Safe for Kids" name="document-rating" />
+    <meta content="Global" name="document-distribution" />
+    <meta content="internet" name="document-classification" />
+    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
+    <meta content="en" http-equiv="content-language" />
+    <meta content="Aladin" name="robots" />
+    <meta content="scooter" name="robots" />
+    <meta content="Crawler" name="robots" />
+    <meta content="Eule-Robot" name="robots" />
+    <meta content="excite" name="robots" />
+    <meta content="Flipper/1.1" name="robots" />
+    <meta content="SmartCrawl" name="robots" />
+    <meta content="Motor0.5" name="robots" />
+    <meta content="Lycos" name="robots" />
+    <meta content="Google" name="robots" />
+    <meta content="Bing" name="robots" />
+    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
+    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
+    <meta content="GLOBAL" name="distribution" />
+
+    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
+    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+      
+      <!-- start header -->
+      <div id="header" class="row">
+
+        <div class="col-5">
+          <div class="col-7">
+            <em class="lead">Simplicity is the ultimate sophistication.</em>
+          </div>
+
+          <div class="col-5 pull-left">
+            <img src="../img/enso.png" width="100" />
+          </div>
+        </div>
+        
+        <div class="col-7">
+          <div id="menu" class="pull-right">
+            <a href="../index.html">Home</a> ●
+            <a href="../posts.html">Blog</a> ●
+            <a href="../oss.html">Projects</a> ●
+            <a href="../talks.html">Talks</a> ●
+            <a href="../cv_eu/cv_eu.html">CV</a> ●
+            <a href="../contacts.html">Contacts</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- end header -->
+      <div class="row">
+        <hr>
+          <!-- content goes here -->
+          <script type="text/javascript">
+  var disqus_developer = 1;
+</script>
+
+
+<h1>Fast Random Strings Generation in Haskell</h1>
+
+<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
+<br>
+<p>Yesterday morning there was an interesting question on Haskell Cafe:</p>
+<div data-markdown="1">
+<p><br> <em> Hello anyone, I’ve written a snippet which generates a file full of random strings. When compiled with -O2 on ghc-7.6, the generation speed is about 2Mb per second which is on par with interpreted php. That’s the fact I find rather disappointing. Maybe I’ve missed something trivial? Any suggestions and explanations are welcome.</em></p>
+<p>It seemed an interesting exercise and we can’t put up being on par with PHP, so I decided to dig in. The code was the following:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Exception</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.IO</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Text.IO</span> <span class="kw">as</span> <span class="dt">TI</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>genString g <span class="ot">=</span> <span class="kw">let</span> (len, g') <span class="ot">=</span> randomR (<span class="dv">50</span>, <span class="dv">450</span>) g</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>               <span class="kw">in</span> T.unfoldrN len rand_text (len, g')</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a> <span class="kw">where</span> rand_text (<span class="dv">0</span>,_) <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>       rand_text (k,g) <span class="ot">=</span> <span class="kw">let</span> (c, g') <span class="ot">=</span> randomR (<span class="ch">'a'</span>,<span class="ch">'z'</span>) g</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                         <span class="kw">in</span> <span class="dt">Just</span> (c, ((k<span class="op">-</span><span class="dv">1</span>), g'))</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>writeCorpus file <span class="ot">=</span> bracket (openFile file <span class="dt">WriteMode</span>) hClose <span class="op">$</span> \h <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> size <span class="ot">=</span> <span class="dv">100000</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sequence</span> <span class="op">$</span> <span class="fu">replicate</span> size <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    g <span class="ot">&lt;-</span> newStdGen</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> text <span class="ot">=</span> genString g</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    TI.hPutStrLn h text</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">putStrLn</span> <span class="st">&quot;generating text corpus&quot;</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  writeCorpus <span class="st">&quot;test.txt&quot;</span></span></code></pre></div>
+</div>
+<p><br></p>
+<p>The first thing I thought was to switch to <code>ByteString</code>: since we don’t need to deal with <code>UTF-8</code> encoding (the strings to generate were plain ASCII strings in the range <code>a-z</code>) we can avoid paying the overhead <code>Data.Text</code> introduces. After that, the code was a slightly faster, but nothing thrilling (about <code>7 seconds</code> on my machine).</p>
+<p>The crucial hint was gave from Gregory Collins, who suggested that <code>System.Random</code> was very slow. He proposed, as better alternative, the <a href="http://hackage.haskell.org/package/mwc-random-0.12.0.1">mwc-random</a> package, and the fact <a href="http://www.serpentine.com/blog/">Bos</a> was the author was a guarantee. After a bit of struggling I ended up with the following code:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Random.MWC</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Primitive</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.IO</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.ByteString</span> <span class="kw">as</span> <span class="dt">B</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Word</span> (<span class="dt">Word8</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.ByteString.Char8</span> <span class="kw">as</span> <span class="dt">CB</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">{- | Converts a Char to a Word8. Took from MissingH -}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ot">c2w8 ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Word8</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>c2w8 <span class="ot">=</span> <span class="fu">fromIntegral</span> <span class="op">.</span> <span class="fu">fromEnum</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">------------------------------------------------------------------------------</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="ot">charRangeStart ::</span> <span class="dt">Word8</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>charRangeStart <span class="ot">=</span> c2w8 <span class="ch">'a'</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">------------------------------------------------------------------------------</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ot">charRangeEnd ::</span> <span class="dt">Word8</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>charRangeEnd <span class="ot">=</span> c2w8 <span class="ch">'z'</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co">------------------------------------------------------------------------------</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="ot">genString ::</span> <span class="dt">Gen</span> (<span class="dt">PrimState</span> <span class="dt">IO</span>) <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">B.ByteString</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>genString g <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    randomLen <span class="ot">&lt;-</span> uniformR (<span class="dv">50</span><span class="ot"> ::</span> <span class="dt">Int</span>, <span class="dv">450</span><span class="ot"> ::</span> <span class="dt">Int</span>) g</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    str <span class="ot">&lt;-</span> replicateM randomLen <span class="op">$</span> uniformR (charRangeStart, charRangeEnd) g</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span> <span class="op">$</span> B.pack str</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co">------------------------------------------------------------------------------</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="ot">writeCorpus ::</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>writeCorpus file <span class="ot">=</span> withFile file <span class="dt">WriteMode</span> <span class="op">$</span> \h <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> size <span class="ot">=</span> <span class="dv">100000</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  withSystemRandom <span class="op">$</span> \gen <span class="ot">-&gt;</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>      replicateM_ size <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>        text <span class="ot">&lt;-</span> genString<span class="ot"> gen ::</span> <span class="dt">IO</span> <span class="dt">B.ByteString</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        CB.hPutStrLn h text</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span>  writeCorpus <span class="st">&quot;test.txt&quot;</span></span></code></pre></div>
+<p>The are a couple of interesting points:</p>
+<ul>
+<li><p>As stated inside the docs <code>withSystemRandom</code> <em>is a somewhat expensive function, and is intended to be called only occasionally (e.g. once per thread). You should use the <code>Gen</code> it creates to generate many random numbers</em>). What we are doing is confining the <code>Gen</code> generation is the “inside loop”. This guarantee that we get a brand new <code>Gen</code> to pass to each invocation of <code>genString</code>.</p></li>
+<li><p>I’ve extrapolated <code>c2w8</code> from the <a href="http://hackage.haskell.org/package/MissingH-1.1.1.0">MissingH</a> library from John Goerzen. We need this because <code>uniformR</code> expects a type which is instance of <code>Variate</code>, which is defined for <code>Word8</code> but not for <code>Char</code>.</p></li>
+<li><p>As stated on Reddit and in the comments below, <code>unfoldrN</code> would have been a great alternative to <code>replicateM</code> to build our random string. Unfortunately, the signature of <code>unfoldrN</code> reveals a pure nature: <code>unfoldr :: (a -&gt; Maybe (Word8, a)) -&gt; a -&gt; ByteString</code>, whereas <code>uniformR</code> returns a monadic computation. In my opinion, albeit slower, <code>replicateM</code> allows the creation of a new string without any visual clutter, keeping our code clean.</p></li>
+</ul>
+<p>Not only is our code cleaner, but is also a great deal faster! On my machine generating 10000 words takes more or less <em>half a second</em>!</p>
+<p>Well, a lot faster than PHP, as expected.</p>
+
+
+<hr>
+Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
+<h2><u>Comments</u></h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_identifier = '/posts/2012-10-18-fast-random-strings-generation-in-haskell.html';
+  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2012-10-18-fast-random-strings-generation-in-haskell.html';
+  var disqus_title = 'Fast Random Strings Generation in Haskell';
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'http://adinapoli.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+   })();
+</script>
+ <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
+
+
+
+
+
+          <!-- end of content -->
+      </div>
+    
+    <!-- end of main container -->
+    </div>
+    
+      
+    
+
+  </body>
+</html>
