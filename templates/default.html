@@ -1,87 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>$title$ — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer based in Rome. Writing on functional programming, type systems, and AI-as-architect." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="/css/bootstrap.css" rel="stylesheet" type="text/css" media="screen"/>
-    <link href="/css/syntax.css" rel="stylesheet" type="text/css" media="screen"/>
-    <link href="/css/screen.css" rel="stylesheet" type="text/css" media="screen"/>
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="$title$ — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, AI architecture." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="$title$ — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="/rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;1,400&display=swap">
+
+    <link rel="stylesheet" href="/css/screen.css" />
+    <link rel="stylesheet" href="/css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="/img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
-      
-      <!-- start header -->
-      <div id="header" class="row">
+    <div class="shell">
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
+      <header class="site-header">
+        <a class="site-header__brand" href="/index.html">
+          <svg class="site-header__enso" viewBox="0 0 100 100" aria-hidden="true">
+            <path
+              d="M 50,8 C 71,8 90,28 90,50 C 90,72 71,92 50,92 C 28,92 9,72 12,50 C 14,32 26,16 46,10"
+              fill="none" stroke="currentColor" stroke-width="6"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>
+            <span class="site-header__name">Alfredo Di Napoli</span>
+            <span class="site-header__role">Senior Haskell engineer · Rome</span>
+          </span>
+        </a>
 
-          <div class="col-5 pull-left">
-            <img src="/img/enso.png" width="100"/>
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="/index.html">Home</a> ●
-            <a href="/posts.html">Blog</a> ●
-            <a href="/oss.html">Projects</a> ●
-            <a href="/talks.html">Talks</a> ●
-            <a href="/cv_eu/cv_eu.html">CV</a> ●
-            <a href="/contacts.html">Contacts</a>
-          </div>
-        </div>
+        <nav class="site-header__nav" aria-label="Primary">
+          <a href="/index.html">Home</a>
+          <a href="/posts.html">Blog</a>
+          <a href="/oss.html">Projects</a>
+          <a href="/talks.html">Talks</a>
+          <a href="/cv_eu/cv_eu.html">CV</a>
+          <a href="/contacts.html">Contacts</a>
+        </nav>
+      </header>
 
-      </div>
+      <main>
+        $body$
+      </main>
 
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          $body$
+      <footer class="site-footer">
+        <span>© 2012–2026 Alfredo Di Napoli</span>
+        <a href="/rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+      </footer>
 
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
     </div>
+
     $if(katex)$
       $katex$
     $endif$
-
   </body>
 </html>
