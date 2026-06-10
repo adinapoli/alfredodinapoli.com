@@ -141,6 +141,8 @@ pre {
   border-radius: 8px;
   padding: var(--sp-3) var(--sp-4);
   overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
   line-height: 1.55;
 }
 pre code {
@@ -225,22 +227,12 @@ th { background: var(--bg-2); font-weight: 600; }
   flex-shrink: 0;
 }
 .site-header__brand:hover { color: var(--text); }
-.site-header__mark {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: var(--grad-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(139, 92, 246, 0.25);
-}
-.site-header__mark-ring {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #fff;
-  border-right-color: transparent;
-  border-radius: 50%;
+.site-header__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .site-header__nav {
@@ -402,37 +394,6 @@ th { background: var(--bg-2); font-weight: 600; }
 }
 @media (max-width: 480px) {
   .hero__bio { max-width: 100%; }
-}
-
-.hero__meta {
-  display: flex;
-  justify-content: center;
-  margin: 0 0 var(--sp-5);
-}
-.hero__meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--text-soft);
-  padding: 0.4rem 0.9rem;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: 999px;
-}
-.hero__meta-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--tag-security);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
-  animation: pulse-dot 2.4s ease-in-out infinite;
-}
-@keyframes pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
-  50%      { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.05); }
 }
 
 .hero__chips {
@@ -838,6 +799,206 @@ th { background: var(--bg-2); font-weight: 600; }
   gap: 0.3rem;
 }
 .oss-item .chip { font-size: 0.7rem; }
+
+/* ---------- Talks page ---------- */
+.talks-section { margin: var(--sp-5) 0; }
+.talks-list { list-style: none; padding: 0; margin: 0; }
+.talks-list li { margin: 0 0 var(--sp-5); }
+.talk-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.talk-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px -10px rgba(17, 17, 24, 0.12);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+.talk-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+.talk-item__date { color: var(--tag-haskell); }
+.talk-item__venue { color: var(--text-soft); }
+.talk-item__title {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.talk-item__title a { color: var(--text); text-decoration: none; }
+.talk-item__title a:hover { color: var(--tag-types); }
+.talk-item__desc {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+.talk-item__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.talk-item .chip { font-size: 0.7rem; }
+
+/* ---------- CV page ---------- */
+.cv-section { margin: var(--sp-6) 0; }
+.cv-section h2 {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 var(--sp-4);
+}
+.cv-prose {
+  max-width: 60ch;
+  color: var(--text-soft);
+  line-height: 1.65;
+}
+.cv-prose p { margin: 0 0 var(--sp-3); }
+
+/* Skills grid */
+.cv-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+}
+.cv-skill-group {
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+}
+.cv-skill-group h3 {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  margin: 0 0 var(--sp-2);
+  letter-spacing: -0.02em;
+}
+.cv-skill-group p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+
+.cv-tech-list { margin-bottom: var(--sp-4); }
+.cv-tech-list h3 {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  margin: 0 0 var(--sp-2);
+  color: var(--text-soft);
+}
+.cv-tech-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Timeline / jobs */
+.cv-timeline { display: flex; flex-direction: column; gap: var(--sp-5); }
+.cv-job {
+  padding: var(--sp-4);
+  border-left: 3px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  background: rgba(255, 255, 255, 0.5);
+  transition: border-color 200ms ease, background 200ms ease;
+}
+.cv-job:hover {
+  border-left-color: var(--tag-haskell);
+  background: rgba(255, 255, 255, 0.85);
+}
+.cv-job__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2) var(--sp-4);
+  margin-bottom: var(--sp-2);
+}
+.cv-job__company {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.cv-job__period {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+.cv-job__role {
+  margin: 0 0 var(--sp-2);
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+.cv-job__details {
+  padding-left: var(--sp-4);
+  margin: 0 0 var(--sp-3);
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+.cv-job__details li { margin: var(--sp-1) 0; }
+.cv-job__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.cv-job .chip { font-size: 0.7rem; }
+
+/* Education */
+.cv-edu {
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+}
+.cv-edu h3 {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  margin: 0 0 var(--sp-2);
+  letter-spacing: -0.02em;
+}
+.cv-edu p {
+  margin: 0 0 var(--sp-2);
+  color: var(--text-soft);
+}
+.cv-edu__period {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+.cv-edu__thesis {
+  font-style: italic;
+  font-size: var(--fs-sm);
+}
+
+/* Publications */
+.cv-pub {
+  padding: var(--sp-4);
+  border-left: 3px solid var(--tag-types);
+  border-radius: 0 12px 12px 0;
+  background: rgba(59, 130, 246, 0.04);
+}
+.cv-pub p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
 
 /* ---------- Contacts page ---------- */
 .contacts { max-width: 50rem; margin: 0 auto; padding: var(--sp-5) 0; }

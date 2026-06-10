@@ -1,15 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Ensō">
-  <path
-    d="M 50,8
-       C 71,8 90,28 90,50
-       C 90,72 71,92 50,92
-       C 28,92 9,72 12,50
-       C 14,32 26,16 46,10"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="6"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Ensō">
+  <defs>
+    <filter id="ink" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="3" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="22"/>
+      <feGaussianBlur stdDeviation="0.4"/>
+    </filter>
+    <filter id="dryBrush" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="2" numOctaves="2" seed="9" result="grain"/>
+      <feComposite in="SourceGraphic" in2="grain" operator="in"/>
+    </filter>
+    <linearGradient id="brush" x1="0.6" y1="0" x2="0.4" y2="1">
+      <stop offset="0%"  stop-color="currentColor" stop-opacity="0.10"/>
+      <stop offset="12%" stop-color="currentColor" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="currentColor" stop-opacity="1"/>
+      <stop offset="88%" stop-color="currentColor" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="brushTaper" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"  stop-color="currentColor" stop-opacity="0.05"/>
+      <stop offset="10%" stop-color="currentColor" stop-opacity="0.95"/>
+      <stop offset="80%" stop-color="currentColor" stop-opacity="1"/>
+      <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="inkSplat" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="currentColor" stop-opacity="0.85"/>
+      <stop offset="70%" stop-color="currentColor" stop-opacity="0.0"/>
+    </radialGradient>
+  </defs>
+
+  <g filter="url(#ink)" stroke-linecap="round" fill="none">
+    <!-- main heavy stroke -->
+    <path
+      d="M 380,70
+         C 478,98 540,200 528,310
+         C 514,432 412,520 296,520
+         C 178,520 80,422 80,302
+         C 80,182 178,86 304,76"
+      stroke="url(#brush)"
+      stroke-width="58"
+    />
+    <!-- secondary thinner pass -->
+    <path
+      d="M 392,86
+         C 468,118 510,206 500,302
+         C 488,418 396,498 296,498
+         C 196,498 102,410 102,302
+         C 102,202 192,108 308,98"
+      stroke="url(#brushTaper)"
+      stroke-width="14"
+      opacity="0.6"
+    />
+  </g>
+
+  <!-- ink splatters near the tail -->
+  <g>
+    <circle cx="362" cy="62" r="14" fill="url(#inkSplat)"/>
+    <circle cx="408" cy="48" r="6"  fill="currentColor" opacity="0.45"/>
+    <circle cx="332" cy="80" r="4"  fill="currentColor" opacity="0.35"/>
+    <circle cx="290" cy="70" r="3"  fill="currentColor" opacity="0.25"/>
+  </g>
 </svg>
