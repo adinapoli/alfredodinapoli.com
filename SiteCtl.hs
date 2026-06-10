@@ -1,49 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
-import System.Environment
-import qualified Data.Text as T
-import Shelly
-import Text.Printf
-import Data.Monoid
+import qualified Data.Text.IO       as T
+import           System.Environment (getArgs)
+import           System.Exit        (ExitCode (..), exitWith)
+import           System.Process     (system)
 
+usage :: IO ()
+usage = T.putStrLn "usage: site-ctl [build|watch|clean]"
 
-----------------------------------------------------------------------
-data DeployTarget = GoDaddy deriving (Show, Eq, Read)
+run :: String -> IO ()
+run cmd = system cmd >>= exitWith
 
-
-----------------------------------------------------------------------
-toIP :: DeployTarget -> T.Text
-toIP GoDaddy = T.pack "188.121.46.128"
-
-----------------------------------------------------------------------
-toDeployPath :: DeployTarget -> T.Text
-toDeployPath GoDaddy = "adinapoli@"
-                     <> toIP GoDaddy
-                     <> ":/home/content/24/10017624/html/"
-
-
-----------------------------------------------------------------------
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-    ["--publish"] -> publish
-    _ -> putStrLn "usage: site-ctl --publish [comment]"
-
-
-publish :: IO ()
-publish = shelly $ verbosely $ escaping False $ do
-  updateSite
-  syncWithRsync
-
-
-syncWithRsync :: Sh ()
-syncWithRsync = do
-  -- Do not ship any draft
-  rm_rf "_site/drafts"
-  run_ "rsync" (T.words $ "-avzr -e 'ssh -oHostKeyAlgorithms=+ssh-dss' --rsync-path=bin/rsync _site/* " <>
-                toDeployPath GoDaddy)
-
-updateSite :: Sh ()
-updateSite = run_ "site" ["build"]
+    ["build"] -> run "cabal run site -- build"
+    ["watch"] -> run "cabal run site -- watch"
+    ["clean"] -> run "cabal run site -- clean"
+    _         -> usage >> exitWith (ExitFailure 64)

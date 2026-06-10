@@ -2,19 +2,20 @@
 
 module Main where
 
-import Data.Monoid
+import Control.Monad (forM_)
+import System.Directory (listDirectory, removeFile)
+import System.FilePath ((</>), takeExtension)
 
 import Hakyll
-import Shelly
-
-import Debug.Trace
 
 removeOAndHiFiles :: Rules ()
-removeOAndHiFiles = preprocess $
-  shelly $ verbosely $ escaping False $ do
-    chdir "posts" $ do
-      rm_f "*.o"
-      rm_f "*.hi"
+removeOAndHiFiles = preprocess $ do
+  contents <- listDirectory "posts"
+  forM_ contents $ \f ->
+    case takeExtension f of
+      ".o"  -> removeFile ("posts" </> f)
+      ".hi" -> removeFile ("posts" </> f)
+      _     -> return ()
 
 -- Probably wrong.
 staticPageCompiler :: Compiler (Item String)
@@ -22,10 +23,6 @@ staticPageCompiler = getResourceBody
 
 rootRoute :: Routes
 rootRoute = gsubRoute "content/" (const "")
-
-cvRoute :: Routes
-cvRoute = gsubRoute "cv/" (const "") `composeRoutes` setExtension "html"
-
 
 main :: IO ()
 main = hakyll $ do
@@ -137,12 +134,6 @@ main = hakyll $ do
 
   match "templates/*" $ compile templateCompiler
 
-  match "cv/*" $ do
-    route cvRoute
-    compile $ pandocCompiler
-      >>= loadAndApplyTemplate "templates/default.html" defaultContext
-      >>= relativizeUrls
-
 -------------------------------------------------------------------------------
 -- Ausiliary functions
 postCtx :: Tags -> Context String
@@ -169,19 +160,19 @@ feedCtx = mconcat
 
 -------------------------------------------------------------------------------
 feedConfiguration :: String -> FeedConfiguration
-feedConfiguration title = FeedConfiguration
+feedConfiguration _ = FeedConfiguration
     { feedTitle       = "Alfredo Di Napoli's Tech Blog"
     , feedDescription = "Personal blog of Alfredo Di Napoli"
     , feedAuthorName  = "Alfredo Di Napoli"
     , feedAuthorEmail = "alfredo.dinapoli@gmail.com"
-    , feedRoot        = "http://www.alfredodinapoli.com"
+    , feedRoot        = "https://www.alfredodinapoli.com"
     }
 
 katexCtx :: Context a
 katexCtx = field "katex" $ \item -> do
     katex <- getMetadataField (itemIdentifier item) "katex"
-    return $ case (traceShowId katex) of
-                    Just x | x == "true" || x == "on" -> 
+    return $ case katex of
+                    Just x | x == "true" || x == "on" ->
                         "<link rel=\"stylesheet\" href=\"/css/katex.min.css\">\n\
                         \<script type=\"text/javascript\" src=\"/js/katex.min.js\"></script>\n\
                         \<script src=\"/js/auto-render.min.js\"></script>\n\
