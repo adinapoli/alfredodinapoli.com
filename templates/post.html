@@ -1,30 +1,20 @@
-<script type="text/javascript">
-  var disqus_developer = 1;
-</script>
+<article class="post">
+  <header>
+    <h1 class="post__title">$title$</h1>
+    <div class="post__meta">
+      <span class="post__date">$date$</span>
+      $if(tags)$
+        <span class="post__tags">$tags$</span>
+      $endif$
+    </div>
+  </header>
 
+  <div class="post__body">
+    $body$
+  </div>
 
-<h1>$title$</h1>
-
-<p>Posted in: $tags$.</p>
-<br>
-$body$
-
-
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '$url$';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '$url$';
-  var disqus_title = '$title$';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
+  <hr>
+  <p class="small text-soft">
+    Subscribe via the <a href="/rss.xml">RSS feed</a> for new posts.
+  </p>
+</article>
