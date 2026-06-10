@@ -59,10 +59,12 @@ main = hakyll $ do
         >>= loadAndApplyTemplate "templates/default.html" (katexCtx <> defaultContext)
         >>= relativizeUrls
 
-  match "cv_eu/*" $ do
-    route rootRoute
-    compile $ staticPageCompiler
+  match "cv_eu/*.md" $ do
+    route $ rootRoute `composeRoutes` setExtension "html"
+    compile $ pandocCompiler
       >>= loadAndApplyTemplate "templates/cv_eu.html" defaultContext
+      >>= loadAndApplyTemplate "templates/default.html"
+            (constField "title" "CV" <> defaultContext)
       >>= relativizeUrls
 
   -- Build tags
