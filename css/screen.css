@@ -81,6 +81,7 @@
 /* ---------- Reset (minimal) ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+body { overflow-x: hidden; }
 img, svg { display: block; max-width: 100%; height: auto; }
 button { font: inherit; cursor: pointer; }
 
@@ -200,7 +201,7 @@ th { background: var(--bg-2); font-weight: 600; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-4);
+  gap: var(--sp-3);
   height: 64px;
   padding: 0 var(--gutter);
   background: rgba(251, 251, 253, 0.7);
@@ -209,7 +210,7 @@ th { background: var(--bg-2); font-weight: 600; }
   border-bottom: 1px solid var(--border);
 }
 @media (max-width: 640px) {
-  .site-header { height: 56px; }
+  .site-header { height: 56px; gap: var(--sp-2); }
 }
 
 .site-header__brand {
@@ -221,6 +222,7 @@ th { background: var(--bg-2); font-weight: 600; }
   font-weight: 600;
   font-size: var(--fs-base);
   letter-spacing: -0.01em;
+  flex-shrink: 0;
 }
 .site-header__brand:hover { color: var(--text); }
 .site-header__mark {
@@ -293,6 +295,8 @@ th { background: var(--bg-2); font-weight: 600; }
   text-align: center;
   padding: var(--sp-7) 0 var(--sp-6);
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 .hero__glow {
   position: absolute;
@@ -309,7 +313,11 @@ th { background: var(--bg-2); font-weight: 600; }
   z-index: 0;
   pointer-events: none;
 }
-.hero__inner { position: relative; z-index: 1; }
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+}
 
 .hero__monogram {
   width: 128px;
@@ -347,7 +355,7 @@ th { background: var(--bg-2); font-weight: 600; }
 }
 
 .hero__name {
-  font-size: clamp(2.8rem, 6vw, 4.25rem);
+  font-size: clamp(1.85rem, 7vw, 4.25rem);
   font-weight: 700;
   letter-spacing: -0.045em;
   line-height: 1;
@@ -357,6 +365,11 @@ th { background: var(--bg-2); font-weight: 600; }
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+@media (max-width: 480px) {
+  .hero__name { font-size: 1.75rem; letter-spacing: -0.03em; }
 }
 
 .hero__role {
@@ -376,6 +389,9 @@ th { background: var(--bg-2); font-weight: 600; }
   vertical-align: middle;
   margin: 0 0.7rem;
 }
+@media (max-width: 480px) {
+  .hero__role::before, .hero__role::after { width: 0.7rem; margin: 0 0.3rem; }
+}
 
 .hero__bio {
   font-size: var(--fs-lg);
@@ -383,6 +399,9 @@ th { background: var(--bg-2); font-weight: 600; }
   line-height: 1.5;
   max-width: 46ch;
   margin: 0 auto var(--sp-4);
+}
+@media (max-width: 480px) {
+  .hero__bio { max-width: 100%; }
 }
 
 .hero__meta {
