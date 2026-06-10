@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>$title$ — Alfredo Di Napoli</title>
-    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer based in Rome. Writing on functional programming, type systems, and AI-as-architect." />
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, AI architecture." />
     <meta name="author" content="Alfredo Di Napoli" />
 
     <meta property="og:type" content="website" />
@@ -19,9 +19,9 @@
 
     <link rel="alternate" type="application/atom+xml" href="/rss.xml" title="Alfredo Di Napoli — Atom feed" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;1,400&display=swap">
+    <link rel="preload" href="/css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
 
     <link rel="stylesheet" href="/css/screen.css" />
     <link rel="stylesheet" href="/css/syntax.css" />
@@ -29,42 +29,31 @@
   </head>
 
   <body>
+    <header class="site-header">
+      <a class="site-header__brand" href="/index.html">
+        <span class="site-header__mark"><span class="site-header__mark-ring"></span></span>
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="/index.html"$if(isindex)$ aria-current="page"$endif$>Home</a>
+        <a href="/posts.html"$if(isposts)$ aria-current="page"$endif$>Posts</a>
+        <a href="/oss.html"$if(isoss)$ aria-current="page"$endif$>OSS</a>
+      </nav>
+    </header>
+
     <div class="shell">
-
-      <header class="site-header">
-        <a class="site-header__brand" href="/index.html">
-          <svg class="site-header__enso" viewBox="0 0 100 100" aria-hidden="true">
-            <path
-              d="M 50,8 C 71,8 90,28 90,50 C 90,72 71,92 50,92 C 28,92 9,72 12,50 C 14,32 26,16 46,10"
-              fill="none" stroke="currentColor" stroke-width="6"
-              stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          <span>
-            <span class="site-header__name">Alfredo Di Napoli</span>
-            <span class="site-header__role">Senior Haskell engineer · Rome</span>
-          </span>
-        </a>
-
-        <nav class="site-header__nav" aria-label="Primary">
-          <a href="/index.html">Home</a>
-          <a href="/posts.html">Blog</a>
-          <a href="/oss.html">Projects</a>
-          <a href="/talks.html">Talks</a>
-          <a href="/cv_eu/cv_eu.html">CV</a>
-          <a href="/contacts.html">Contacts</a>
-        </nav>
-      </header>
-
       <main>
         $body$
       </main>
 
       <footer class="site-footer">
-        <span>© 2012–2026 Alfredo Di Napoli</span>
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
         <a href="/rss.xml">RSS</a>
         <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="/contacts.html">Contacts</a>
       </footer>
-
     </div>
 
     $if(katex)$

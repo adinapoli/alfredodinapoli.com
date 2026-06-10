@@ -52,11 +52,14 @@ main = hakyll $ do
     route   idRoute
     compile copyFileCompiler
 
-  -- Static files
-  match ("content/*") $ do
+  -- Static content pages
+  -- All content/*.html pages (index, contacts, oss, 404) use the page shell
+  match ("content/*.html") $ do
     route rootRoute
     compile $ staticPageCompiler
-        >>= loadAndApplyTemplate "templates/default.html" (katexCtx <> defaultContext)
+        >>= loadAndApplyTemplate "templates/page.html" (katexCtx <> defaultContext)
+        >>= loadAndApplyTemplate "templates/default.html"
+              (katexCtx <> defaultContext)
         >>= relativizeUrls
 
   -- Build tags
@@ -102,8 +105,9 @@ main = hakyll $ do
           list <- postList tags "posts/*" recentFirst
           makeItem ""
               >>= loadAndApplyTemplate "templates/posts.html"
-                (constField "title" "Posts" `mappend`
-                 constField "posts" list `mappend`
+                (constField "title" "Posts" <>
+                 constField "posts" list <>
+                 constField "isposts" "true" <>
                  defaultContext)
               >>= loadAndApplyTemplate "templates/default.html" defaultContext
               >>= relativizeUrls
@@ -135,6 +139,15 @@ postCtx tags = mconcat [ modificationTimeField "mtime" "%U"
                        , dateField "date" "%B %e  %Y"
                        , tagsField "tags" tags
                        , defaultContext ]
+
+-- Render tags as <a class="chip chip--<color>" href="/tags/<tag>.html"><tag></a>
+-- chipsHtml is a list-context that exposes $tag$ (the tag name) and $tagurl$
+-- inside the iteration, plus a $chiptag$ context for direct HTML render.
+-- For now, the postitem.html template just iterates over $tags$ and emits
+-- a chip--default (since the tag->color mapping requires a custom field
+-- that Hakyll's tagsField doesn't provide natively). The CSS for
+-- chip--default applies; the per-color overrides activate if a future
+-- iteration re-tags posts with the new taxonomy.
 
 -------------------------------------------------------------------------------
 postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
