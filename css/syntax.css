@@ -4,10 +4,6 @@
 }
 
 /* Loosely based on pygment's tango colors */
-pre
-{
-    border: none !important;
-}
 
 table.sourceCode, tr.sourceCode, td.sourceCode, table.sourceCode pre
    { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; background-color: transparent }
