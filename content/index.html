@@ -1,22 +1,112 @@
 ---
 title: Home
+isindex: true
 ---
 
 <section class="hero">
-  <div>
+  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="hero__inner">
+
+    <div class="hero__monogram">
+      <img src="/img/alfredo.jpg" alt="Alfredo Di Napoli" />
+    </div>
+
     <h1 class="hero__name">Alfredo Di Napoli</h1>
+
     <p class="hero__bio">
-      Senior Haskell engineer in Rome.<br>
-      AI architect. Functional programming since 2012.
+      Beauty-driven developer. Haskell since 2010. AI-augmented architect
+      at Well-Typed. Open source contributor and public speaker based in
+      Rome.
     </p>
-    <p class="hero__quote">
-      <em>Simplicity is the ultimate sophistication.</em>
-    </p>
-    <nav class="hero__links" aria-label="Primary destinations">
-      <a href="/posts.html">Writing</a>
-      <a href="/oss.html">Projects</a>
-      <a href="/cv_eu/cv_eu.html">CV</a>
-    </nav>
+
+    <div class="hero__chips">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--types">type-driven design</span>
+      <span class="chip chip--ai">ai systems</span>
+      <span class="chip chip--types">distributed systems</span>
+      <span class="chip chip--compilers">compilers</span>
+    </div>
+
+    <div class="hero__quote">
+      "Beauty is more important in computing than anywhere else in
+      technology because software is so complicated. Beauty is the
+      ultimate defense against complexity."
+      <span class="hero__quote-attr">— David Gelernter</span>
+    </div>
+
   </div>
-  <img class="hero__portrait" src="/img/alfredo.jpg" alt="Portrait of Alfredo Di Napoli" />
+</section>
+
+<div class="section-label">
+  <span>// what i'm building</span>
+  <span class="section-label__rule" aria-hidden="true"></span>
+</div>
+
+<section class="card-grid">
+  <a class="card card--featured" href="https://github.com/adinapoli/rusholme">
+    <div class="card__kicker">// featured</div>
+    <h3 class="card__title">Rusholme</h3>
+    <p class="card__body">A toy Haskell compiler in Zig. Frontend, Core, GRIN, LLVM/WASM/C backends. Open source, in development.</p>
+    <div class="card__tags">
+      <span class="chip chip--compilers">zig</span>
+      <span class="chip chip--compilers">llvm</span>
+      <span class="chip chip--compilers">grin</span>
+    </div>
+  </a>
+
+  <a class="card card--production" href="#">
+    <div class="card__kicker">// production</div>
+    <h3 class="card__title">Centaur</h3>
+    <p class="card__body">AI-as-architect framework for designing complex distributed systems.</p>
+    <div class="card__tags">
+      <span class="chip chip--ai">ai</span>
+      <span class="chip chip--types">architecture</span>
+    </div>
+  </a>
+
+  <a class="card card--oss" href="https://well-typed.com/blog/2021/08/the-new-ghc-diagnostic-infrastructure/">
+    <div class="card__kicker">// open source</div>
+    <h3 class="card__title">GHC diagnostics</h3>
+    <p class="card__body">Contributor to the new GHC diagnostic infrastructure at Well-Typed.</p>
+    <div class="card__tags">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--haskell">ghc</span>
+    </div>
+  </a>
+</section>
+
+<div class="section-label">
+  <span>// writing</span>
+  <span class="section-label__rule" aria-hidden="true"></span>
+  <a class="section-label__more" href="/posts.html">all posts →</a>
+</div>
+
+<section class="archive">
+  <ul>
+    <li class="archive__item">
+      <span class="archive__date">2018-12-20</span>
+      <span class="archive__title"><a href="/posts/2018-12-20-semi-secure-gpg-key-backup.html">How to backup and store your GPG private key (semi) securely</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/security.html">security</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-05-06</span>
+      <span class="archive__title"><a href="/posts/2017-05-06-about-monadcontrolio.html">About MonadBaseControl</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-04-07</span>
+      <span class="archive__title"><a href="/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html">The simplest Haskell Priority Queue implementation I know of</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-03-16</span>
+      <span class="archive__title"><a href="/posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Deploying Haskell on AWS Lambda</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2016-10-23</span>
+      <span class="archive__title"><a href="/posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html">iconv-typed: An experiment in API design and type safety</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/types.html">types</a></span>
+    </li>
+  </ul>
 </section>

@@ -614,6 +614,20 @@ th { background: var(--bg-2); font-weight: 600; }
 }
 .archive__title { font-size: var(--fs-base); }
 .archive__tag { text-align: right; }
+.archive__tag a {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--tag-default);
+  background: rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+  line-height: 1.4;
+  color: var(--tag-default);
+  margin-left: 0.25rem;
+}
+.archive__tag a:hover { background: rgba(0, 0, 0, 0.08); }
 @media (max-width: 640px) {
   .archive__item { grid-template-columns: 1fr; gap: var(--sp-1); }
   .archive__tag { text-align: left; }

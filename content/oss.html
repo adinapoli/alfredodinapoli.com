@@ -1,52 +1,70 @@
 ---
-title: Projects
+title: Open Source
+isoss: true
 ---
 
-<header>
-  <h1>Projects</h1>
-  <p class="text-soft">A curated subset — see <a href="https://github.com/adinapoli">GitHub</a> for the full list.</p>
-</header>
+<article class="page">
+  <h1 class="page__title">Open Source</h1>
+  <p class="page__lead">Independent projects, Haskell contributions, and tooling. See <a href="https://github.com/adinapoli">GitHub</a> for the full list.</p>
+</article>
 
-<section>
-  <h2>Highlighted</h2>
+<section class="oss-section">
+  <h2>// independent projects</h2>
   <ul>
     <li>
-      <strong><a href="https://well-typed.com/blog/2021/08/the-new-ghc-diagnostic-infrastructure/">GHC diagnostic infrastructure</a></strong>
-      — contributed to GHC's new structured diagnostic system at Well-Typed.
-      <span class="tag">Haskell</span><span class="tag">GHC</span>
+      <a href="https://github.com/adinapoli/rusholme"><strong>Rusholme</strong></a> — a toy Haskell compiler in Zig, in development. Frontend, Core, GRIN, LLVM/WASM/C backends.
+      <span class="chip chip--compilers">zig</span>
+      <span class="chip chip--compilers">llvm</span>
+      <span class="chip chip--compilers">grin</span>
     </li>
     <li>
-      <strong>Centaur</strong> — framework for architecting systems via AI.
-      <span class="tag">AI</span><span class="tag">Architecture</span>
+      <a href="https://github.com/adinapoli/mandrill"><strong>mandrill</strong></a> — Mandrill transactional email API in Haskell.
+      <span class="chip chip--default">haskell</span>
+    </li>
+    <li>
+      <a href="https://github.com/adinapoli/rncryptor-hs"><strong>rncryptor-hs</strong></a> — RNCryptor encryption format, ported to Haskell.
+      <span class="chip chip--security">security</span>
+    </li>
+    <li>
+      <a href="https://github.com/adinapoli/snaplet-purescript"><strong>snaplet-purescript</strong></a> — a Snap snaplet for compiling PureScript as part of your build.
+      <span class="chip chip--default">haskell</span>
+    </li>
+    <li>
+      <a href="https://github.com/adinapoli/threads-supervisor"><strong>threads-supervisor</strong></a> — Erlang-style supervisors for Haskell threads.
+      <span class="chip chip--default">haskell</span>
     </li>
   </ul>
 </section>
 
-<section>
-  <h2>Open source — Haskell</h2>
+<section class="oss-section">
+  <h2>// haskell contributions</h2>
   <ul>
-    <li><a href="https://github.com/adinapoli/mandrill">mandrill</a> — Mandrill API bindings.</li>
-    <li><a href="https://github.com/adinapoli/rncryptor-hs">rncryptor-hs</a> — RNCryptor format in Haskell.</li>
-    <li><a href="https://github.com/adinapoli/snaplet-purescript">snaplet-purescript</a> — PureScript build snaplet for Snap.</li>
-    <li><a href="https://github.com/adinapoli/threads-supervisor">threads-supervisor</a> — Erlang-style supervisors for Haskell threads.</li>
-    <li><a href="https://github.com/adinapoli/iconv-typed">iconv-typed</a> — type-safe iconv encoding conversions.</li>
-    <li><a href="https://github.com/adinapoli/fastpbkdf2-hs">fastpbkdf2-hs</a> — fast PBKDF2 bindings.</li>
+    <li>
+      <strong><a href="https://well-typed.com/blog/2021/08/the-new-ghc-diagnostic-infrastructure/">GHC diagnostic infrastructure</a></strong> — contributed to GHC's new structured diagnostic system at Well-Typed.
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--haskell">ghc</span>
+    </li>
+    <li>
+      <a href="https://github.com/snapframework/snap">Snap framework</a> — implemented the <code>Snap.Snaplet.Test</code> module.
+      <span class="chip chip--default">haskell</span>
+    </li>
+    <li>
+      <a href="https://github.com/HeinrichApfelmus/reactive-banana">reactive-banana</a> — minor contributions.
+      <span class="chip chip--default">haskell</span>
+    </li>
   </ul>
 </section>
 
-<section>
-  <h2>Contributions</h2>
+<section class="oss-section">
+  <h2>// other contributions</h2>
   <ul>
-    <li><a href="https://gitlab.haskell.org/ghc/ghc">GHC</a></li>
-    <li><a href="https://github.com/input-output-hk/cardano-sl">cardano-sl</a></li>
-    <li><a href="https://github.com/snapframework/snap">snap</a></li>
-    <li><a href="https://github.com/haskell-foundation/foundation">foundation</a></li>
-  </ul>
-</section>
-
-<section>
-  <h2>Tooling</h2>
-  <ul>
-    <li><a href="https://github.com/adinapoli/vim-markmultiple">vim-markmultiple</a></li>
+    <li>
+      <a href="https://github.com/adinapoli/vim-markmultiple"><strong>vim-markmultiple</strong></a> — vim plugin for highlighting multiple words at once.
+      <span class="chip chip--default">vim</span>
+    </li>
+    <li>
+      <a href="https://github.com/yesodweb/yesod">Yesod</a>, <a href="https://github.com/yesodweb/shakespeare">Shakespeare</a> — small docs and test improvements.
+      <span class="chip chip--default">haskell</span>
+    </li>
   </ul>
 </section>
