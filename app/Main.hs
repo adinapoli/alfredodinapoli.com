@@ -3,10 +3,14 @@
 module Main where
 
 import Control.Monad (forM_)
+import Data.List (intersperse)
 import System.Directory (listDirectory, removeFile)
 import System.FilePath ((</>), takeExtension)
 
 import Hakyll
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html (Html, (!))
 
 removeOAndHiFiles :: Rules ()
 removeOAndHiFiles = preprocess $ do
@@ -138,9 +142,58 @@ main = hakyll $ do
 -- Ausiliary functions
 postCtx :: Tags -> Context String
 postCtx tags = mconcat [ modificationTimeField "mtime" "%U"
-                       , dateField "date" "%B %e  %Y"
-                       , tagsField "tags" tags
+                       , dateField "date" "%Y-%m-%d"
+                       , tagsFieldWith getPostTags renderTag mconcat "tags" tags
                        , defaultContext ]
+
+-- Get the tags for the current post. Hakyll's Tags stores the global map;
+-- the post's own tags come from its front matter under 'tags'.
+getPostTags :: Identifier -> Compiler [String]
+getPostTags ident = do
+    metadata <- getMetadata ident
+    return $ case lookupString "tags" metadata of
+        Nothing  -> []
+        Just ts  -> words (map (\c -> if c == ',' then ' ' else c) ts)
+
+-- Render a single tag as a chip. Unknown tags get chip--default.
+-- The new post taxonomy: haskell, types, ai, compilers, security.
+renderTag :: String -> Maybe FilePath -> Maybe Html
+renderTag _ Nothing  = Nothing
+renderTag tag (Just url) = Just $
+    H.a ! A.href (H.toValue url)
+        ! A.class_ (H.toValue ("chip chip--" <> tagColor tag))
+        $ H.toHtml (tag :: String)
+
+-- Map a tag name to a chip color class. The post taxonomy predates the
+-- chip system, so most existing tags fall back to default. New posts
+-- should use the new taxonomy: haskell, types, ai, compilers, security.
+tagColor :: String -> String
+tagColor "haskell"   = "haskell"
+tagColor "ghc"       = "haskell"
+tagColor "snap"      = "haskell"
+tagColor "aws"       = "haskell"
+tagColor "zurihac"   = "haskell"
+tagColor "types"     = "types"
+tagColor "type-families" = "types"
+tagColor "fp"        = "types"
+tagColor "scala"     = "types"
+tagColor "ocaml"     = "types"
+tagColor "ai"        = "ai"
+tagColor "compilers" = "compilers"
+tagColor "zig"       = "compilers"
+tagColor "llvm"      = "compilers"
+tagColor "grin"      = "compilers"
+tagColor "security"  = "security"
+tagColor "rust"      = "compilers"
+tagColor "vim"       = "default"
+tagColor "self"      = "default"
+tagColor "life"      = "default"
+tagColor "programming" = "default"
+tagColor "linux"     = "default"
+tagColor "macosx"    = "default"
+tagColor "bodhi"     = "default"
+tagColor "devops"    = "default"
+tagColor _           = "default"
 
 -------------------------------------------------------------------------------
 postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
