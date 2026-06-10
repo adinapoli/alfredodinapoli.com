@@ -57,7 +57,15 @@ main = hakyll $ do
     compile copyFileCompiler
 
   -- Static content pages
-  -- All content/*.html pages (index, contacts, oss, 404) use the page shell
+  -- 404: full-bleed (no .page wrapper)
+  match ("content/404.html") $ do
+    route rootRoute
+    compile $ staticPageCompiler
+        >>= loadAndApplyTemplate "templates/default.html"
+              (katexCtx <> defaultContext)
+        >>= relativizeUrls
+
+  -- All other content/*.html pages (index, contacts, oss) use the page shell
   match ("content/*.html") $ do
     route rootRoute
     compile $ staticPageCompiler
