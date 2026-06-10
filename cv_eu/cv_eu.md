@@ -1,108 +1,138 @@
-Alfredo Di Napoli
-=================
+---
+title: CV
+---
 
-Computer Scientist
-------------------
+<div class="cv__header">
+  <h1 class="cv__name">Alfredo Di Napoli</h1>
+  <p class="text-soft">Senior Haskell Engineer · Rome, Italy</p>
+  <p class="cv__contact">
+    <a href="mailto:alfredo.dinapoli@gmail.com">alfredo.dinapoli@gmail.com</a>
+    <a href="https://www.alfredodinapoli.com">alfredodinapoli.com</a>
+    <a href="https://github.com/adinapoli">github.com/adinapoli</a>
+  </p>
+</div>
 
-* alfredo.dinapoli@gmail.com
-* +44 07583 150443
-* Manchester, UK
-* www.alfredodinapoli.com
+<section class="cv__section">
 
-### At glance
+## Summary
 
-** Passionate Developer in love with functional programming **
+Senior Haskell engineer with over a decade of professional functional
+programming. Currently at Well-Typed, working on industrial Haskell
+projects and contributing to GHC. Side interests: low-level systems in
+Zig, and using LLMs as a serious architectural tool — author of the
+**Centaur** framework for architecting systems via AI.
 
-    I'm an enthusiastic computer scientist who tries to find
-    the most elegant solution for the problem at stake. I like
-    to define myself a beauty-driven developer. Robert
-    C. Martin's Clean Code is my bible, functional programming
-    languages my inspiration. Quoting David Gelernter:
-    "Beauty is more important in computing than anywhere else in technology
-    because software is so complicated. Beauty is the ultimate defense against     
-    complexity."
+</section>
 
-### Skills
+<section class="cv__section">
 
+## Skills
 
-* Architecture and Software Design
+Haskell · Zig · Scala · Python · C / C++ · OCaml · Nix ·
+AI / LLM system architecture · distributed systems · type-driven design ·
+GHC internals · build systems (cabal, stack).
 
-    1. Experience in designing and implementing mid-sized software architectures, using
-    **Scrum** as agile development process.
-    2. Basic experience as a team leader on small projects.
+</section>
 
-* Software Development
+<section class="cv__section">
 
-    1. Four years of experience in **Python** development, using **Django**.
-    2. Two years of experience in **C++** development, with a focus on the new **C++11** 
-    standard.
-    3. One years of professional experience as functional developer, mainly **Scala**      
-    and actor-based systems.
-    4. Freelance/hobbyst **Haskell** coder.
-    
-* Quick prototyping
+## Experience
 
-    I'm capable to choose the right tool for the right job and rapidly prototyping with         
-    it an idea. I'm not constrained to a single language, but I consider myself a 
-    **polyglot programmer**.
+<div class="cv__job">
+  <div class="cv__job-when">2019 — present</div>
+  <div>
+    <div class="cv__job-role">Senior Haskell Engineer — Well-Typed LLP</div>
+    <p>Industrial Haskell engineering. Contributed to GHC, including
+    the new structured
+    <a href="https://well-typed.com/blog/2021/08/the-new-ghc-diagnostic-infrastructure/">diagnostic infrastructure</a>.
+    Type-driven library and tooling work across the Haskell ecosystem.</p>
+  </div>
+</div>
 
-### Technical Buzzwords (in order of preference)
+<div class="cv__job">
+  <div class="cv__job-when">2013 — 2019</div>
+  <div>
+    <div class="cv__job-role">Senior Developer → Cloud Lead Engineer — IRIS Connect</div>
+    <p>Backend, distributed systems, and cloud platform work. Promoted
+    to Cloud Lead Engineer in the latter years, owning architecture for
+    the cloud platform.</p>
+  </div>
+</div>
 
-* Haskell
-* OCaml
-* Scala
-* C/C++
-* Python
-* Common Lisp
-* Clojure
-* Java
+<div class="cv__job">
+  <div class="cv__job-when">2012 — 2013</div>
+  <div>
+    <div class="cv__job-role">Scala Developer — Cake Solutions Ltd, Manchester</div>
+    <p>Scala application development, actor-based systems.</p>
+  </div>
+</div>
 
+<div class="cv__job">
+  <div class="cv__job-when">2012</div>
+  <div>
+    <div class="cv__job-role">Intern — MBDA Missile Systems, Rome</div>
+    <p>Research on Java in safety- and performance-critical software,
+    plus prototype touch-based UI in C++ for missile planning and
+    control.</p>
+  </div>
+</div>
 
-### Experience
+</section>
 
-**Cake Solutions (Manchester, UK)**
+<section class="cv__section">
 
-    November 2012 - now
-    > Member of Technical Staff
-    Design and development of medium-sized Scala applications.
+## AI architecture
 
-**MBDA Missile Systems (Rome, Italy)**
+* **Centaur** — framework for architecting systems via AI. Originated
+  the design; paper available online.
+* Use of LLMs as an architectural collaborator in day-to-day engineering
+  at Well-Typed.
 
-    June 2012 - November 2012
-    > Intern
-    Researching Java capabilities in safety and performance critical software,
-    as well as developing next-generation touch-based UI in C++ for missiles
-    planning and control.
-    
-**Laetus Framework (Master Degree Project)**
+</section>
 
-    October 2011 - May 2012
-    > Lead Developer
-    Laetus is a C++ Framework that aims to alleviate the burden of programming in
-    plain OpenCL C. It has been developed at the College of Engineering of the Roma
-    Tre University as my senior thesis. It supports efficient computations on a big
-    volume of data.
-    http://laetus.sourceforge.net/
+<section class="cv__section">
 
-**Expiweb (Freelance Python/Haskell project)**
+## Selected open source
 
-    October 2011 - Now
-    > Lead developer
-    A platform to easily arrange and track shipment of envelopes, parcels or pallet 
-    across the world.
+* [mandrill](https://github.com/adinapoli/mandrill) — Mandrill API in Haskell
+* [rncryptor-hs](https://github.com/adinapoli/rncryptor-hs) — RNCryptor format
+* [snaplet-purescript](https://github.com/adinapoli/snaplet-purescript)
+* [threads-supervisor](https://github.com/adinapoli/threads-supervisor) — Erlang-style supervisors
+* [iconv-typed](https://github.com/adinapoli/iconv-typed) — type-safe encoding conversion
+* [fastpbkdf2-hs](https://github.com/adinapoli/fastpbkdf2-hs) — fast PBKDF2 bindings
+* Contributions to GHC, cardano-sl, snap, foundation, hoogle, fay, others
+  (see [GitHub](https://github.com/adinapoli)).
 
-### Education
+</section>
 
-**"Roma Tre" College of Engineering (Rome, Italy)**
-    
-    October 2006 - May 2012
-    > Master Degree in Computer Science
-    Summa cum Laude, grade average 29.4 over 30 (4/4 GPA)
-    
-### Publications
+<section class="cv__section">
 
-    A. Di Napoli, F. Gasparetti, A. Micarelli, G. Sansonetti
-    > "A Step toward Personalized Social Geotagging"
-    IUI 2010 Workshop on Social Recommender Systems
-    http://www.comp.hkbu.edu.hk/~lichen/srs2010/downloads/paper/18-
-    A_Step_toward_Personalized_Social_Geotagging.pdf
+## Talks
+
+* **Scalable & Reliable Video Transcoding in Haskell** — Haskell Exchange, London (2015).
+  [video](https://skillsmatter.com/skillscasts/6534-scalable-and-reliable-video-transcoding-in-haskell)
+* **Using Haskell Professionally** — LambdaCon, Bologna (2015).
+  [video](https://www.youtube.com/watch?v=_5W85AwGUkU)
+* **Life Beyond Lambdas** (Italian) — JUG Roma (2015).
+  [video](https://www.youtube.com/watch?v=u-irTiTEEGQ)
+
+</section>
+
+<section class="cv__section">
+
+## Education
+
+* **MSc Computer Engineering** — Università degli Studi Roma Tre.
+  Summa cum laude, grade average 29.4 / 30 (4.0 GPA). 2006–2012.
+
+</section>
+
+<section class="cv__section">
+
+## Publications
+
+* A. Di Napoli, F. Gasparetti, A. Micarelli, G. Sansonetti.
+  *A Step toward Personalized Social Geotagging.*
+  IUI 2010 Workshop on Social Recommender Systems.
+
+</section>
