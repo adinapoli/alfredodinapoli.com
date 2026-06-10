@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Ensō">
+  <path
+    d="M 50,8
+       C 71,8 90,28 90,50
+       C 90,72 71,92 50,92
+       C 28,92 9,72 12,50
+       C 14,32 26,16 46,10"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
