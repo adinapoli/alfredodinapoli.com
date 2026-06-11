@@ -1,89 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Copy Your Project Resources at Configure Time — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Copy Your Project Resources at Configure Time — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Copy Your Project Resources at Configure Time — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">Copy Your Project Resources at Configure Time</h1>
+    <div class="post__meta">
+      <span>2013-08-17</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>Copy Your Project Resources at Configure Time</h1>
-
-<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
-<br>
-<p>This is mainly a note to myself, but I think it’s content it’s worthwhile to deserve a blog entry, and might save some headache to some other Haskeller as well.</p>
+  <div class="post__body">
+    <p>This is mainly a note to myself, but I think it’s content it’s worthwhile to
+deserve a blog entry, and might save some headache to some other Haskeller as well.</p>
 <h3 id="the-problem">The problem</h3>
-<p>While rewriting my freelance project <a href="http://www.expiweb.it">Expiweb</a> in Haskell, I stumbled upon the following problem: my newly-created project uses <code>persistent</code>, which relies on TH. In one of my modules I have a snippet like this:</p>
+<p>While rewriting my freelance project <a href="http://www.expiweb.it">Expiweb</a>
+in Haskell, I stumbled upon the following problem: my newly-created project
+uses <code>persistent</code>, which relies on TH. In one of my modules I have a snippet
+like this:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>share [mkPersist sqlSettings, mkMigrate <span class="st">&quot;migrateAuth&quot;</span>]</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">$</span>(persistFileWith lowerCaseSettings (getSchemaFor <span class="st">&quot;auth&quot;</span>))</span></code></pre></div>
 <p>Where <code>getSchema</code> is defined as such:</p>
@@ -91,12 +72,20 @@
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>getSchemaFor appName <span class="ot">=</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> p <span class="ot">=</span> unsafePerformIO getDataDir</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">in</span> p <span class="op">++</span> <span class="st">&quot;/resources/db/&quot;</span> <span class="op">++</span> appName <span class="op">++</span> <span class="st">&quot;/schema.txt&quot;</span></span></code></pre></div>
-<p>This boils down to have the generated code to search, at <em>compile time</em>, for a file called <code>schema.txt</code> inside a <code>resources</code> directory. The accurate reader may notice I’m using <code>getDataDir</code>, to leverage the full power of Cabal. The problem with this code is that we have a mismatch between the nature of our code:</p>
+<p>This boils down to have the generated code to search, at <em>compile time</em>, for
+a file called <code>schema.txt</code> inside a <code>resources</code> directory. The accurate reader
+may notice I’m using <code>getDataDir</code>, to leverage the full power of Cabal. The
+problem with this code is that we have a mismatch between the nature of our
+code:</p>
 <ul>
 <li>The TH snippet generates and check code at <em>compile time</em></li>
 <li><code>getDataDir</code> is meant to be used at <em>run time</em></li>
 </ul>
-<p>The proof is that the aforementioned function is generated inside a file called <code>Paths_yourprojectname.hs</code>, where <code>yourprojectname</code> is the name of your Cabal project. So, in my case, Cabal creates, <em>at compile time, but during the build step</em>, a module called <code>Paths_expiweb.hs</code>. So far so good, but now if we try to compile our project, we end up with an error message like this:</p>
+<p>The proof is that the aforementioned function is generated inside a file
+called <code>Paths_yourprojectname.hs</code>, where <code>yourprojectname</code> is the name of
+your Cabal project. So, in my case, Cabal creates, <em>at compile time, but during
+the build step</em>, a module called <code>Paths_expiweb.hs</code>. So far so good, but now
+if we try to compile our project, we end up with an error message like this:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>src<span class="op">/</span><span class="dt">Expiweb</span><span class="op">/</span><span class="dt">Auth</span><span class="op">/</span>Types.hs<span class="op">:</span><span class="dv">27</span><span class="op">:</span><span class="dv">5</span><span class="op">:</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Exception</span> when trying to run compile<span class="op">-</span>time code<span class="op">:</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>      <span class="op">/</span><span class="dt">Users</span><span class="op">/</span>adinapoli<span class="op">/</span>programming<span class="op">/</span>haskell<span class="op">/</span>expiweb<span class="op">.</span>hs<span class="op">/.</span>hsenv</span>
@@ -110,11 +99,18 @@
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        [mkPersist sqlSettings, mkMigrate <span class="st">&quot;migrateAuth&quot;</span>]</span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        (<span class="op">$</span>(persistFileWith lowerCaseSettings (getSchemaFor <span class="st">&quot;auth&quot;</span>)))</span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="dt">Failed</span> to install expiweb<span class="op">-</span><span class="fl">0.0</span><span class="op">.</span><span class="fl">0.1</span></span></code></pre></div>
-<p>This, unsurprisingly, means that we need our <code>schema.txt</code> to be there at compile time.</p>
+<p>This, unsurprisingly, means that we need our <code>schema.txt</code> to be there at compile
+time.</p>
 <h3 id="a-first-attempt-using-data-files-andor-extra-source-files">A first attempt: Using data-files and/or extra-source-files</h3>
-<p>After googling a bit, the first thing I’ve tried to do was to use <code>data-files</code> to instruct Cabal about the fact I have files I want to be copied over when I install the package. The problem is that <code>data-files</code> works at <em>run time</em>! In other terms, our package will still be broken. This way is a dead end.</p>
+<p>After googling a bit, the first thing I’ve tried to do was to use <code>data-files</code>
+to instruct Cabal about the fact I have files I want to be copied over when
+I install the package. The problem is that <code>data-files</code> works at <em>run time</em>!
+In other terms, our package will still be broken. This way is a dead end.</p>
 <h3 id="a-second-attempt-using-paths_expiweb-inside-setup.hs">A second attempt: Using Paths_expiweb inside Setup.hs</h3>
-<p>The second idea I had was to exploit the generated module <code>Paths_expiweb</code> inside a <code>Setup.hs</code> file, writing a <code>pre-build</code> hook to copy all the files I need using the aforementioned <code>getDataDir</code> function. The code might look like this:</p>
+<p>The second idea I had was to exploit the generated module <code>Paths_expiweb</code>
+inside a <code>Setup.hs</code> file, writing a <code>pre-build</code> hook to copy all the files
+I need using the aforementioned <code>getDataDir</code> function.
+The code might look like this:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#!/usr/bin/env runhaskell</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Distribution.Simple</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Distribution.PackageDescription</span></span>
@@ -138,9 +134,17 @@
 <span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  installDir <span class="ot">&lt;-</span> getDataDir</span>
 <span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  installDirectoryContents verbose <span class="st">&quot;resources&quot;</span> (installDir <span class="op">++</span> <span class="st">&quot;/resources&quot;</span>)</span>
 <span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> emptyHookedBuildInfo</span></code></pre></div>
-<p>This code seems to work, until you try to install the project inside a prestine environment (e.g. your production server): the problem is a classical <em>circular dependency</em> one: <code>Paths_expiweb</code> is created at <em>build time</em>, but we need to use it in our <code>Setup.hs</code> <em>before</em> it was even created (the proof is that, well, we need to import it, and <code>Setup.hs</code> needs to typecheck and compile before we can do anything)! So what?</p>
+<p>This code seems to work, until you try to install the project inside a prestine
+environment (e.g. your production server): the problem is a classical <em>circular
+dependency</em> one: <code>Paths_expiweb</code> is created at <em>build time</em>, but we need to
+use it in our <code>Setup.hs</code> <em>before</em> it was even created (the proof is that, well,
+we need to import it, and <code>Setup.hs</code> needs to typecheck and compile before we
+can do anything)! So what?</p>
 <h3 id="my-final-solution">My final solution</h3>
-<p>The final solution is something similar, which I created shamelessly copying a script I’ve found in the <a href="http://comments.gmane.org/gmane.comp.lang.haskell.cafe/106000">Haskell Cafè</a>. <strong>Disclaimer: This will work only if you are using hsenv, but it’s simple to adapt to other scenarios</strong>:</p>
+<p>The final solution is something similar, which I created shamelessly copying
+a script I’ve found in the <a href="http://comments.gmane.org/gmane.comp.lang.haskell.cafe/106000">Haskell Cafè</a>.
+<strong>Disclaimer: This will work only if you are using hsenv, but it’s simple to
+adapt to other scenarios</strong>:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#!/usr/bin/env runhaskell</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Distribution.Simple</span></span>
@@ -184,10 +188,14 @@
 <span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  installDir <span class="ot">&lt;-</span> getDataDir'</span>
 <span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  installDirectoryContents verbose <span class="st">&quot;resources&quot;</span> (installDir <span class="op">++</span> <span class="st">&quot;/resources&quot;</span>)</span>
 <span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> emptyHookedBuildInfo</span></code></pre></div>
-<p>The trick is simple: We know that, under <code>hsenv</code>, <code>cabal</code> will install package resources under <code>/cabal/share/packagename-packageversion</code>, so all we need is:</p>
+<p>The trick is simple: We know that, under <code>hsenv</code>, <code>cabal</code> will install package
+resources under <code>/cabal/share/packagename-packageversion</code>, so all we need is:</p>
 <ul>
-<li><p>Get the absolute path of our <code>hsenv</code> environment, looking up its variable in the environment</p></li>
-<li><p>Get the current package version, to allow the script to work across different versions. This is achieved using the <code>pkgVersion'</code> function, which parses the project manifest.</p></li>
+<li><p>Get the absolute path of our <code>hsenv</code> environment, looking up its variable
+in the environment</p></li>
+<li><p>Get the current package version, to allow the script to work across different
+versions. This is achieved using the <code>pkgVersion'</code> function, which parses the
+project manifest.</p></li>
 </ul>
 <p>That’s all. Further food of thoughts:</p>
 <ul>
@@ -201,36 +209,22 @@
 <li>http://neilmitchell.blogspot.it/2008/02/adding-data-files-using-cabal.html</li>
 <li>http://comments.gmane.org/gmane.comp.lang.haskell.cafe/106000</li>
 </ul>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2013-08-17-copy-your-project-resources-at-configure-time.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2013-08-17-copy-your-project-resources-at-configure-time.html';
-  var disqus_title = 'Copy Your Project Resources at Configure Time';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>

@@ -1,89 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Slick file download with Haskell in 40 SLOC — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Slick file download with Haskell in 40 SLOC — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Slick file download with Haskell in 40 SLOC — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">Slick file download with Haskell in 40 SLOC</h1>
+    <div class="post__meta">
+      <span>2013-07-20</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>Slick file download with Haskell in 40 SLOC</h1>
-
-<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>.</p>
-<br>
-<p>Lately I’ve submitted a <a href="https://github.com/tmhedberg/hsenv/pull/32">patch</a> to Hsenv featuring the ability to download a file over HTTP without external tools (e.g. curl), but using nothing more than awesome Haskell. I’ve posted the cool snippet on Reddit, and someone asked for a version with a progress bar, similar to what have been implemented in Python here:</p>
+  <div class="post__body">
+    <p>Lately I’ve submitted a <a href="https://github.com/tmhedberg/hsenv/pull/32">patch</a>
+to Hsenv featuring the ability to download a file over HTTP without
+external tools (e.g. curl), but using nothing more than awesome Haskell.
+I’ve posted the cool snippet on Reddit, and someone asked for a version with a
+progress bar, similar to what have been implemented in Python here:</p>
 <p><a href="http://stackoverflow.com/a/22776">Download a file with Python - SO</a></p>
-<p>I came up with a nice version which does rudimental error handling over HTTP response codes, which implements a progress bar and that has a constant memory usage, because we still retain all the benefits of programming with streaming libraries, namely <a href="http://hackage.haskell.org/package/io-streams">io-streams</a> and <a href="http://hackage.haskell.org/package/http-streams">http-streams</a>. Without further ado, let me show you the code:</p>
+<p>I came up with a nice version which does rudimental error handling
+over HTTP response codes, which implements a progress bar and that
+has a constant memory usage, because we still retain all the benefits
+of programming with streaming libraries, namely
+<a href="http://hackage.haskell.org/package/io-streams">io-streams</a> and
+<a href="http://hackage.haskell.org/package/http-streams">http-streams</a>.
+Without further ado, let me show you the code:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span> </span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a> </span>
@@ -129,37 +116,29 @@
 <span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> url <span class="ot">=</span> <span class="st">&quot;http://audacity.googlecode.com/files/audacity-macosx-ub-2.0.3.dmg&quot;</span></span>
 <span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span> <span class="op">$</span> <span class="st">&quot;Downloading &quot;</span> <span class="op">++</span> url</span>
 <span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>  downloadFile (C8.pack url) <span class="st">&quot;audacity.dmg&quot;</span></span></code></pre></div>
-<p>As you can see, it’s less than 40 lines of code! (ok, a bit more, but just because I’ve splitted the type signature and the error message on multiple lines to make it fit the blog template). Even better, as someone suggested on Reddit, we can make this code multi-platform using <code>withSocketsDo</code> before <code>get</code>. We need this on Windows machines only (to initialize the underlying socket), but due to the fact <code>withSocketsDo</code> is implemented as <code>id</code> on *nix platforms, everything will just work. Once again, Haskell rocks.</p>
+<p>As you can see, it’s less than 40 lines of code! (ok, a bit more, but just
+because I’ve splitted the type signature and the error message on multiple
+lines to make it fit the blog template). Even better, as someone suggested
+on Reddit, we can make this code multi-platform using <code>withSocketsDo</code> before <code>get</code>.
+We need this on Windows machines only (to initialize the underlying socket), but due
+to the fact <code>withSocketsDo</code> is implemented as <code>id</code> on *nix platforms, everything will
+just work. Once again, Haskell rocks.</p>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2013-07-20-slick-http-download-in-haskell.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2013-07-20-slick-http-download-in-haskell.html';
-  var disqus_title = 'Slick file download with Haskell in 40 SLOC';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>

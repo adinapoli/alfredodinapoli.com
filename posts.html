@@ -1,187 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Posts — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="./css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="./css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="./css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Posts — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Posts — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="./rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="./css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="./css/screen.css" />
+    <link rel="stylesheet" href="./css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="./img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
-      
-      <!-- start header -->
-      <div id="header" class="row">
+    <header class="site-header">
+      <a class="site-header__brand" href="./index.html">
+        <img class="site-header__avatar" src="./img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="./index.html">Home</a>
+        <a href="./posts.html">Posts</a>
+        <a href="./oss.html">OSS</a>
+        <a href="./talks.html">Talks</a>
+        <a href="./cv.html">CV</a>
+      </nav>
+    </header>
 
-          <div class="col-5 pull-left">
-            <img src="./img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="./index.html">Home</a> ●
-            <a href="./posts.html">Blog</a> ●
-            <a href="./oss.html">Projects</a> ●
-            <a href="./talks.html">Talks</a> ●
-            <a href="./cv_eu/cv_eu.html">CV</a> ●
-            <a href="./contacts.html">Contacts</a>
-          </div>
-        </div>
+    <div class="shell">
+      <main>
+        <article class="page">
+  <h1 class="page__title">Posts</h1>
+  <p class="page__lead">Full archive of every post. Click a tag to filter by topic.</p>
+</article>
 
-      </div>
+<section class="archive">
+  <ul>
+    <li class="archive__item">
+  <span class="archive__date">2018-12-20</span>
+  <span class="archive__title"><a href="./posts/2018-12-20-semi-secure-gpg-key-backup.html">How to backup and store your GPG private key (semi) securely</a></span>
+  <span class="archive__tag"><a href="tags/linux.html" class="chip chip--default">linux</a><a href="tags/security.html" class="chip chip--security">security</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2017-05-06</span>
+  <span class="archive__title"><a href="./posts/2017-05-06-about-monadcontrolio.html">About MonadBaseControl</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2017-04-07</span>
+  <span class="archive__title"><a href="./posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html">The simplest Haskell Priority Queue implementation I know of</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/data-structures.html" class="chip chip--default">data-structures</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2017-03-16</span>
+  <span class="archive__title"><a href="./posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Deploying Haskell on AWS Lambda</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/aws.html" class="chip chip--haskell">aws</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2016-10-23</span>
+  <span class="archive__title"><a href="./posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html">iconv-typed: An experiment in API design and type safety</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2016-09-10</span>
+  <span class="archive__title"><a href="./posts/2016-09-10-paginators-are-mealy-machines-in-disguise.html">Paginators are Mealy Machines in disguise</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2015-11-03</span>
+  <span class="archive__title"><a href="./posts/2015-11-03-how-i-deploy-haskell-code.html">How I deploy Haskell Code</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/devops.html" class="chip chip--default">devops</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2015-02-13</span>
+  <span class="archive__title"><a href="./posts/2015-02-13-releasing_the_threads_supervisor_library.html">Releasing the threads-supervisor library</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/life.html" class="chip chip--default">life</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2015-01-25</span>
+  <span class="archive__title"><a href="./posts/2015-01-25-announcing_snaplet_purescript.html">Announcing "snaplet-purescript"</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2014-12-17</span>
+  <span class="archive__title"><a href="./posts/2014-12-17-convince-me-to-use-rust.html">Convince me to use Rust</a></span>
+  <span class="archive__tag"><a href="tags/programming.html" class="chip chip--default">programming</a><a href="tags/life.html" class="chip chip--default">life</a><a href="tags/rust.html" class="chip chip--compilers">rust</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2014-12-12</span>
+  <span class="archive__title"><a href="./posts/2014-12-12-annoucing-the-rncryptor-hs-library.html">Announcing (and releasing) the rncryptor-hs library</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2014-10-13</span>
+  <span class="archive__title"><a href="./posts/2014-10-13-fun-with-dependent-types-in-haskell.html">Fun with Dependent Types in Haskell</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/type-families.html" class="chip chip--types">type-families</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2014-09-07</span>
+  <span class="archive__title"><a href="./posts/2014-09-07-releasing-the-mandrill-library.html">Releasing the mandrill package on Hackage</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2014-06-09</span>
+  <span class="archive__title"><a href="./posts/2014-06-09-my-zurihac-project-revamping-snaplet-perf.html">My ZuriHac 2014 project</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/snap.html" class="chip chip--haskell">snap</a><a href="tags/zurihac.html" class="chip chip--haskell">zurihac</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2014-04-27</span>
+  <span class="archive__title"><a href="./posts/2014-04-27-my-road-to-haskell.html">My Road to Haskell</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/life.html" class="chip chip--default">life</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2013-08-17</span>
+  <span class="archive__title"><a href="./posts/2013-08-17-copy-your-project-resources-at-configure-time.html">Copy Your Project Resources at Configure Time</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2013-07-28</span>
+  <span class="archive__title"><a href="./posts/2013-07-28-state-is-pure.html">State is Pure</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2013-07-20</span>
+  <span class="archive__title"><a href="./posts/2013-07-20-slick-http-download-in-haskell.html">Slick file download with Haskell in 40 SLOC</a></span>
+  <span class="archive__tag"><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2013-02-10</span>
+  <span class="archive__title"><a href="./posts/2013-02-10-demand-more-from-your-programming-language.html">Demand more from your programming language</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/scala.html" class="chip chip--types">scala</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2013-01-18</span>
+  <span class="archive__title"><a href="./posts/2013-01-18-disengage-and-live-better.html">Disengage and live better</a></span>
+  <span class="archive__tag"><a href="tags/self.html" class="chip chip--default">self</a><a href="tags/programming.html" class="chip chip--default">programming</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-12-31</span>
+  <span class="archive__title"><a href="./posts/2012-12-31-2012-report.html">2012 Report</a></span>
+  <span class="archive__tag"><a href="tags/self.html" class="chip chip--default">self</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-10-31</span>
+  <span class="archive__title"><a href="./posts/2012-10-31-scalaz-for-the-haskell-programmer.html">Scalaz for the Haskell programmer - Part 1</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/scala.html" class="chip chip--types">scala</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-10-24</span>
+  <span class="archive__title"><a href="./posts/2012-10-24-i-love-to-be-a-windows-repairer.html">I love to be a windows repairer</a></span>
+  <span class="archive__tag"><a href="tags/self.html" class="chip chip--default">self</a><a href="tags/programming.html" class="chip chip--default">programming</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-10-18</span>
+  <span class="archive__title"><a href="./posts/2012-10-18-fast-random-strings-generation-in-haskell.html">Fast Random Strings Generation in Haskell</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-10-17</span>
+  <span class="archive__title"><a href="./posts/2012-10-17-fun-with-iteratee-io.html">Fun with Iteratee IO</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-10-04</span>
+  <span class="archive__title"><a href="./posts/2012-10-04-vim-markmultiple-released.html">vim-markmultiple released</a></span>
+  <span class="archive__tag"><a href="tags/vim.html" class="chip chip--default">vim</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-09-13</span>
+  <span class="archive__title"><a href="./posts/2012-09-13-getting-serious-about-haskell.html">Getting serious about Haskell</a></span>
+  <span class="archive__tag"><a href="tags/self.html" class="chip chip--default">self</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-09-12</span>
+  <span class="archive__title"><a href="./posts/2012-09-12-beware-the-defaulting.html">Beware the defaulting</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/ocaml.html" class="chip chip--types">ocaml</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-07-31</span>
+  <span class="archive__title"><a href="./posts/2012-07-31-jumped-off-macosx-ship.html">Yes, I am another Mac OS X user that jumped off the ship</a></span>
+  <span class="archive__tag"><a href="tags/macosx.html" class="chip chip--default">macosx</a><a href="tags/linux.html" class="chip chip--default">linux</a><a href="tags/bodhi.html" class="chip chip--default">bodhi</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-07-30</span>
+  <span class="archive__title"><a href="./posts/2012-07-30-migrating-my-website.html">Blog migration</a></span>
+  <span class="archive__tag"><a href="tags/self.html" class="chip chip--default">self</a></span>
+</li>
+<li class="archive__item">
+  <span class="archive__date">2012-04-02</span>
+  <span class="archive__title"><a href="./posts/2012-04-02-humbly-simple-fsharp.html">Humbly simple F# Maybe monad application scenario</a></span>
+  <span class="archive__tag"><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/fsharp.html" class="chip chip--default">fsharp</a></span>
+</li>
 
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <div class="col-12">
-    <h3>
-        Posts
-        <a href="http://www.alfredodinapoli.com/rss.xml"><img src="./img/rss.png" width="20" /></a>
-    </h3>
-    <ul>
-        <li>
-<a style="font-size: 110%" href="./posts/2018-12-20-semi-secure-gpg-key-backup.html">How to backup and store your GPG private key (semi) securely</a> - Published <span class="soft">December 20  2018</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2017-05-06-about-monadcontrolio.html">About MonadBaseControl</a> - Published <span class="soft">May  6  2017</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html">The simplest Haskell Priority Queue implementation I know of</a> - Published <span class="soft">April  7  2017</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Deploying Haskell on AWS Lambda</a> - Published <span class="soft">March 16  2017</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html">iconv-typed: An experiment in API design and type safety</a> - Published <span class="soft">October 23  2016</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2016-09-10-paginators-are-mealy-machines-in-disguise.html">Paginators are Mealy Machines in disguise</a> - Published <span class="soft">September 10  2016</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2015-11-03-how-i-deploy-haskell-code.html">How I deploy Haskell Code</a> - Published <span class="soft">November  3  2015</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2015-02-13-releasing_the_threads_supervisor_library.html">Releasing the threads-supervisor library</a> - Published <span class="soft">February 13  2015</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2015-01-25-announcing_snaplet_purescript.html">Announcing "snaplet-purescript"</a> - Published <span class="soft">January 25  2015</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2014-12-17-convince-me-to-use-rust.html">Convince me to use Rust</a> - Published <span class="soft">December 17  2014</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2014-12-12-annoucing-the-rncryptor-hs-library.html">Announcing (and releasing) the rncryptor-hs library</a> - Published <span class="soft">December 12  2014</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2014-10-13-fun-with-dependent-types-in-haskell.html">Fun with Dependent Types in Haskell</a> - Published <span class="soft">October 13  2014</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2014-09-07-releasing-the-mandrill-library.html">Releasing the mandrill package on Hackage</a> - Published <span class="soft">September  7  2014</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2014-06-09-my-zurihac-project-revamping-snaplet-perf.html">My ZuriHac 2014 project</a> - Published <span class="soft">June  9  2014</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2014-04-27-my-road-to-haskell.html">My Road to Haskell</a> - Published <span class="soft">April 27  2014</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2013-08-17-copy-your-project-resources-at-configure-time.html">Copy Your Project Resources at Configure Time</a> - Published <span class="soft">August 17  2013</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2013-07-28-state-is-pure.html">State is Pure</a> - Published <span class="soft">July 28  2013</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2013-07-20-slick-http-download-in-haskell.html">Slick file download with Haskell in 40 SLOC</a> - Published <span class="soft">July 20  2013</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2013-02-10-demand-more-from-your-programming-language.html">Demand more from your programming language</a> - Published <span class="soft">February 10  2013</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2013-01-18-disengage-and-live-better.html">Disengage and live better</a> - Published <span class="soft">January 18  2013</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-12-31-2012-report.html">2012 Report</a> - Published <span class="soft">December 31  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-10-31-scalaz-for-the-haskell-programmer.html">Scalaz for the Haskell programmer - Part 1</a> - Published <span class="soft">October 31  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-10-24-i-love-to-be-a-windows-repairer.html">I love to be a windows repairer</a> - Published <span class="soft">October 24  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-10-18-fast-random-strings-generation-in-haskell.html">Fast Random Strings Generation in Haskell</a> - Published <span class="soft">October 18  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-10-17-fun-with-iteratee-io.html">Fun with Iteratee IO</a> - Published <span class="soft">October 17  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-10-04-vim-markmultiple-released.html">vim-markmultiple released</a> - Published <span class="soft">October  4  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-09-13-getting-serious-about-haskell.html">Getting serious about Haskell</a> - Published <span class="soft">September 13  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-09-12-beware-the-defaulting.html">Beware the defaulting</a> - Published <span class="soft">September 12  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-07-31-jumped-off-macosx-ship.html">Yes, I am another Mac OS X user that jumped off the ship</a> - Published <span class="soft">July 31  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-07-30-migrating-my-website.html">Blog migration</a> - Published <span class="soft">July 30  2012</span>
-</li>
-<li>
-<a style="font-size: 110%" href="./posts/2012-04-02-humbly-simple-fsharp.html">Humbly simple F# Maybe monad application scenario</a> - Published <span class="soft">April  2  2012</span>
-</li>
+  </ul>
+</section>
 
-    </ul>
-</div>
+      </main>
 
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="./rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="./contacts.html">Contacts</a>
+      </footer>
     </div>
-    
 
+    
   </body>
 </html>

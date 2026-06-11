@@ -1,104 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="./css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="./css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="./css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Home — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Home — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="./rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="./css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="./css/screen.css" />
+    <link rel="stylesheet" href="./css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="./img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
-      
-      <!-- start header -->
-      <div id="header" class="row">
+    <header class="site-header">
+      <a class="site-header__brand" href="./index.html">
+        <img class="site-header__avatar" src="./img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="./index.html" aria-current="page">Home</a>
+        <a href="./posts.html">Posts</a>
+        <a href="./oss.html">OSS</a>
+        <a href="./talks.html">Talks</a>
+        <a href="./cv.html">CV</a>
+      </nav>
+    </header>
 
-          <div class="col-5 pull-left">
-            <img src="./img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="./index.html">Home</a> ●
-            <a href="./posts.html">Blog</a> ●
-            <a href="./oss.html">Projects</a> ●
-            <a href="./talks.html">Talks</a> ●
-            <a href="./cv_eu/cv_eu.html">CV</a> ●
-            <a href="./contacts.html">Contacts</a>
-          </div>
-        </div>
+    <div class="shell">
+      <main>
+        <article class="page">
+  <section class="hero">
+  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="hero__inner">
 
-      </div>
+    <div class="hero__monogram">
+      <img src="./img/alfredo.jpg" alt="Alfredo Di Napoli" />
+    </div>
 
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <div class="row text-center">
-  <div class="col-6">
-    <p class="lead">Hello, I'm <b>Alfredo Di Napoli</b>,
-      and I like to define myself a
-      <b>beauty-driven developer</b>.
-      I love to build things, mainly in <b>Haskell</b>.
-      I'm an <a href="https://github.com/adinapoli">open source contributor</a>,
-      a <a href="talks.html">public speaker</a> and a geek.  I pursue <b>simplicity</b> both in life and code.
-      <em>"Beauty is more important in computing than anywhere else
-      in technology because software is so complicated.
-      Beauty is the <b>ultimate defense</b> against complexity"</em> - David Gelernter
+    <h1 class="hero__name">Alfredo Di Napoli</h1>
+
+    <p class="hero__role">Senior Haskell Engineer · Distributed Systems</p>
+
+    <p class="hero__bio">
+      Beauty-driven developer. Haskell since 2010. Engineer at
+      Well-Typed. Open source contributor and public speaker based in
+      Rome.
     </p>
+
+    <div class="hero__chips">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--types">type-driven design</span>
+      <span class="chip chip--types">distributed systems</span>
+      <span class="chip chip--compilers">compilers</span>
+    </div>
+
+    <div class="hero__quote">
+      "Beauty is more important in computing than anywhere else in
+      technology because software is so complicated. Beauty is the
+      ultimate defense against complexity."
+      <span class="hero__quote-attr">— David Gelernter</span>
+    </div>
+
+    <div class="hero__cta">
+      <a class="btn btn--primary" href="./contacts.html">Get in touch</a>
+      <a class="btn btn--ghost" href="./cv.html">View my CV</a>
+    </div>
+
   </div>
-  <div id="portrait" class="col-6 pull-right">
-    <img class="img-circle" src="img/alfredo.jpg" width="250">
-  </div>
+</section>
+
+<div class="section-label">
+  <span>// what i'm building</span>
+  <span class="section-label__rule" aria-hidden="true"></span>
 </div>
 
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+<section class="card-grid">
+  <a class="card card--featured" href="https://github.com/adinapoli/rusholme">
+    <div class="card__kicker">// featured</div>
+    <h3 class="card__title">Rusholme</h3>
+    <p class="card__body">A toy Haskell compiler in Zig. Frontend, Core, GRIN, LLVM/WASM/C backends. Open source, in development.</p>
+    <div class="card__tags">
+      <span class="chip chip--compilers">zig</span>
+      <span class="chip chip--compilers">llvm</span>
+      <span class="chip chip--compilers">grin</span>
     </div>
+  </a>
+
+  <a class="card card--production" href="./talks.html">
+    <div class="card__kicker">// talks</div>
+    <h3 class="card__title">Public Speaking</h3>
+    <p class="card__body">Talks on Haskell in production, distributed systems, and video transcoding at LambdaCon, Haskell Exchange and more.</p>
+    <div class="card__tags">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--types">distributed systems</span>
+    </div>
+  </a>
+
+  <a class="card card--oss" href="https://well-typed.com/blog/2021/08/the-new-ghc-diagnostic-infrastructure/">
+    <div class="card__kicker">// open source</div>
+    <h3 class="card__title">GHC & Haskell libraries </h3>
+    <p class="card__body">Contributor to GHC as well as many Haskell open source libraries.</p>
+    <div class="card__tags">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--haskell">ghc</span>
+    </div>
+  </a>
+</section>
+
+<div class="section-label">
+  <span>// writing</span>
+  <span class="section-label__rule" aria-hidden="true"></span>
+  <a class="section-label__more" href="./posts.html">all posts →</a>
+</div>
+
+<section class="archive">
+  <ul>
+    <li class="archive__item">
+      <span class="archive__date">2018-12-20</span>
+      <span class="archive__title"><a href="./posts/2018-12-20-semi-secure-gpg-key-backup.html">How to backup and store your GPG private key (semi) securely</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="./tags/security.html">security</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-05-06</span>
+      <span class="archive__title"><a href="./posts/2017-05-06-about-monadcontrolio.html">About MonadBaseControl</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="./tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-04-07</span>
+      <span class="archive__title"><a href="./posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html">The simplest Haskell Priority Queue implementation I know of</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="./tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-03-16</span>
+      <span class="archive__title"><a href="./posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Deploying Haskell on AWS Lambda</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="./tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2016-10-23</span>
+      <span class="archive__title"><a href="./posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html">iconv-typed: An experiment in API design and type safety</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="./tags/types.html">types</a></span>
+    </li>
+  </ul>
+</section>
+
+</article>
+
+      </main>
+
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="./rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="./contacts.html">Contacts</a>
+      </footer>
+    </div>
+
     
       
     
-
   </body>
 </html>

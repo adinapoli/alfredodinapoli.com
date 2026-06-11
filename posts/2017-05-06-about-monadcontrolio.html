@@ -1,87 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About MonadBaseControl — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="About MonadBaseControl — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="About MonadBaseControl — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">About MonadBaseControl</h1>
+    <div class="post__meta">
+      <span>2017-05-06</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>About MonadBaseControl</h1>
-
-<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>.</p>
-<br>
-<p>This is a literate Haskell post. You can play with the examples in ghci, in a stack playground, calling:</p>
+  <div class="post__body">
+    <p>This is a literate Haskell post. You can play with the examples in ghci, in a stack playground, calling:</p>
 <pre><code>stack ghci --package transformers --package transformers-base --package monad-control --package distributed-process --package distributed-process-monad-control</code></pre>
 <p>Let’s start with some imports:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE RankNTypes #-}</span></span>
@@ -112,66 +89,67 @@
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    restoreM ::</span> <span class="dt">StM</span> m a <span class="ot">-&gt;</span> m a</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">RunInBase</span> m b <span class="ot">=</span> <span class="kw">forall</span> a<span class="op">.</span> m a <span class="ot">-&gt;</span> b (<span class="dt">StM</span> m a)</span></code></pre></div>
-<p>A legitimate question is: how can I write the correct right hand side for <code>StM</code>? As you might know, when the <code>type</code> keyword is being used in a type class definition we are not dealing with a <em>type synonym</em> but with a <em>type family</em>. A <em>type family</em> is essentially a function with operates on <em>types</em>, not <em>values</em>, like “normal” functions. But how can I pick the correct RHS? How would I know? There are two approaches: one seems to be the most popular, but it requires the use of <code>UndecidableInstances</code>, the other was found in this small nugget of <a href="http://stackoverflow.com/a/33558631/479553">wisdom</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> over at Stack Overflow.</p>
+<p>A legitimate question is: how can I write the correct right hand side for <code>StM</code>? As you might know, when the <code>type</code> keyword is
+being used in a type class definition we are not dealing with a <em>type synonym</em> but with a <em>type family</em>. A <em>type family</em> is
+essentially a function with operates on <em>types</em>, not <em>values</em>, like “normal” functions. But how can I pick the correct RHS?
+How would I know? There are two approaches: one seems to be the most popular, but it requires the use of <code>UndecidableInstances</code>,
+the other was found in this small nugget of <a href="http://stackoverflow.com/a/33558631/479553">wisdom</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> over at Stack Overflow.</p>
 <p>The first one is this:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBaseControl</span> <span class="dt">IO</span> <span class="dt">RemoteM</span> <span class="kw">where</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">StM</span> <span class="dt">RemoteM</span> a <span class="ot">=</span> <span class="dt">StM</span> (<span class="dt">StateT</span> <span class="dt">Ctx</span> <span class="dt">Process</span>) a</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  liftBaseWith f <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">$</span> liftBaseWith <span class="op">$</span> \q <span class="ot">-&gt;</span> f (q <span class="op">.</span> runRemote)</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  restoreM <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> restoreM</span></code></pre></div>
-<p>Why this works? Also, it might not be immediately clear why <code>StM</code> appears on the right hand side. You might ask yourself “Did he just pull out the type StM out of thin air and reused it?”. It’s allright, I have been there myself. Haskell notation is so dense sometimes it’s easy to get lost. The key insigth is this: <strong>StM is NOT a type, is a type-level FUNCTION!</strong> Here, all we are doing is calling <code>StM</code> on the RHS, effectively offloading computing the result and hoping that somebody already defined in the stack the final solution. So we are effectively applying <code>StM</code> to <code>(StateT Ctx Process) a</code> as an argument. And this is exactly <em>why</em> GHC asks us to enable <code>UndecidableInstances</code>. It cannot guarantee, without compiling the program, that GHC will terminate. Effectively (if I recall correctly what Andres Loh once told us in an Haskell course in London), as scary as the name might sound, <code>UndecidableInstances</code> simply tells us “hey, it’s probably going to be fine, but there is a chance the typechecking might not terminate”. This is (very loosely speaking) because the RHS doesn’t “reduce” as it has the same number of terms of the LHS, so GHC gets suspicious.</p>
+<p>Why this works? Also, it might not be immediately clear why <code>StM</code> appears on the right hand side. You might ask yourself
+“Did he just pull out the type StM out of thin air and reused it?”. It’s allright, I have been there myself. Haskell notation
+is so dense sometimes it’s easy to get lost. The key insigth is this: <strong>StM is NOT a type, is a type-level FUNCTION!</strong> Here,
+all we are doing is calling <code>StM</code> on the RHS, effectively offloading computing the result and hoping that somebody already
+defined in the stack the final solution. So we are effectively applying <code>StM</code> to <code>(StateT Ctx Process) a</code> as an argument. And
+this is exactly <em>why</em> GHC asks us to enable <code>UndecidableInstances</code>. It cannot guarantee, without compiling the program, that GHC
+will terminate. Effectively (if I recall correctly what Andres Loh once told us in an Haskell course in London), as scary as
+the name might sound, <code>UndecidableInstances</code> simply tells us “hey, it’s probably going to be fine, but there is a chance the
+typechecking might not terminate”. This is (very loosely speaking) because the RHS doesn’t “reduce” as it has the same number
+of terms of the LHS, so GHC gets suspicious.</p>
 <p>The other approach is to simply ask GHC for the result of the type family. How? Let’s fire up <code>ghci</code>, and let’s type this:</p>
 <pre><code>ghci&gt; :set -XRankNTypes
 ghci&gt; import Control.Monad.Trans.Control
 ghci&gt; :kind! forall a. StM RemoteM a
 forall a. StM RemoteM a :: *
 = (a, Ctx)</code></pre>
-<p>Wow, can you believe how easy it was? It’s equally easy to convince ourselves why this result makes sense: this is nothing more of the result of applying <code>Stm</code> to <code>StateT Ctx Process</code>. Let’s find out:</p>
+<p>Wow, can you believe how easy it was? It’s equally easy to convince ourselves why this result makes sense: this is nothing
+more of the result of applying <code>Stm</code> to <code>StateT Ctx Process</code>. Let’s find out:</p>
 <pre><code>ghci&gt; import Control.Monad.Trans.State.Strict
 ghci&gt; import Control.Distributed.Process
 ghci&gt; :kind! forall a. StM (StateT Ctx Process) a
 forall a. StM (StateT Ctx Process) a :: *
 = (a, Ctx)</code></pre>
-<p>And the best part is that now we don’t need <code>UndecidableInstances</code>, and we are much more confident we are computing <code>StM</code> the right way. Our definition becomes:</p>
+<p>And the best part is that now we don’t need <code>UndecidableInstances</code>, and we are much more confident we are computing <code>StM</code>
+the right way. Our definition becomes:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">MonadBaseControl</span> <span class="dt">IO</span> <span class="dt">RemoteM</span> <span class="kw">where</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">StM</span> <span class="dt">RemoteM</span> a <span class="ot">=</span> (a, <span class="dt">Ctx</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  liftBaseWith f <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">$</span> liftBaseWith <span class="op">$</span> \q <span class="ot">-&gt;</span> f (q <span class="op">.</span> runRemote)</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  restoreM <span class="ot">=</span> <span class="dt">RemotePure</span> <span class="op">.</span> restoreM</span></code></pre></div>
-<section class="footnotes" role="doc-endnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1" role="doc-endnote"><p>Thanks, Daniel Wagner!<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>Thanks, Daniel Wagner!<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2017-05-06-about-monadcontrolio.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2017-05-06-about-monadcontrolio.html';
-  var disqus_title = 'About MonadBaseControl';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>

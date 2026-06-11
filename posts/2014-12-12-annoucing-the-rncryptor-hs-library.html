@@ -1,96 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Announcing (and releasing) the rncryptor-hs library — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Announcing (and releasing) the rncryptor-hs library — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Announcing (and releasing) the rncryptor-hs library — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">Announcing (and releasing) the rncryptor-hs library</h1>
+    <div class="post__meta">
+      <span>2014-12-12</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/fp.html" class="chip chip--types">fp</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>Announcing (and releasing) the rncryptor-hs library</h1>
-
-<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>.</p>
-<br>
-<h3 id="announcing-and-releasing-the-rncryptor-hs-library">Announcing (and releasing) the rncryptor-hs library</h3>
-<p>Today I’m releasing the very supercalifragilistic first version of the <a href="https://github.com/adinapoli/rncryptor-hs">rncryptor-hs</a> library. This library is a reasonably fast implementation of the <a href="https://github.com/RNCryptor">RNCryptor</a> encrypted file format by <a href="http://robnapier.net/">Rob Napier</a>. It comes in two flavour:</p>
+  <div class="post__body">
+    <h3 id="announcing-and-releasing-the-rncryptor-hs-library">Announcing (and releasing) the rncryptor-hs library</h3>
+<p>Today I’m releasing the very supercalifragilistic first version
+of the <a href="https://github.com/adinapoli/rncryptor-hs">rncryptor-hs</a> library.
+This library is a reasonably fast implementation of the <a href="https://github.com/RNCryptor">RNCryptor</a>
+encrypted file format by <a href="http://robnapier.net/">Rob Napier</a>. It comes in two flavour:</p>
 <ol type="1">
 <li>A “oneshot” function which will decrypt the input bytes retaining all the content in memory</li>
-<li>A streaming interface (using <a href="http://hackage.haskell.org/package/io-streams">io-streams</a>) for efficient decryption</li>
+<li>A streaming interface (using <a href="http://hackage.haskell.org/package/io-streams">io-streams</a>) for
+efficient decryption</li>
 </ol>
-<p>The state of the library is largely <strong>incomplete</strong>, as was hacked in the previous two days and a half to respond to a real world case scenario I had at work. Currently what’s implemented is only the decryption, there are basically no unit tests (or QuickCheck properties), but the quickest way for a library to grow is with people contributing to it, this is why I’m announcing it at a so-early stage.</p>
+<p>The state of the library is largely <strong>incomplete</strong>, as was hacked in the previous two days and
+a half to respond to a real world case scenario I had at work. Currently what’s implemented is
+only the decryption, there are basically no unit tests (or QuickCheck properties), but the
+quickest way for a library to grow is with people contributing to it, this is why I’m announcing
+it at a so-early stage.</p>
 <h3 id="why-should-i-care">Why should I care?</h3>
-<p>This library seems to be very widespread in the mobile world (especially on the ObjC side of it), thus if you are developing for iOS and need to encrypt stuff, there is a high chance you gonna stumble upon it. But when it comes to the server side of things, if you are using Haskell on your backend, you (were) out of luck. You could either use C++ and expose a C API and call it from your Haskell code, or use something like Python. There is actually a <a href="https://github.com/RNCryptor/RNCryptor-python">Python implementation</a>, but it reads the entire content to decrypt in memory, a luxury I could’t afford!</p>
-<p>At work, we record, transcode and upload on S3 lots of videos, which are our most important resource. In doing so, we want to protect such media when we transfer them over the network, namely from our in-house iOS application towards Amazon’s S3. We then notify our transcoder server (written in Haskell) to go and fetch this encrypted video, decrypt it and upload it into another folder for the real transcoding to begin. So what I needed was a very simple streaming CLI program to take encrypted bytes from stdin, decrypt them, and send them over to stdout. Using my library this is actually quite a piece of cake:</p>
+<p>This library seems to be very widespread in the mobile world (especially on the ObjC side of it),
+thus if you are developing for iOS and need to encrypt stuff, there is a high chance you gonna
+stumble upon it. But when it comes to the server side of things, if you are using Haskell on your
+backend, you (were) out of luck. You could either use C++ and expose a C API and call it from your
+Haskell code, or use something like Python. There is actually a <a href="https://github.com/RNCryptor/RNCryptor-python">Python implementation</a>, but it reads the entire content to decrypt in memory, a luxury
+I could’t afford!</p>
+<p>At work, we record, transcode and upload on S3 lots of videos, which are our most important
+resource. In doing so, we want to protect such media when we transfer them over the network,
+namely from our in-house iOS application towards Amazon’s S3. We then notify our transcoder
+server (written in Haskell) to go and fetch this encrypted video, decrypt it and upload it into
+another folder for the real transcoding to begin. So what I needed was a very simple streaming
+CLI program to take encrypted bytes from stdin, decrypt them, and send them over to stdout.
+Using my library this is actually quite a piece of cake:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -105,8 +101,13 @@
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> args <span class="kw">of</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        key<span class="op">:</span>_ <span class="ot">-&gt;</span> decryptStream (B.pack key) S.stdin S.stdout</span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            _ <span class="ot">-&gt;</span> <span class="fu">putStrLn</span> <span class="st">&quot;usage: decrypter &lt;key&gt;&quot;</span></span></code></pre></div>
-<p>The flexibility <code>io-streams</code> give us means you are not limited to stdin/stdout, as you can build <code>InputStream</code> and <code>OutputStream</code> also from file <code>Handle</code>, raw <code>ByteString</code> and much more.</p>
-<p>Combined with Amazon’s <a href="https://github.com/aws/aws-cli">aws-cli</a> tools, which provides streaming copy from and to S3, I can now download a file from S3, decrypt it and send it back in one pass, efficiently:</p>
+<p>The flexibility <code>io-streams</code> give us means you are not limited to stdin/stdout, as
+you can build <code>InputStream</code> and <code>OutputStream</code> also from file <code>Handle</code>, raw
+<code>ByteString</code> and much more.</p>
+<p>Combined with Amazon’s <a href="https://github.com/aws/aws-cli">aws-cli</a> tools,
+which provides streaming copy from and to
+S3, I can now download a file from S3, decrypt it and send it back in one pass,
+efficiently:</p>
 <pre><code>aws s3 cp s3://my-bucket/stream - | decrypter mysecretkey | aws s3 cp - s3://my-bucket/new-stream</code></pre>
 <p>Easy!</p>
 <h3 id="whats-left-to-do">What’s left to do</h3>
@@ -115,43 +116,32 @@
 <li>HMAC validation</li>
 <li>Testing!</li>
 <li>Encryption</li>
-<li>Make it independent from any streaming libraries, so that you can plug your own (conduit, pipes, you name it)</li>
+<li>Make it independent from any streaming libraries, so that you can plug
+your own (conduit, pipes, you name it)</li>
 </ul>
-<p>PR are highly encouraged! XMas is coming, so is your spare time, please consider improving the Haskell library ecosystem ;)</p>
+<p>PR are highly encouraged! XMas is coming, so is your spare time, please consider
+improving the Haskell library ecosystem ;)</p>
 <p>The library is available on <a href="http://hackage.haskell.org/package/rncryptor">Hackage</a>, grab it while it’s hot!</p>
 <h2 id="acknowledgements">Acknowledgements</h2>
-<p>A big thank you to Rob Napier for kindly replying to my email with lots of useful insights which allowed me to fix a bug in my decryption routine.</p>
+<p>A big thank you to Rob Napier for kindly replying to my email with lots of useful
+insights which allowed me to fix a bug in my decryption routine.</p>
 <p>Alfredo</p>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2014-12-12-annoucing-the-rncryptor-hs-library.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2014-12-12-annoucing-the-rncryptor-hs-library.html';
-  var disqus_title = 'Announcing (and releasing) the rncryptor-hs library';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>

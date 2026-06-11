@@ -1,90 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fast Random Strings Generation in Haskell — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Fast Random Strings Generation in Haskell — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Fast Random Strings Generation in Haskell — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">Fast Random Strings Generation in Haskell</h1>
+    <div class="post__meta">
+      <span>2012-10-18</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>Fast Random Strings Generation in Haskell</h1>
-
-<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
-<br>
-<p>Yesterday morning there was an interesting question on Haskell Cafe:</p>
+  <div class="post__body">
+    <p>Yesterday morning there was an interesting question on Haskell Cafe:</p>
 <div data-markdown="1">
-<p><br> <em> Hello anyone, I’ve written a snippet which generates a file full of random strings. When compiled with -O2 on ghc-7.6, the generation speed is about 2Mb per second which is on par with interpreted php. That’s the fact I find rather disappointing. Maybe I’ve missed something trivial? Any suggestions and explanations are welcome.</em></p>
-<p>It seemed an interesting exercise and we can’t put up being on par with PHP, so I decided to dig in. The code was the following:</p>
+<p><br>
+<em>
+Hello anyone,
+I’ve written a snippet which generates a file full of random strings. When
+compiled with -O2 on ghc-7.6, the generation speed is about 2Mb per second
+which is on par with interpreted php. That’s the fact I find rather
+disappointing. Maybe I’ve missed something trivial? Any suggestions and
+explanations are welcome.</em></p>
+<p>It seemed an interesting exercise and we can’t put up being on par with
+PHP, so I decided to dig in. The code was the following:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Exception</span></span>
@@ -111,8 +96,16 @@
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  writeCorpus <span class="st">&quot;test.txt&quot;</span></span></code></pre></div>
 </div>
 <p><br></p>
-<p>The first thing I thought was to switch to <code>ByteString</code>: since we don’t need to deal with <code>UTF-8</code> encoding (the strings to generate were plain ASCII strings in the range <code>a-z</code>) we can avoid paying the overhead <code>Data.Text</code> introduces. After that, the code was a slightly faster, but nothing thrilling (about <code>7 seconds</code> on my machine).</p>
-<p>The crucial hint was gave from Gregory Collins, who suggested that <code>System.Random</code> was very slow. He proposed, as better alternative, the <a href="http://hackage.haskell.org/package/mwc-random-0.12.0.1">mwc-random</a> package, and the fact <a href="http://www.serpentine.com/blog/">Bos</a> was the author was a guarantee. After a bit of struggling I ended up with the following code:</p>
+<p>The first thing I thought was to switch to <code>ByteString</code>: since we don’t
+need to deal with <code>UTF-8</code> encoding (the strings to generate were plain
+ASCII strings in the range <code>a-z</code>) we can avoid paying the overhead
+<code>Data.Text</code> introduces. After that, the code was a slightly faster, but
+nothing thrilling (about <code>7 seconds</code> on my machine).</p>
+<p>The crucial hint was gave from Gregory Collins, who suggested that
+<code>System.Random</code> was very slow. He proposed, as better alternative, the
+<a href="http://hackage.haskell.org/package/mwc-random-0.12.0.1">mwc-random</a> package,
+and the fact <a href="http://www.serpentine.com/blog/">Bos</a> was the author was a
+guarantee. After a bit of struggling I ended up with the following code:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Random.MWC</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Primitive</span></span>
@@ -158,42 +151,45 @@
 <span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span>  writeCorpus <span class="st">&quot;test.txt&quot;</span></span></code></pre></div>
 <p>The are a couple of interesting points:</p>
 <ul>
-<li><p>As stated inside the docs <code>withSystemRandom</code> <em>is a somewhat expensive function, and is intended to be called only occasionally (e.g. once per thread). You should use the <code>Gen</code> it creates to generate many random numbers</em>). What we are doing is confining the <code>Gen</code> generation is the “inside loop”. This guarantee that we get a brand new <code>Gen</code> to pass to each invocation of <code>genString</code>.</p></li>
-<li><p>I’ve extrapolated <code>c2w8</code> from the <a href="http://hackage.haskell.org/package/MissingH-1.1.1.0">MissingH</a> library from John Goerzen. We need this because <code>uniformR</code> expects a type which is instance of <code>Variate</code>, which is defined for <code>Word8</code> but not for <code>Char</code>.</p></li>
-<li><p>As stated on Reddit and in the comments below, <code>unfoldrN</code> would have been a great alternative to <code>replicateM</code> to build our random string. Unfortunately, the signature of <code>unfoldrN</code> reveals a pure nature: <code>unfoldr :: (a -&gt; Maybe (Word8, a)) -&gt; a -&gt; ByteString</code>, whereas <code>uniformR</code> returns a monadic computation. In my opinion, albeit slower, <code>replicateM</code> allows the creation of a new string without any visual clutter, keeping our code clean.</p></li>
+<li><p>As stated inside the docs <code>withSystemRandom</code> <em>is a somewhat
+expensive function, and is intended to be called only occasionally (e.g.
+once per thread). You should use the <code>Gen</code> it creates to generate
+many random numbers</em>). What we are
+doing is confining the <code>Gen</code> generation is the “inside loop”. This
+guarantee that we get a brand new <code>Gen</code> to pass to each invocation
+of <code>genString</code>.</p></li>
+<li><p>I’ve extrapolated <code>c2w8</code> from the
+<a href="http://hackage.haskell.org/package/MissingH-1.1.1.0">MissingH</a>
+library from John Goerzen. We need this because <code>uniformR</code> expects a type
+which is instance of <code>Variate</code>, which is defined for <code>Word8</code> but
+not for <code>Char</code>.</p></li>
+<li><p>As stated on Reddit and in the comments below, <code>unfoldrN</code> would have
+been a great alternative to <code>replicateM</code> to build our random string.
+Unfortunately, the signature of <code>unfoldrN</code> reveals a pure nature:
+<code>unfoldr :: (a -&gt; Maybe (Word8, a)) -&gt; a -&gt; ByteString</code>, whereas
+<code>uniformR</code> returns a monadic computation. In my opinion, albeit
+slower, <code>replicateM</code> allows the creation of a new string without any
+visual clutter, keeping our code clean.</p></li>
 </ul>
-<p>Not only is our code cleaner, but is also a great deal faster! On my machine generating 10000 words takes more or less <em>half a second</em>!</p>
+<p>Not only is our code cleaner, but is also a great deal faster! On my machine
+generating 10000 words takes more or less <em>half a second</em>!</p>
 <p>Well, a lot faster than PHP, as expected.</p>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2012-10-18-fast-random-strings-generation-in-haskell.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2012-10-18-fast-random-strings-generation-in-haskell.html';
-  var disqus_title = 'Fast Random Strings Generation in Haskell';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>

@@ -1,94 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The simplest Haskell Priority Queue implementation I know of — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The simplest Haskell Priority Queue implementation I know of — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="The simplest Haskell Priority Queue implementation I know of — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">The simplest Haskell Priority Queue implementation I know of</h1>
+    <div class="post__meta">
+      <span>2017-04-07</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/data-structures.html" class="chip chip--default">data-structures</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>The simplest Haskell Priority Queue implementation I know of</h1>
-
-<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'data-structures'." href="../tags/data-structures.html">data-structures</a>.</p>
-<br>
-<p>Nothing about what I’m going to say is novel or particularly mind-blowing, but yet useful, especially on programming competitions websites like HackerRank. This implementation is shamelessly stolen from <a href="http://www.cambridge.org/it/academic/subjects/computer-science/programming-languages-and-applied-logic/purely-functional-data-structures?format=PB&amp;isbn=9780521663502#RLHQsBjwMXbXyUFW.97">Okasaki’s book</a>.</p>
-<p>A <a href="http://algs4.cs.princeton.edu/24pq/">Priority Queue</a> can be easily implemented in an imperative setting but is not totally obvious how that could efficiently translate into a functional language, especially in a pure language like Haskell.</p>
-<p>See <a href="http://typeocaml.com/2015/03/12/heap-leftist-tree/">this blog post</a> for another excellent implementation, but in OCaml (always based on Okasaki).</p>
+  <div class="post__body">
+    <p>Nothing about what I’m going to say is novel or particularly mind-blowing,
+but yet useful, especially on programming competitions websites like HackerRank.
+This implementation is shamelessly stolen from <a href="http://www.cambridge.org/it/academic/subjects/computer-science/programming-languages-and-applied-logic/purely-functional-data-structures?format=PB&amp;isbn=9780521663502#RLHQsBjwMXbXyUFW.97">Okasaki’s book</a>.</p>
+<p>A <a href="http://algs4.cs.princeton.edu/24pq/">Priority Queue</a> can be easily implemented
+in an imperative setting but is not totally obvious how that could efficiently
+translate into a functional language, especially in a pure language like Haskell.</p>
+<p>See <a href="http://typeocaml.com/2015/03/12/heap-leftist-tree/">this blog post</a> for another excellent
+implementation, but in OCaml (always based on Okasaki).</p>
 <p>This is a Literate Haskell post. Let’s begin with the usual importing fandango:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">PriorityQueue</span> <span class="kw">where</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.List</span> <span class="kw">hiding</span> (insert)</span></code></pre></div>
-<p>“Leftist heaps always keeps the left branches of all roots being the longer and in worst case, they are as long as the right branches. In other word, all right branches of all roots are shortest. In order to maintain this property, <strong>each node has a rank, which indidates the length of the path between the node and the right most leaf.</strong>” – <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>“Leftist heaps always keeps the left branches of all roots being the longer and in worst case,
+they are as long as the right branches. In other word, all right branches of all roots are shortest.
+In order to maintain this property, <strong>each node has a rank, which indidates the
+length of the path between the node and the right most leaf.</strong>” – <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Rank</span> <span class="ot">=</span> <span class="dt">Int</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Heap</span> a <span class="ot">=</span> <span class="dt">Tip</span> <span class="op">|</span> <span class="dt">Node</span> <span class="ot">{-# UNPACK #-}</span> <span class="op">!</span><span class="dt">Rank</span> a (<span class="dt">Heap</span> a) (<span class="dt">Heap</span> a) <span class="kw">deriving</span> <span class="dt">Show</span></span>
@@ -99,7 +84,9 @@
 <div class="sourceCode" id="cb3"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fromList ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fromList [] <span class="ot">=</span> <span class="dt">Tip</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fromList (x<span class="op">:</span>xs) <span class="ot">=</span> foldl' (\hp val <span class="ot">-&gt;</span> insert val hp) (singleton x) xs</span></code></pre></div>
-<p><code>makeHeap</code> is straightforward: we compare the two ranks, and we preserve the leftist property by setting as the rank the min of the two, and storing as the right child the smallest (aka with smallest rank) child.</p>
+<p><code>makeHeap</code> is straightforward: we compare the two ranks, and we preserve
+the leftist property by setting as the rank the min of the two, and storing
+as the right child the smallest (aka with smallest rank) child.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">makeHeap ::</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>makeHeap x a b <span class="ot">=</span> <span class="kw">if</span> rank a <span class="op">&gt;=</span> rank b <span class="kw">then</span> <span class="dt">Node</span> (rank b <span class="op">+</span> <span class="dv">1</span>) x a b</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">else</span> <span class="dt">Node</span> (rank a <span class="op">+</span> <span class="dv">1</span>) x b a</span>
@@ -136,42 +123,28 @@
 <span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="ot">extractMin ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, <span class="dt">Heap</span> a)</span>
 <span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>extractMin <span class="dt">Tip</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
 <span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>extractMin (<span class="dt">Node</span> _ x a b) <span class="ot">=</span> <span class="dt">Just</span> (x, merge a b)</span></code></pre></div>
-<section class="footnotes" role="doc-endnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1" role="doc-endnote"><p>http://typeocaml.com/2015/03/12/heap-leftist-tree/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>http://typeocaml.com/2015/03/12/heap-leftist-tree/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html';
-  var disqus_title = 'The simplest Haskell Priority Queue implementation I know of';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>

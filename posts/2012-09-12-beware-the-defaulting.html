@@ -1,91 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beware the defaulting — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Beware the defaulting — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Beware the defaulting — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">Beware the defaulting</h1>
+    <div class="post__meta">
+      <span>2012-09-12</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/fp.html" class="chip chip--types">fp</a><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/ocaml.html" class="chip chip--types">ocaml</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>Beware the defaulting</h1>
-
-<p>Posted in: <a title="All pages tagged 'fp'." href="../tags/fp.html">fp</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'ocaml'." href="../tags/ocaml.html">ocaml</a>.</p>
-<br>
-<p>It started innocently enough. I was comparing execution times (as I usually do) between different programming languages. This time was the turn of OCaml. I’ve implemented in it the usual Project Euler #5 problem, because It’s easy and computationally not too expensive. This is the OCaml implementation:</p>
+  <div class="post__body">
+    <p>It started innocently enough. I was comparing execution times (as I usually
+do) between different programming languages. This time was the turn of
+OCaml. I’ve implemented in it the usual Project Euler #5 problem, because
+It’s easy and computationally not too expensive. This is the OCaml
+implementation:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> Core.Std</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> div_pred n seq =</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.for_all seq (<span class="kw">fun</span> x -&gt; Int.(=) (n <span class="kw">mod</span> x) <span class="dv">0</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.for_all seq (<span class="kw">fun</span> x -&gt; <span class="dt">Int</span>.(=) (n <span class="kw">mod</span> x) <span class="dv">0</span>)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> solver =</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> seq = <span class="dt">List</span>.range ~stride:(<span class="dv">-1</span>) <span class="dv">20</span> <span class="dv">1</span> <span class="kw">in</span></span>
@@ -100,7 +81,8 @@
 <pre><code>232792560
 ./euler5  0,25s user 0,01s system 97% cpu 0,275 total
 </code></pre>
-<p>This was an old version I implemented in Haskell, focusing on expressiveness:</p>
+<p>This was an old version I implemented in Haskell, focusing on
+expressiveness:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.List</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>solver <span class="ot">=</span> find (\x <span class="ot">-&gt;</span> divPred x) [<span class="dv">20</span>,<span class="dv">40</span><span class="op">..</span>]</span>
@@ -111,7 +93,11 @@
 <p>Then I executed it:</p>
 <pre><code>Just 232792560
 ./euler5  0,84s user 0,05s system 95% cpu 0,934 total</code></pre>
-<p>Uhm.. 3 times slower then the OCaml version, must be the overhead introduced by list lazyness, I thought, because I’m creating an infinite list and asking to it for the next value until I find one that respect my predicate. So I said “<em>Let’s try removing the infinite list</em>” and I produced this:</p>
+<p>Uhm.. 3 times slower then the OCaml version, must be the overhead
+introduced by list lazyness, I thought, because I’m creating an
+infinite list and asking to it for the next value until I find one
+that respect my predicate. So I said “<em>Let’s try removing the infinite
+list</em>” and I produced this:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">solver ::</span> (<span class="dt">Integral</span> a) <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> a</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>solver n lst <span class="ot">=</span> <span class="kw">if</span> divPred n lst <span class="kw">then</span> n <span class="kw">else</span> solver (n <span class="op">+</span> <span class="dv">20</span>) lst</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -120,14 +106,23 @@
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> solver <span class="dv">20</span> [<span class="dv">20</span>,<span class="dv">19</span><span class="op">..</span><span class="dv">2</span>]</span></code></pre></div>
-<p>I’ve also added the signature to aid the compiler with type inference. This version is slightly faster:</p>
+<p>I’ve also added the signature to aid the compiler with type inference.
+This version is slightly faster:</p>
 <pre><code>232792560
 ./euler5  0,62s user 0,11s system 96% cpu 0,761 total</code></pre>
-<p>But still slower than OCaml’s version. I was beginning to struggle with bang pattern and seq wizardry when I notices a warning by <strong>ghc-mod</strong>:</p>
+<p>But still slower than OCaml’s version. I was beginning to struggle with
+bang pattern and seq wizardry when I notices a warning by <strong>ghc-mod</strong>:</p>
 <div data-align="center" data-markdown="1">
-<p><br><br> Defaulting the following constraint(s) to type `Integer’ <br><br> <br><br></p>
+<p><br><br>
+Defaulting the following constraint(s) to type `Integer’
+<br><br>
+<br><br></p>
 </div>
-<p>It was referring to the last list, the one in the <strong>main</strong> function. So I thought “<em>Let’s restrict it’s type to Int. After all, the Integer type allows numbers to be very huge, and you pay for this feature. Furthermore, I’m sure that my solution will be in the Int type range</em>”. This is the final version:</p>
+<p>It was referring to the last list, the one in the <strong>main</strong> function. So
+I thought “<em>Let’s restrict it’s type to Int. After all, the Integer type allows
+numbers to be very huge, and you pay for this feature. Furthermore, I’m
+sure that my solution will be in the Int type range</em>”. This is the
+final version:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">solver ::</span> (<span class="dt">Integral</span> a) <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> a</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>solver n lst <span class="ot">=</span> <span class="kw">if</span> divPred n lst <span class="kw">then</span> n <span class="kw">else</span> solver (n <span class="op">+</span> <span class="dv">20</span>) lst</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -136,42 +131,29 @@
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> solver <span class="dv">20</span> ([<span class="dv">20</span>,<span class="dv">19</span><span class="op">..</span><span class="dv">2</span>]<span class="ot"> ::</span> [<span class="dt">Int</span>])</span></code></pre></div>
-<p>With my huge surprise, this runs as fast as the OCaml version, paying almost no overhead for the (little) lazy list:</p>
+<p>With my huge surprise, this runs as fast as the OCaml version, paying
+almost no overhead for the (little) lazy list:</p>
 <pre><code>232792560
 ./euler5  0,28s user 0,02s system 99% cpu 0,305 total</code></pre>
 <div data-align="center" data-markdown="1">
 <p><strong>Lesson learned. Beware the defaulting.</strong></p>
 </div>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2012-09-12-beware-the-defaulting.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2012-09-12-beware-the-defaulting.html';
-  var disqus_title = 'Beware the defaulting';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>

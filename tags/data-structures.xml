@@ -1,28 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <title>Alfredo Di Napoli's Tech Blog</title>
-    <link href="http://www.alfredodinapoli.com/tags/data-structures.xml" rel="self" />
-    <link href="http://www.alfredodinapoli.com" />
-    <id>http://www.alfredodinapoli.com/tags/data-structures.xml</id>
+    <subtitle><![CDATA[Personal blog of Alfredo Di Napoli]]></subtitle>
+    <link href="https://www.alfredodinapoli.com/tags/data-structures.xml" rel="self" />
+    <link href="https://www.alfredodinapoli.com" />
+    <id>https://www.alfredodinapoli.com/tags/data-structures.xml</id>
     <author>
         <name>Alfredo Di Napoli</name>
+        
         <email>alfredo.dinapoli@gmail.com</email>
+        
     </author>
     <updated>2017-04-07T00:00:00Z</updated>
     <entry>
     <title>The simplest Haskell Priority Queue implementation I know of</title>
-    <link href="http://www.alfredodinapoli.com/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html" />
-    <id>http://www.alfredodinapoli.com/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html</id>
+    <link href="https://www.alfredodinapoli.com/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html" />
+    <id>https://www.alfredodinapoli.com/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html</id>
     <published>2017-04-07T00:00:00Z</published>
     <updated>2017-04-07T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<p>Nothing about what I’m going to say is novel or particularly mind-blowing, but yet useful, especially on programming competitions websites like HackerRank. This implementation is shamelessly stolen from <a href="http://www.cambridge.org/it/academic/subjects/computer-science/programming-languages-and-applied-logic/purely-functional-data-structures?format=PB&amp;isbn=9780521663502#RLHQsBjwMXbXyUFW.97">Okasaki’s book</a>.</p>
-<p>A <a href="http://algs4.cs.princeton.edu/24pq/">Priority Queue</a> can be easily implemented in an imperative setting but is not totally obvious how that could efficiently translate into a functional language, especially in a pure language like Haskell.</p>
-<p>See <a href="http://typeocaml.com/2015/03/12/heap-leftist-tree/">this blog post</a> for another excellent implementation, but in OCaml (always based on Okasaki).</p>
+    <summary type="html"><![CDATA[<p>Nothing about what I’m going to say is novel or particularly mind-blowing,
+but yet useful, especially on programming competitions websites like HackerRank.
+This implementation is shamelessly stolen from <a href="http://www.cambridge.org/it/academic/subjects/computer-science/programming-languages-and-applied-logic/purely-functional-data-structures?format=PB&amp;isbn=9780521663502#RLHQsBjwMXbXyUFW.97">Okasaki’s book</a>.</p>
+<p>A <a href="http://algs4.cs.princeton.edu/24pq/">Priority Queue</a> can be easily implemented
+in an imperative setting but is not totally obvious how that could efficiently
+translate into a functional language, especially in a pure language like Haskell.</p>
+<p>See <a href="http://typeocaml.com/2015/03/12/heap-leftist-tree/">this blog post</a> for another excellent
+implementation, but in OCaml (always based on Okasaki).</p>
 <p>This is a Literate Haskell post. Let’s begin with the usual importing fandango:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">PriorityQueue</span> <span class="kw">where</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.List</span> <span class="kw">hiding</span> (insert)</span></code></pre></div>
-<p>“Leftist heaps always keeps the left branches of all roots being the longer and in worst case, they are as long as the right branches. In other word, all right branches of all roots are shortest. In order to maintain this property, <strong>each node has a rank, which indidates the length of the path between the node and the right most leaf.</strong>” – <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>“Leftist heaps always keeps the left branches of all roots being the longer and in worst case,
+they are as long as the right branches. In other word, all right branches of all roots are shortest.
+In order to maintain this property, <strong>each node has a rank, which indidates the
+length of the path between the node and the right most leaf.</strong>” – <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Rank</span> <span class="ot">=</span> <span class="dt">Int</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Heap</span> a <span class="ot">=</span> <span class="dt">Tip</span> <span class="op">|</span> <span class="dt">Node</span> <span class="ot">{-# UNPACK #-}</span> <span class="op">!</span><span class="dt">Rank</span> a (<span class="dt">Heap</span> a) (<span class="dt">Heap</span> a) <span class="kw">deriving</span> <span class="dt">Show</span></span>
@@ -33,7 +44,9 @@
 <div class="sourceCode" id="cb3"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fromList ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fromList [] <span class="ot">=</span> <span class="dt">Tip</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fromList (x<span class="op">:</span>xs) <span class="ot">=</span> foldl&#39; (\hp val <span class="ot">-&gt;</span> insert val hp) (singleton x) xs</span></code></pre></div>
-<p><code>makeHeap</code> is straightforward: we compare the two ranks, and we preserve the leftist property by setting as the rank the min of the two, and storing as the right child the smallest (aka with smallest rank) child.</p>
+<p><code>makeHeap</code> is straightforward: we compare the two ranks, and we preserve
+the leftist property by setting as the rank the min of the two, and storing
+as the right child the smallest (aka with smallest rank) child.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">makeHeap ::</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Heap</span> a</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>makeHeap x a b <span class="ot">=</span> <span class="kw">if</span> rank a <span class="op">&gt;=</span> rank b <span class="kw">then</span> <span class="dt">Node</span> (rank b <span class="op">+</span> <span class="dv">1</span>) x a b</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">else</span> <span class="dt">Node</span> (rank a <span class="op">+</span> <span class="dv">1</span>) x b a</span>
@@ -70,10 +83,10 @@
 <span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="ot">extractMin ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Heap</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, <span class="dt">Heap</span> a)</span>
 <span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>extractMin <span class="dt">Tip</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
 <span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>extractMin (<span class="dt">Node</span> _ x a b) <span class="ot">=</span> <span class="dt">Just</span> (x, merge a b)</span></code></pre></div>
-<section class="footnotes" role="doc-endnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1" role="doc-endnote"><p>http://typeocaml.com/2015/03/12/heap-leftist-tree/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>http://typeocaml.com/2015/03/12/heap-leftist-tree/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>]]></summary>
 </entry>

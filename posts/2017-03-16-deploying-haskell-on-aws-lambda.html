@@ -1,89 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" content="text/html" http-equiv="content-type" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="title" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="description" />
-    <meta content="Alfredo Di Napoli, Di Napoli Alfredo, Haskell, C++, Python, Scala
-    Programmer, Engineer, Functional, Programmatore, Roma, Web" name="keywords" />
-    <meta content="alfredo.dinapoli@gmail.com" name="Author" /><meta content="global" name="distribution" />
-    <meta content="document" name="resource-type" /><meta content="Alfredo Di Napoli" name="CreatedBy" />
-    <meta content="General" name="RATING" />
-    <meta content="all,index,follow" name="ROBOTS" />
-    <meta content="15 days" name="REVISIT-AFTER" />
-    <meta content="Public" name="document-type" />
-    <meta content="Safe for Kids" name="document-rating" />
-    <meta content="Global" name="document-distribution" />
-    <meta content="internet" name="document-classification" />
-    <meta content="Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer" name="abstract" />
-    <meta content="en" http-equiv="content-language" />
-    <meta content="Aladin" name="robots" />
-    <meta content="scooter" name="robots" />
-    <meta content="Crawler" name="robots" />
-    <meta content="Eule-Robot" name="robots" />
-    <meta content="excite" name="robots" />
-    <meta content="Flipper/1.1" name="robots" />
-    <meta content="SmartCrawl" name="robots" />
-    <meta content="Motor0.5" name="robots" />
-    <meta content="Lycos" name="robots" />
-    <meta content="Google" name="robots" />
-    <meta content="Bing" name="robots" />
-    <meta content="Copyright &copy; Alfredo Di Napoli - All rights reserved" name="copyright" />
-    <meta content="web design, functional, haskell, scala, python, programming" name="classification" />
-    <meta content="GLOBAL" name="distribution" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deploying Haskell on AWS Lambda — Alfredo Di Napoli</title>
+    <meta name="description" content="Alfredo Di Napoli — Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta name="author" content="Alfredo Di Napoli" />
 
-    <title>Alfredo Di Napoli - Computer Scientist, Scala and Haskell Programmer</title>
-    <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/syntax.css" rel="stylesheet" type="text/css" media="screen" />
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" media="screen" />
-    
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Deploying Haskell on AWS Lambda — Alfredo Di Napoli" />
+    <meta property="og:description" content="Senior Haskell engineer in Rome. Functional programming, type systems, distributed systems." />
+    <meta property="og:image" content="/img/alfredo.jpg" />
+    <meta property="og:url" content="https://www.alfredodinapoli.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Deploying Haskell on AWS Lambda — Alfredo Di Napoli" />
+    <meta name="twitter:description" content="Senior Haskell engineer in Rome." />
+
+    <link rel="alternate" type="application/atom+xml" href="../rss.xml" title="Alfredo Di Napoli — Atom feed" />
+
+    <link rel="preload" href="../css/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../css/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="../css/screen.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+    <link rel="icon" type="image/svg+xml" href="../img/enso.svg" />
   </head>
 
   <body>
-    <div class="container">
+    <header class="site-header">
+      <a class="site-header__brand" href="../index.html">
+        <img class="site-header__avatar" src="../img/alfredo.jpg" alt="AD" />
+        <span>alfredo</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../posts.html">Posts</a>
+        <a href="../oss.html">OSS</a>
+        <a href="../talks.html">Talks</a>
+        <a href="../cv.html">CV</a>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <main>
+        <article class="post">
+  <header>
+    <h1 class="post__title">Deploying Haskell on AWS Lambda</h1>
+    <div class="post__meta">
+      <span>2017-03-16</span>
       
-      <!-- start header -->
-      <div id="header" class="row">
+        <span><a href="tags/haskell.html" class="chip chip--haskell">haskell</a><a href="tags/aws.html" class="chip chip--haskell">aws</a></span>
+      
+    </div>
+  </header>
 
-        <div class="col-5">
-          <div class="col-7">
-            <em class="lead">Simplicity is the ultimate sophistication.</em>
-          </div>
-
-          <div class="col-5 pull-left">
-            <img src="../img/enso.png" width="100" />
-          </div>
-        </div>
-        
-        <div class="col-7">
-          <div id="menu" class="pull-right">
-            <a href="../index.html">Home</a> ●
-            <a href="../posts.html">Blog</a> ●
-            <a href="../oss.html">Projects</a> ●
-            <a href="../talks.html">Talks</a> ●
-            <a href="../cv_eu/cv_eu.html">CV</a> ●
-            <a href="../contacts.html">Contacts</a>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- end header -->
-      <div class="row">
-        <hr>
-          <!-- content goes here -->
-          <script type="text/javascript">
-  var disqus_developer = 1;
-</script>
-
-
-<h1>Deploying Haskell on AWS Lambda</h1>
-
-<p>Posted in: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'aws'." href="../tags/aws.html">aws</a>.</p>
-<br>
-<p>Originally published in IRIS Connect’s <a href="http://engineers.irisconnect.net/posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Engineering blog</a>.</p>
+  <div class="post__body">
+    <p>Originally published in IRIS Connect’s <a href="http://engineers.irisconnect.net/posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Engineering blog</a>.</p>
 <h3 id="background">Background</h3>
-<p>At work I was put on a new project involving a low-volume application where a customer would upload some CSV files inside an <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html">S3</a> bucket, and this event would trigger some sort of server-side computation, to parse and validate the CSV files and produce some output. As soon as I looked at the requirements, <a href="https://aws.amazon.com/lambda/">AWS Lamba</a> came to mind, especially because we didn’t want to maintain a server infrastructure due to the nature of the project. What tipped the scale was the fact AWS supports Lambda as one of the <a href="https://aws.amazon.com/blogs/aws/s3-event-notification/">notification mediums</a> to respond to an S3 event; upon seeing that my mind was set!</p>
+<p>At work I was put on a new project involving a low-volume application where a customer would upload some CSV files
+inside an <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html">S3</a> bucket, and this event would trigger
+some sort of server-side computation, to parse and validate the CSV files and produce some output. As soon as I
+looked at the requirements, <a href="https://aws.amazon.com/lambda/">AWS Lamba</a> came to mind, especially because
+we didn’t want to maintain a server infrastructure due to the nature of the project. What tipped the scale was the fact AWS supports Lambda as one
+of the <a href="https://aws.amazon.com/blogs/aws/s3-event-notification/">notification mediums</a> to respond to an S3 event; upon seeing that my mind was set!</p>
 <p>In a nutshell, this is the flow of the app:</p>
 <div class="figure text-center">
 <img src="https://media.amazonwebservices.com/blog/2014/s3_notification_flow_2.png" alt="Image courtesy of Amazon">
@@ -92,7 +74,9 @@ Image courtesy of Amazon
 </p>
 </div>
 <p><br></p>
-<p>AWS Lambda is capable of running any binary, as long as it’s statically linked and compiled for x86 Linux, but at the same time it doesn’t offer first-class support for Haskell, but it’s possible to spawn an external process via the Node.js API. So the trick is to:</p>
+<p>AWS Lambda is capable of running any binary, as long as it’s statically linked and compiled for x86 Linux, but at
+the same time it doesn’t offer first-class support for Haskell, but it’s possible to spawn an external
+process via the Node.js API. So the trick is to:</p>
 <ul>
 <li>Use Docker to generate a Linux executable</li>
 <li>Create a JS Shim to spawn a process calling our executable</li>
@@ -100,11 +84,16 @@ Image courtesy of Amazon
 <li>Upload to AWS Lambda</li>
 <li>Watch out for any pitfalls</li>
 </ul>
-<p>Needless to say that we need the Docker step because we are working on an OSX machine, whilst targeting Linux. Cross-compiling GHC for Linux is a bit of a pain, so it’s definitely way quicker to use Docker.</p>
+<p>Needless to say that we need the Docker step because we are working on an OSX machine, whilst targeting
+Linux. Cross-compiling GHC for Linux is a bit of a pain, so it’s definitely way quicker to use Docker.</p>
 <h4 id="optional-step-reduce-the-size-of-the-output-binary">(Optional step) Reduce the size of the output binary</h4>
-<p>When I was working remotely from my parent’s house in Rome, I did have at my disposal only a humble domestic DSL connection, and definitely every byte mattered when it came to transfer data from my laptop into S3. This is why I’ve got into the habit of compressing my executables with <a href="https://upx.github.io/">UPX</a>. The rest of the post takes that into the account, but note how such compression step is not required to deploy on AWS Lambda.</p>
+<p>When I was working remotely from my parent’s house in Rome, I did have at my disposal only a humble domestic DSL connection,
+and definitely every byte mattered when it came to transfer data from my laptop into S3. This is why I’ve got into the habit
+of compressing my executables with <a href="https://upx.github.io/">UPX</a>. The rest of the post takes that into the account, but note
+how such compression step is not required to deploy on AWS Lambda.</p>
 <h3 id="use-docker-to-generate-a-linux-executable">Use Docker to generate a Linux executable</h3>
-<p>We can use a script from the process <a href="http://www.alfredodinapoli.com/posts/2015-11-03-how-i-deploy-haskell-code.html">outlined</a> in my personal blog. It basically creates a new Docker Image called “ghc-linux-6.5-builder” using <code>Build.plan</code> as the Docker file. <code>Build.plan</code> itself is quite simple:</p>
+<p>We can use a script from the process <a href="http://www.alfredodinapoli.com/posts/2015-11-03-how-i-deploy-haskell-code.html">outlined</a> in my personal blog.
+It basically creates a new Docker Image called “ghc-linux-6.5-builder” using <code>Build.plan</code> as the Docker file. <code>Build.plan</code> itself is quite simple:</p>
 <pre class="shell"><code>FROM fpco/stack-build:lts-6.5
 
 ADD .  /usr/lib/haskell
@@ -128,7 +117,13 @@ RUN chmod 0600 /root/.ssh/id_rsa
 RUN chmod 0600 /root/.ssh/id_rsa
 
 CMD [&quot;stack&quot;]</code></pre>
-<p>We are starting from the <code>lts-6.5</code> Docker image FPComplete is providing us (which already includes all the system libraries that all the LTS 6.5 deps will need to link against) plus adding our own <code>.ssh/id_rsa</code> to make sure we can clone stuff from GitHub (this passage is optional and should only be required if we clone stuff from private repositories). Note that we are using a somewhat outdated LTS revision as with newer ones using GHC 8 I was getting an error whilst installing GHC (seemed a problem related to the toolchain), which unfortunately I didn’t have time to investigate further. Once everything has built correctly, we can simply alias <code>stack-linux</code> to be an invocation of the <code>stack</code> command via this newly built Docker image:</p>
+<p>We are starting from the <code>lts-6.5</code> Docker image FPComplete is providing us (which already includes all the system
+libraries that all the LTS 6.5 deps will need to link against) plus adding our own <code>.ssh/id_rsa</code> to make sure
+we can clone stuff from GitHub (this passage is optional and should only be required if we clone stuff from
+private repositories). Note that we are using a somewhat outdated LTS revision as with newer ones using GHC 8 I
+was getting an error whilst installing GHC (seemed a problem related to the toolchain), which unfortunately I
+didn’t have time to investigate further. Once everything has built correctly, we can simply alias
+<code>stack-linux</code> to be an invocation of the <code>stack</code> command via this newly built Docker image:</p>
 <pre class="shell"><code>
 #!/usr/bin/env bash
 
@@ -139,7 +134,13 @@ docker run --rm \
        -v $PWD/.stack-work:/usr/lib/haskell/.stack-work \
        -v $HOME/.stack:/root/.stack \
        ghc-linux-6.5-builder:latest stack --allow-different-user $@</code></pre>
-<p>You can see we are targeting an OSX machine, due to the call to <code>docker-machine</code>. Mapping host directories like <code>$HOME/.stack</code> will also ensure we will be caching packages built from one invocation to the other, making the process much quicker overall. So, to summarise, when we call <code>build_linux</code> what really happens is that we are first creating the new Docker image (or updating it), and finally calling <code>stack-linux install</code> as we would normally do on our local machine, but the cool thing here is that the build is going to happen on the <em>Docker container</em> and due to the fact we mounted the output of the install to <code>linux-dist</code> on our local machine, at the end of the process we will have a nice Linux binary ready to be deployed on AWS Lambda!</p>
+<p>You can see we are targeting an OSX machine, due to the call to <code>docker-machine</code>.
+Mapping host directories like <code>$HOME/.stack</code> will also ensure we will be caching packages built from one invocation
+to the other, making the process much quicker overall. So, to summarise, when we call <code>build_linux</code> what really
+happens is that we are first creating the new Docker image (or updating it), and finally calling <code>stack-linux install</code>
+as we would normally do on our local machine, but the cool thing here is that the build is going to happen
+on the <em>Docker container</em> and due to the fact we mounted the output of the install to <code>linux-dist</code> on our
+local machine, at the end of the process we will have a nice Linux binary ready to be deployed on AWS Lambda!</p>
 <p>Here is how <code>build_linux.sh</code> is structured:</p>
 <pre class="shell"><code>#!/usr/bin/env bash
 
@@ -154,7 +155,9 @@ upx linux-dist/bin/ma-csv-proc</code></pre>
 2.6M    linux-dist/bin/ma-csv-proc</code></pre>
 <p>So <code>2.6MB</code> is not bad at all for a full Haskell app which deserialise JSON from the network and parse CSV files!</p>
 <h3 id="create-a-js-shim-the-main-handler">Create a JS Shim (the Main Handler)</h3>
-<p>In order for AWS Lambda to run our code, we need an entrypoint, which we cannot write in Haskell as AWS Lambda doesn’t have first-class support for it. What we can do, though, is to create one using JavaScript and Node, and use the <a href="https://nodejs.org/api/child_process.html">Node.js process API</a> to spawn our executable:</p>
+<p>In order for AWS Lambda to run our code, we need an entrypoint, which we cannot write in Haskell as AWS Lambda
+doesn’t have first-class support for it. What we can do, though, is to create one using JavaScript and Node,
+and use the <a href="https://nodejs.org/api/child_process.html">Node.js process API</a> to spawn our executable:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> spawn <span class="op">=</span> <span class="pp">require</span>(<span class="st">'child_process'</span>)<span class="op">.</span><span class="at">spawn</span><span class="op">;</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>exports<span class="op">.</span><span class="at">handler</span> <span class="op">=</span> <span class="kw">function</span>(<span class="bu">event</span><span class="op">,</span> context) {</span>
@@ -187,7 +190,9 @@ upx linux-dist/bin/ma-csv-proc</code></pre>
 <span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="st">'context'</span><span class="op">:</span> context</span>
 <span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    }) <span class="op">+</span> <span class="st">'</span><span class="sc">\n</span><span class="st">'</span>)<span class="op">;</span></span>
 <span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<p>Note something important: we are passing the <code>event</code> and the <code>context</code> that AWS sends us as a JSON into the stdin of our Haskell app. This ensure we can deserialise it on the Haskell side and grab the event AWS sent us, so we can react to it:</p>
+<p>Note something important: we are passing the <code>event</code> and the <code>context</code> that AWS sends us as a JSON into the stdin of
+our Haskell app. This ensure we can deserialise it on the Haskell side and grab the event AWS sent us, so we can
+react to it:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TemplateHaskell #-}</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE ScopedTypeVariables #-}</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></span>
@@ -215,7 +220,14 @@ upx linux-dist/bin/ma-csv-proc</code></pre>
 <span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>      exitFailure</span>
 <span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> (<span class="ot">ri ::</span> <span class="dt">RawInput</span>) <span class="ot">-&gt;</span> <span class="co">-- Do stuff</span></span></code></pre></div>
 <h3 id="bundle-everything-into-a-zip-file-including-3rd-party-deps">Bundle everything into a zip file (including 3rd party deps)</h3>
-<p>Lambdas are running (as you would expect) in a sandboxed environment, so it comes as no surprise they don’t have all the executables you might need during your program’s execution. But not all is lost, as it’s entirely possible to ship them as part of the final .zip we’ll deploy. The only 2 constraints is that they should be self-contained (statically linked or otherwise) and built for Linux x86. Believe it or not Lambda doesn’t come with the excellent <a href="https://aws.amazon.com/cli/">aws-cli</a>, installed by default, so I had to package it (running it is not a problem as AWS Lambda uses IAM roles so permissioning is taken care of automatically). There is <a href="https://alestic.com/2016/11/aws-lambda-awscli/">an excellent post</a> about bundling <code>aws-cli</code> for AWS Lambda so I will simply redirect there for completeness.</p>
+<p>Lambdas are running (as you would expect) in a sandboxed environment, so it comes as no surprise
+they don’t have all the executables you might need during your program’s execution. But not all is lost,
+as it’s entirely possible to ship them as part of the final .zip we’ll deploy. The only 2 constraints is
+that they should be self-contained (statically linked or otherwise) and built for Linux x86.
+Believe it or not Lambda doesn’t come with the excellent <a href="https://aws.amazon.com/cli/">aws-cli</a>,
+installed by default, so I had to package it (running it is not a problem as AWS Lambda uses IAM roles so permissioning is taken care of automatically).
+There is <a href="https://alestic.com/2016/11/aws-lambda-awscli/">an excellent post</a> about bundling <code>aws-cli</code>
+for AWS Lambda so I will simply redirect there for completeness.</p>
 <p>Once we have everything we need, we can simply run a simple script to bundle everything up:</p>
 <pre class="shell"><code>#!/usr/bin/env bash
 
@@ -227,50 +239,44 @@ zip -r -j artifacts/mathematica-csv-processor.zip Main.js aws ../../linux-dist/b
 # Add aws stuff
 zip -ur artifacts/mathematica-csv-processor.zip aws-cli
 cd ../..</code></pre>
-<p>It’s very important to run the first command with <code>-j</code> which will “squash” relative paths and will ensure the binary and the JS entrypoint will be at the top level of the zip file, which is required by AWS Lambda in order to access our code correctly. Now the fun part, deploying!</p>
+<p>It’s very important to run the first command with <code>-j</code> which will “squash” relative paths and will ensure the
+binary and the JS entrypoint will be at the top level of the zip file, which is required by AWS Lambda in order
+to access our code correctly. Now the fun part, deploying!</p>
 <h3 id="upload-to-aws-lambda">Upload to AWS Lambda</h3>
-<p>Uploading to AWS Lambda is quite simple. All is needed is for the user to create a new Lambda and then upload the zip file, either from S3 or from a web form:</p>
+<p>Uploading to AWS Lambda is quite simple. All is needed is for the user to create a new Lambda and then
+upload the zip file, either from S3 or from a web form:</p>
 <p><img src="https://cloud.githubusercontent.com/assets/442035/23542521/f168633a-ffed-11e6-9c05-123f36f01e6d.png" /></p>
 <h3 id="pitfalls">Pitfalls</h3>
 <p>After deploying a new revision of the app, I was presented with a quite laconic error in the CloudWatch logs:</p>
 <pre class="shell"><code>c_poll: Permission Denied</code></pre>
-<p>There seems to be <a href="https://github.com/commercialhaskell/stack/issues/2194">a few</a> <a href="https://github.com/begriffs/postgrest/issues/566">issues</a> mentioning it explicitly, and none of them explaining what’s going on. It seems to be <a href="https://ghc.haskell.org/trac/ghc/ticket/8089?cversion=0&amp;cnum_hist=2">a GHC bug</a>, but I’m not 100% sure (as that trac ticket claims is fixed). What’s sure is that <code>c_poll</code> is coming from GHC. Luckily for me, in order to “fix” the problem, it was sufficient to simply allocate more memory for my lambda, or increase the timeout for the program execution. With 256/512 MB I was able to comfortably running my code under 10 seconds.</p>
+<p>There seems to be <a href="https://github.com/commercialhaskell/stack/issues/2194">a few</a> <a href="https://github.com/begriffs/postgrest/issues/566">issues</a>
+mentioning it explicitly, and none of them explaining what’s going on. It seems to be
+<a href="https://ghc.haskell.org/trac/ghc/ticket/8089?cversion=0&amp;cnum_hist=2">a GHC bug</a>, but I’m not 100% sure (as that trac ticket claims is fixed).
+What’s sure is that <code>c_poll</code> is coming from GHC. Luckily for me, in order to “fix” the problem, it was sufficient to
+simply allocate more memory for my lambda, or increase the timeout for the program execution.
+With 256/512 MB I was able to comfortably running my code under 10 seconds.</p>
 <h3 id="credits">Credits</h3>
 <p>More of the information I present here are not novel; I have shamelessly stolen ideas and concepts from these two excellent resources:</p>
 <ul>
 <li><a href="https://github.com/abailly/aws-lambda-haskell">https://github.com/abailly/aws-lambda-haskell</a></li>
 <li><a href="https://www.agileand.me/haskell-aws-lambda/">https://www.agileand.me/haskell-aws-lambda/</a></li>
 </ul>
+  </div>
+</article>
 
+      </main>
 
-<hr>
-Loved this post? Stay <a href="http://www.alfredodinapoli.com/rss.xml">update</a>!
-<h2><u>Comments</u></h2>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  var disqus_identifier = '/posts/2017-03-16-deploying-haskell-on-aws-lambda.html';
-  var disqus_url = 'http://www.alfredodinapoli.com' + '/posts/2017-03-16-deploying-haskell-on-aws-lambda.html';
-  var disqus_title = 'Deploying Haskell on AWS Lambda';
-  (function() {
-   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-   dsq.src = 'http://adinapoli.disqus.com/embed.js';
-   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-   })();
-</script>
- <noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=adinapoli">comments powered by Disqus.</a></p></noscript>
-
-
-
-
-
-          <!-- end of content -->
-      </div>
-    
-    <!-- end of main container -->
+      <footer class="site-footer">
+        <span>© 2012—2026 · Alfredo Di Napoli</span>
+        <span class="site-footer__spacer"></span>
+        <a href="../rss.xml">RSS</a>
+        <a href="https://github.com/adinapoli">GitHub</a>
+        <a href="../contacts.html">Contacts</a>
+      </footer>
     </div>
+
     
       
     
-
   </body>
 </html>
