@@ -1,17 +1,118 @@
-<div class="row text-center">
-  <div class="col-6">
-    <p class="lead">Hello, I'm <b>Alfredo Di Napoli</b>,
-      and I like to define myself a
-      <b>beauty-driven developer</b>.
-      I love to build things, mainly in <b>Haskell</b>.
-      I'm an <a href="https://github.com/adinapoli">open source contributor</a>,
-      a <a href="talks.html">public speaker</a> and a geek.  I pursue <b>simplicity</b> both in life and code.
-      <em>"Beauty is more important in computing than anywhere else
-      in technology because software is so complicated.
-      Beauty is the <b>ultimate defense</b> against complexity"</em> - David Gelernter
+---
+title: Home
+isindex: true
+---
+
+<section class="hero">
+  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="hero__inner">
+
+    <div class="hero__monogram">
+      <img src="/img/alfredo.jpg" alt="Alfredo Di Napoli" />
+    </div>
+
+    <h1 class="hero__name">Alfredo Di Napoli</h1>
+
+    <p class="hero__role">Senior Haskell Engineer · Distributed Systems</p>
+
+    <p class="hero__bio">
+      Beauty-driven developer. Haskell since 2010. Engineer at
+      Well-Typed. Open source contributor and public speaker based in
+      Rome.
     </p>
+
+    <div class="hero__chips">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--types">type-driven design</span>
+      <span class="chip chip--types">distributed systems</span>
+      <span class="chip chip--compilers">compilers</span>
+    </div>
+
+    <div class="hero__quote">
+      "Beauty is more important in computing than anywhere else in
+      technology because software is so complicated. Beauty is the
+      ultimate defense against complexity."
+      <span class="hero__quote-attr">— David Gelernter</span>
+    </div>
+
+    <div class="hero__cta">
+      <a class="btn btn--primary" href="/contacts.html">Get in touch</a>
+      <a class="btn btn--ghost" href="/cv.html">View my CV</a>
+    </div>
+
   </div>
-  <div id="portrait" class="col-6 pull-right">
-    <img class="img-circle" src="img/alfredo.jpg" width="250">
-  </div>
+</section>
+
+<div class="section-label">
+  <span>// what i'm building</span>
+  <span class="section-label__rule" aria-hidden="true"></span>
 </div>
+
+<section class="card-grid">
+  <a class="card card--featured" href="https://github.com/adinapoli/rusholme">
+    <div class="card__kicker">// featured</div>
+    <h3 class="card__title">Rusholme</h3>
+    <p class="card__body">A toy Haskell compiler in Zig. Frontend, Core, GRIN, LLVM/WASM/C backends. Open source, in development.</p>
+    <div class="card__tags">
+      <span class="chip chip--compilers">zig</span>
+      <span class="chip chip--compilers">llvm</span>
+      <span class="chip chip--compilers">grin</span>
+    </div>
+  </a>
+
+  <a class="card card--production" href="/talks.html">
+    <div class="card__kicker">// talks</div>
+    <h3 class="card__title">Public Speaking</h3>
+    <p class="card__body">Talks on Haskell in production, distributed systems, and video transcoding at LambdaCon, Haskell Exchange and more.</p>
+    <div class="card__tags">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--types">distributed systems</span>
+    </div>
+  </a>
+
+  <a class="card card--oss" href="https://well-typed.com/blog/2021/08/the-new-ghc-diagnostic-infrastructure/">
+    <div class="card__kicker">// open source</div>
+    <h3 class="card__title">GHC & Haskell libraries </h3>
+    <p class="card__body">Contributor to GHC as well as many Haskell open source libraries.</p>
+    <div class="card__tags">
+      <span class="chip chip--haskell">haskell</span>
+      <span class="chip chip--haskell">ghc</span>
+    </div>
+  </a>
+</section>
+
+<div class="section-label">
+  <span>// writing</span>
+  <span class="section-label__rule" aria-hidden="true"></span>
+  <a class="section-label__more" href="/posts.html">all posts →</a>
+</div>
+
+<section class="archive">
+  <ul>
+    <li class="archive__item">
+      <span class="archive__date">2018-12-20</span>
+      <span class="archive__title"><a href="/posts/2018-12-20-semi-secure-gpg-key-backup.html">How to backup and store your GPG private key (semi) securely</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/security.html">security</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-05-06</span>
+      <span class="archive__title"><a href="/posts/2017-05-06-about-monadcontrolio.html">About MonadBaseControl</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-04-07</span>
+      <span class="archive__title"><a href="/posts/2017-04-07-the-simplest-possible-haskell-heap-implementation.html">The simplest Haskell Priority Queue implementation I know of</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2017-03-16</span>
+      <span class="archive__title"><a href="/posts/2017-03-16-deploying-haskell-on-aws-lambda.html">Deploying Haskell on AWS Lambda</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/haskell.html">haskell</a></span>
+    </li>
+    <li class="archive__item">
+      <span class="archive__date">2016-10-23</span>
+      <span class="archive__title"><a href="/posts/2016-10-23-iconv-typed-an-experiment-in-api-design-and-type-safety.html">iconv-typed: An experiment in API design and type safety</a></span>
+      <span class="archive__tag"><a class="chip chip--default" href="/tags/types.html">types</a></span>
+    </li>
+  </ul>
+</section>

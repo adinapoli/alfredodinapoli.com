@@ -2,19 +2,24 @@
 
 module Main where
 
-import Data.Monoid
+import Control.Monad (forM_)
+import Data.List (intersperse)
+import System.Directory (listDirectory, removeFile)
+import System.FilePath ((</>), takeExtension)
 
 import Hakyll
-import Shelly
-
-import Debug.Trace
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html (Html, (!))
 
 removeOAndHiFiles :: Rules ()
-removeOAndHiFiles = preprocess $
-  shelly $ verbosely $ escaping False $ do
-    chdir "posts" $ do
-      rm_f "*.o"
-      rm_f "*.hi"
+removeOAndHiFiles = preprocess $ do
+  contents <- listDirectory "posts"
+  forM_ contents $ \f ->
+    case takeExtension f of
+      ".o"  -> removeFile ("posts" </> f)
+      ".hi" -> removeFile ("posts" </> f)
+      _     -> return ()
 
 -- Probably wrong.
 staticPageCompiler :: Compiler (Item String)
@@ -22,10 +27,6 @@ staticPageCompiler = getResourceBody
 
 rootRoute :: Routes
 rootRoute = gsubRoute "content/" (const "")
-
-cvRoute :: Routes
-cvRoute = gsubRoute "cv/" (const "") `composeRoutes` setExtension "html"
-
 
 main :: IO ()
 main = hakyll $ do
@@ -55,18 +56,23 @@ main = hakyll $ do
     route   idRoute
     compile copyFileCompiler
 
-  -- Static files
-  match ("content/*") $ do
+  -- Static content pages
+  -- 404: full-bleed (no .page wrapper)
+  match ("content/404.html") $ do
     route rootRoute
     compile $ staticPageCompiler
-        >>= loadAndApplyTemplate "templates/default.html" (katexCtx <> defaultContext)
+        >>= loadAndApplyTemplate "templates/default.html"
+              (katexCtx <> defaultContext)
         >>= relativizeUrls
 
-  match "cv_eu/*" $ do
+  -- All other content/*.html pages (index, contacts, oss) use the page shell
+  match ("content/*.html") $ do
     route rootRoute
     compile $ staticPageCompiler
-      >>= loadAndApplyTemplate "templates/cv_eu.html" defaultContext
-      >>= relativizeUrls
+        >>= loadAndApplyTemplate "templates/page.html" (katexCtx <> defaultContext)
+        >>= loadAndApplyTemplate "templates/default.html"
+              (katexCtx <> defaultContext)
+        >>= relativizeUrls
 
   -- Build tags
   tags <- buildTags "posts/*" (fromCapture "tags/*.html")
@@ -111,10 +117,12 @@ main = hakyll $ do
           list <- postList tags "posts/*" recentFirst
           makeItem ""
               >>= loadAndApplyTemplate "templates/posts.html"
-                (constField "title" "Posts" `mappend`
-                 constField "posts" list `mappend`
+                (constField "title" "Posts" <>
+                 constField "posts" list <>
+                 constField "isposts" "true" <>
                  defaultContext)
-              >>= loadAndApplyTemplate "templates/default.html" defaultContext
+              >>= loadAndApplyTemplate "templates/default.html"
+                (constField "title" "Posts" <> defaultContext)
               >>= relativizeUrls
 
   create ["drafts.html"] $ do
@@ -123,10 +131,11 @@ main = hakyll $ do
           list <- postList tags "drafts/*" recentFirst
           makeItem ""
               >>= loadAndApplyTemplate "templates/posts.html"
-                (constField "title" "Posts" `mappend`
-                 constField "posts" list `mappend`
+                (constField "title" "Drafts" <>
+                 constField "posts" list <>
                  defaultContext)
-              >>= loadAndApplyTemplate "templates/default.html" defaultContext
+              >>= loadAndApplyTemplate "templates/default.html"
+                (constField "title" "Drafts" <> defaultContext)
               >>= relativizeUrls
 
   -- Render RSS feed
@@ -137,19 +146,62 @@ main = hakyll $ do
 
   match "templates/*" $ compile templateCompiler
 
-  match "cv/*" $ do
-    route cvRoute
-    compile $ pandocCompiler
-      >>= loadAndApplyTemplate "templates/default.html" defaultContext
-      >>= relativizeUrls
-
 -------------------------------------------------------------------------------
 -- Ausiliary functions
 postCtx :: Tags -> Context String
 postCtx tags = mconcat [ modificationTimeField "mtime" "%U"
-                       , dateField "date" "%B %e  %Y"
-                       , tagsField "tags" tags
+                       , dateField "date" "%Y-%m-%d"
+                       , tagsFieldWith getPostTags renderTag mconcat "tags" tags
                        , defaultContext ]
+
+-- Get the tags for the current post. Hakyll's Tags stores the global map;
+-- the post's own tags come from its front matter under 'tags'.
+getPostTags :: Identifier -> Compiler [String]
+getPostTags ident = do
+    metadata <- getMetadata ident
+    return $ case lookupString "tags" metadata of
+        Nothing  -> []
+        Just ts  -> words (map (\c -> if c == ',' then ' ' else c) ts)
+
+-- Render a single tag as a chip. Unknown tags get chip--default.
+-- The new post taxonomy: haskell, types, ai, compilers, security.
+renderTag :: String -> Maybe FilePath -> Maybe Html
+renderTag _ Nothing  = Nothing
+renderTag tag (Just url) = Just $
+    H.a ! A.href (H.toValue url)
+        ! A.class_ (H.toValue ("chip chip--" <> tagColor tag))
+        $ H.toHtml (tag :: String)
+
+-- Map a tag name to a chip color class. The post taxonomy predates the
+-- chip system, so most existing tags fall back to default. New posts
+-- should use the new taxonomy: haskell, types, ai, compilers, security.
+tagColor :: String -> String
+tagColor "haskell"   = "haskell"
+tagColor "ghc"       = "haskell"
+tagColor "snap"      = "haskell"
+tagColor "aws"       = "haskell"
+tagColor "zurihac"   = "haskell"
+tagColor "types"     = "types"
+tagColor "type-families" = "types"
+tagColor "fp"        = "types"
+tagColor "scala"     = "types"
+tagColor "ocaml"     = "types"
+tagColor "ai"        = "ai"
+tagColor "compilers" = "compilers"
+tagColor "zig"       = "compilers"
+tagColor "llvm"      = "compilers"
+tagColor "grin"      = "compilers"
+tagColor "security"  = "security"
+tagColor "rust"      = "compilers"
+tagColor "vim"       = "default"
+tagColor "self"      = "default"
+tagColor "life"      = "default"
+tagColor "programming" = "default"
+tagColor "linux"     = "default"
+tagColor "macosx"    = "default"
+tagColor "bodhi"     = "default"
+tagColor "devops"    = "default"
+tagColor _           = "default"
 
 -------------------------------------------------------------------------------
 postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
@@ -169,19 +221,19 @@ feedCtx = mconcat
 
 -------------------------------------------------------------------------------
 feedConfiguration :: String -> FeedConfiguration
-feedConfiguration title = FeedConfiguration
+feedConfiguration _ = FeedConfiguration
     { feedTitle       = "Alfredo Di Napoli's Tech Blog"
     , feedDescription = "Personal blog of Alfredo Di Napoli"
     , feedAuthorName  = "Alfredo Di Napoli"
     , feedAuthorEmail = "alfredo.dinapoli@gmail.com"
-    , feedRoot        = "http://www.alfredodinapoli.com"
+    , feedRoot        = "https://www.alfredodinapoli.com"
     }
 
 katexCtx :: Context a
 katexCtx = field "katex" $ \item -> do
     katex <- getMetadataField (itemIdentifier item) "katex"
-    return $ case (traceShowId katex) of
-                    Just x | x == "true" || x == "on" -> 
+    return $ case katex of
+                    Just x | x == "true" || x == "on" ->
                         "<link rel=\"stylesheet\" href=\"/css/katex.min.css\">\n\
                         \<script type=\"text/javascript\" src=\"/js/katex.min.js\"></script>\n\
                         \<script src=\"/js/auto-render.min.js\"></script>\n\

@@ -1,0 +1,5 @@
+packages: .
+
+-- Strict build: any warning fails the build to keep the site healthy.
+package website
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns
