@@ -9,6 +9,12 @@ import           Shelly
 import           System.Environment  (getArgs)
 import           System.Exit         (ExitCode (..), exitWith)
 
+-- | Count entries in `git stash list`.
+stashCount :: Sh Int
+stashCount = do
+  out <- silently $ run "git" ["stash", "list"]
+  pure $ length $ filter (not . T.null) $ T.lines out
+
 usage :: IO ()
 usage = T.putStrLn "usage: site-ctl [build|watch|clean|publish]"
 
@@ -36,14 +42,17 @@ publish = shelly $ do
     siteEntries <- ls "_site"
     forM_ siteEntries $ \entry -> cp_r entry tmpDir
 
-    -- 4. Stash uncommitted changes
+    -- 4. Stash uncommitted changes (only ours)
     echo "\n== Stashing uncommitted changes =="
-    errExit False $ void $ run "git" ["stash", "--include-untracked", "--quiet"]
+    preCount <- stashCount
+    errExit False $ void $ run "git" ["stash", "push", "--include-untracked", "--quiet"]
+    postCount <- stashCount
+    let didStash = postCount > preCount
 
     let restore = do
           echo "\n== Restoring original branch =="
           errExit False $ void $ run "git" ["checkout", curBranch]
-          errExit False $ void $ run "git" ["stash", "pop", "--quiet"]
+          when didStash $ errExit False $ void $ run "git" ["stash", "pop", "--quiet"]
 
     -- 5. Switch to gh-pages
     echo "\n== Switching to gh-pages =="
@@ -70,8 +79,8 @@ publish = shelly $ do
     echo "\n== Switching back =="
     run_ "git" ["checkout", curBranch]
 
-    -- 10. Restore stash
-    errExit False $ void $ run "git" ["stash", "pop", "--quiet"]
+    -- 10. Restore stash (only if we created one)
+    when didStash $ errExit False $ void $ run "git" ["stash", "pop", "--quiet"]
 
   echo "\n✓ Published!"
 
