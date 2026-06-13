@@ -21,9 +21,7 @@ executable site
 
 executable site-ctl
   main-is:           SiteCtl.hs
-  default-language:  Haskell2010
+  default-language:   Haskell2010
   build-depends:     base >= 4.18 && < 5,
-                     directory,
-                     filepath,
-                     text,
-                     process
+                     shelly >= 1.9,
+                     text

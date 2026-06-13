@@ -2,126 +2,94 @@
 
 module Main where
 
-
-import           Control.Monad       (forM_, when)
+import           Control.Monad       (forM_, void)
+import qualified Data.Text           as T
 import qualified Data.Text.IO        as T
-import           System.Directory
-  ( copyFile, createDirectoryIfMissing
-  , doesDirectoryExist
-  , getCurrentDirectory
-  , listDirectory, removeDirectoryRecursive, removeFile
-  )
+import           Shelly
 import           System.Environment  (getArgs)
-import           System.Exit        (ExitCode (..), exitWith)
-import           System.FilePath    ((</>))
-import           System.Process     (readProcess, system)
+import           System.Exit         (ExitCode (..), exitWith)
+
+-- | Count entries in `git stash list`.
+stashCount :: Sh Int
+stashCount = do
+  out <- silently $ run "git" ["stash", "list"]
+  pure $ length $ filter (not . T.null) $ T.lines out
 
 usage :: IO ()
 usage = T.putStrLn "usage: site-ctl [build|watch|clean|publish]"
 
-run :: String -> IO ()
-run cmd = system cmd >>= exitWith
-
--- | Run a shell command, printing it first. Exit on failure.
-runQuiet :: String -> IO ()
-runQuiet cmd = do
-  putStrLn $ "  + " ++ cmd
-  ec <- system cmd
-  case ec of
-    ExitSuccess   -> return ()
-    ExitFailure n -> do
-      putStrLn $ "  ✗ command exited with code " ++ show n
-      exitWith ec
-
--- | Recursively copy the contents of srcDir into dstDir.
---   Preserves directory structure, skips .git.
-copyTree :: FilePath -> FilePath -> IO ()
-copyTree srcDir dstDir = do
-  createDirectoryIfMissing True dstDir
-  entries <- listDirectory srcDir
-  forM_ entries $ \name -> do
-    let src = srcDir </> name
-        dst = dstDir </> name
-    isDir <- doesDirectoryExist src
-    if isDir
-      then unlessGit name $ copyTree src dst
-      else unlessGit name $ copyFile src dst
-  where
-    unlessGit name act
-      | name == ".git" = return ()
-      | otherwise      = act
-
--- | Remove everything in a directory except .git.
-cleanExceptGit :: FilePath -> IO ()
+-- | Remove all entries in a directory except .git.
+cleanExceptGit :: FilePath -> Sh ()
 cleanExceptGit dir = do
-  entries <- listDirectory dir
-  forM_ entries $ \name -> do
-    let path = dir </> name
-    unlessGit name $ do
-      isDir <- doesDirectoryExist path
-      if isDir
-        then removeDirectoryRecursive path
-        else removeFile path
-  where
-    unlessGit name act
-      | name == ".git" = return ()
-      | otherwise      = act
+  entries <- ls dir
+  forM_ entries $ \entry ->
+    unless (toTextIgnore entry == ".git" || T.isSuffixOf "/.git" (toTextIgnore entry)) $
+      rm_rf entry
 
 publish :: IO ()
-publish = do
-  -- 1. Capture the current branch so we can return to it
-  curBranch <- trim <$> readProcess "git" ["rev-parse", "--abbrev-ref", "HEAD"] ""
-  putStrLn $ "Current branch: " ++ curBranch
+publish = shelly $ do
+  -- 1. Capture current branch
+  curBranch <- T.strip <$> run "git" ["rev-parse", "--abbrev-ref", "HEAD"]
+  echo $ "Current branch: " <> curBranch
 
-  -- 2. Rebuild to make sure _site is fresh
-  putStrLn "\n== Building site =="
-  run "cabal run site -- build"
+  -- 2. Rebuild
+  echo "\n== Building site =="
+  run_ "cabal" ["run", "site", "--", "build"]
 
-  -- 3. Stash any uncommitted changes (just in case)
-  putStrLn "\n== Stashing uncommitted changes =="
-  runQuiet "git stash --include-untracked --quiet 2>/dev/null || true"
+  -- 3. Copy _site into a temp dir before any git operations
+  echo "\n== Saving built site to temp directory =="
+  withTmpDir $ \tmpDir -> do
+    siteEntries <- ls "_site"
+    forM_ siteEntries $ \entry -> cp_r entry tmpDir
 
-  -- 4. Switch to gh-pages
-  putStrLn "\n== Switching to gh-pages =="
-  runQuiet "git checkout gh-pages"
+    -- 4. Stash uncommitted changes (only ours)
+    echo "\n== Stashing uncommitted changes =="
+    preCount <- stashCount
+    errExit False $ void $ run "git" ["stash", "push", "--include-untracked", "--quiet"]
+    postCount <- stashCount
+    let didStash = postCount > preCount
 
-  -- 5. Nuke everything except .git
-  putStrLn "\n== Replacing gh-pages content with built site =="
-  cwd <- getCurrentDirectory
-  cleanExceptGit cwd
+    let restore = do
+          echo "\n== Restoring original branch =="
+          errExit False $ void $ run "git" ["checkout", curBranch]
+          when didStash $ errExit False $ void $ run "git" ["stash", "pop", "--quiet"]
 
-  -- 6. Copy _site/ contents into root
-  let siteDir = cwd </> "_site"
-  siteExists <- doesDirectoryExist siteDir
-  when (not siteExists) $ do
-    putStrLn "  ✗ _site directory not found — did the build succeed?"
-    exitWith (ExitFailure 1)
-  copyTree siteDir cwd
+    -- 5. Switch to gh-pages
+    echo "\n== Switching to gh-pages =="
+    catchany_sh (run_ "git" ["checkout", "gh-pages"]) $ \e -> do
+      echo $ "  ✗ Failed to checkout gh-pages: " <> T.pack (show e)
+      restore
+      liftIO $ exitWith (ExitFailure 1)
 
-  -- 7. Commit and push
-  putStrLn "\n== Committing and pushing =="
-  runQuiet "git add -A"
-  runQuiet "git commit -m \"publish: site rebuild\""
-  runQuiet "git push origin gh-pages"
+    -- 6. Nuke everything except .git
+    echo "\n== Replacing gh-pages content with built site =="
+    cleanExceptGit "."
 
-  -- 8. Switch back to the original branch
-  putStrLn "\n== Switching back =="
-  runQuiet $ "git checkout " ++ curBranch
+    -- 7. Copy from temp dir into repo root
+    tmpEntries <- ls tmpDir
+    forM_ tmpEntries $ \entry -> cp_r entry "."
 
-  -- 9. Restore stashed changes
-  runQuiet "git stash pop --quiet 2>/dev/null || true"
+    -- 8. Commit and push
+    echo "\n== Committing and pushing =="
+    run_ "git" ["add", "-A"]
+    errExit False $ void $ run "git" ["commit", "-m", "publish: site rebuild"]
+    run_ "git" ["push", "origin", "gh-pages"]
 
-  putStrLn "\n✓ Published!"
+    -- 9. Switch back to original branch
+    echo "\n== Switching back =="
+    run_ "git" ["checkout", curBranch]
 
-  where
-    trim = reverse . dropWhile (== '\n') . reverse . dropWhile (== '\r')
+    -- 10. Restore stash (only if we created one)
+    when didStash $ errExit False $ void $ run "git" ["stash", "pop", "--quiet"]
+
+  echo "\n✓ Published!"
 
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-    ["build"]   -> run "cabal run site -- build"
-    ["watch"]   -> run "cabal run site -- watch"
-    ["clean"]   -> run "cabal run site -- clean"
+    ["build"]   -> shelly $ run_ "cabal" ["run", "site", "--", "build"]
+    ["watch"]   -> shelly $ run_ "cabal" ["run", "site", "--", "watch"]
+    ["clean"]   -> shelly $ run_ "cabal" ["run", "site", "--", "clean"]
     ["publish"] -> publish
     _           -> usage >> exitWith (ExitFailure 64)
